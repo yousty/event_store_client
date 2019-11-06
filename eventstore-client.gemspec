@@ -9,15 +9,15 @@ Gem::Specification.new do |spec|
   spec.version     = Eventstore::Client::VERSION
   spec.authors     = ["Sebastian Wilgosz"]
   spec.email       = ["sebastian@driggl.com"]
-  spec.homepage    = "TODO"
-  spec.summary     = "TODO: Summary of Eventstore::Client."
-  spec.description = "TODO: Description of Eventstore::Client."
+  spec.homepage    = "https://github.com/yousty/eventstore-client"
+  spec.summary     = "Ruby integration for https://eventstore.org"
+  spec.description = "Easy to use client for event-sources applications written in ruby"
   spec.license     = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
   if spec.respond_to?(:metadata)
-    spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+    spec.metadata["allowed_push_host"] = "https://rubygems.org"
   else
     raise "RubyGems 2.0 or newer is required to protect against " \
       "public gem pushes."
