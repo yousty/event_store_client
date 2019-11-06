@@ -4,6 +4,28 @@ module Eventstore
   module Client
     module Api
       class Client
+        def append_to_stream(stream_name, events, expected_version: nil)
+          headers = {
+            "ES-ExpectedVersion" => "#{expected_version}"
+          }.reject { |_key, val| val.empty? }
+
+          data = Array.wrap(event_data).map do |event|
+            {
+              eventId: event.id,
+              eventType: event.type,
+              data: event.data,
+              metadata: event.metadata
+            }
+          end
+
+          make_request(:post, "/streams/#{stream_name}", data, headers)
+        end
+
+        def delete_stream(stream_name, hard_delete)
+          headers = JSON_HEADERS.merge({"ES-HardDelete" => "#{hard_delete}"})
+          make_request(:delete, "/streams/#{stream_name}", {}, headers)
+        end
+
         def read_stream_backward(stream_name, start: 0, count: per_page)
           make_request(:get, "/streams/#{stream_name}/#{start}/backward/#{count}")
         end
@@ -26,7 +48,7 @@ module Eventstore
           connection.send(method.to_s, path) do |req|
             req.headers = req.headers.merge(headers)
             req.body = body.to_json
-            # req.body['embed'] = 'body' if method == :get
+            req.params['embed'] = 'body' if method == :get
           end
         end
 
