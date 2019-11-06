@@ -26,6 +26,9 @@ Gem::Specification.new do |spec|
   spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
   spec.add_dependency "rails", "~> 5.1.7"
+  spec.add_dependency "rss", "~> 0.2.8"
+  spec.add_dependency "faraday", "~> 0.17.0"
+  spec.add_dependency "dry-struct", "~> 1.1.1"
 
   spec.add_development_dependency "sqlite3"
 end
