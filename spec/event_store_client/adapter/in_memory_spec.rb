@@ -22,28 +22,28 @@ module EventStoreClient
         expect(metadata['created_at']).not_to be_empty
         expect(metadata['bar']).to eq('foo')
       end
-    end
 
-    it 'adds multiple events to a stream' do
-      events = [something_happened, something_else_happened]
-      expect {
-        subject.append_to_stream('sample_stream', events)
-      }.to change { subject.event_store['sample_stream']&.length }.from(nil).to(2)
+      it 'adds multiple events to a stream' do
+        events = [something_happened, something_else_happened]
+        expect {
+          subject.append_to_stream('sample_stream', events)
+        }.to change { subject.event_store['sample_stream']&.length }.from(nil).to(2)
 
-      expect(subject.event_store['sample_stream']).to include(
-        hash_including(
-          'eventId' => something_else_happened.id,
-          'data' => something_else_happened.data,
-          'eventType' => something_else_happened.type,
-          'positionEventNumber' => 1
-        ),
-        hash_including(
-          'eventId' => something_happened.id,
-          'data' => something_happened.data,
-          'eventType' => something_happened.type,
-          'positionEventNumber' => 0
+        expect(subject.event_store['sample_stream']).to include(
+          hash_including(
+            'eventId' => something_else_happened.id,
+            'data' => something_else_happened.data,
+            'eventType' => something_else_happened.type,
+            'positionEventNumber' => 1
+          ),
+          hash_including(
+            'eventId' => something_happened.id,
+            'data' => something_happened.data,
+            'eventType' => something_happened.type,
+            'positionEventNumber' => 0
+          )
         )
-      )
+      end
     end
 
     describe "#read_events_backward" do
@@ -83,6 +83,16 @@ module EventStoreClient
         expect(
           events.map { |event| event['positionEventNumber'] }
         ).to eq([0, 1])
+      end
+    end
+
+    describe "#delete_stream" do
+      it 'adds one event to a stream' do
+        subject.append_to_stream('sample_stream', something_happened)
+        expect(subject.event_store).to have_key('sample_stream')
+
+        subject.delete_stream('sample_stream')
+        expect(subject.event_store).not_to have_key('sample_stream')
       end
     end
 
