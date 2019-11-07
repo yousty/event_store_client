@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rss", "~> 0.2.8"
   spec.add_dependency "faraday", "~> 0.17.0"
   spec.add_dependency "dry-struct", "~> 1.1.1"
+  spec.add_development_dependency "rspec"
 
   spec.add_development_dependency "sqlite3"
 end
