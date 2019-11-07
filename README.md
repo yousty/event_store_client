@@ -1,14 +1,16 @@
-# Eventstore::Client
-Short description and motivation.
+# EventStoreClient
+
+An easy-to use API client for connecting ruby applications with https://eventstore.org/
 
 ## Usage
+
 How to use my plugin.
 
 ## Installation
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'eventstore-client'
+gem 'event_store_client'
 ```
 
 And then execute:
@@ -18,7 +20,7 @@ $ bundle
 
 Or install it yourself as:
 ```bash
-$ gem install eventstore-client
+$ gem install event_store_client
 ```
 
 ## Contributing

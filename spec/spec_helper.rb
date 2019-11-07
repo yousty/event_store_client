@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'irb'
-require 'eventstore/client'
-require 'eventstore/client/adapter/in_memory'
+require 'event_store_client'
+require 'event_store_client/adapter/in_memory'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|

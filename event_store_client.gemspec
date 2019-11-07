@@ -1,15 +1,15 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "eventstore/client/version"
+require "event_store_client/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |spec|
-  spec.name        = "eventstore-client"
-  spec.version     = Eventstore::Client::VERSION
+  spec.name        = "event_store_client"
+  spec.version     = EventStoreClient::VERSION
   spec.authors     = ["Sebastian Wilgosz"]
   spec.email       = ["sebastian@driggl.com"]
-  spec.homepage    = "https://github.com/yousty/eventstore-client"
+  spec.homepage    = "https://github.com/yousty/event_store_client"
   spec.summary     = "Ruby integration for https://eventstore.org"
   spec.description = "Easy to use client for event-sources applications written in ruby"
   spec.license     = "MIT"
@@ -25,7 +25,6 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  spec.add_dependency "rails", "~> 5.1.7"
   spec.add_dependency "rss", "~> 0.2.8"
   spec.add_dependency "faraday", "~> 0.17.0"
   spec.add_dependency "dry-struct", "~> 1.1.1"
