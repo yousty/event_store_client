@@ -14,8 +14,8 @@ require 'eventstore/client/event_mapper/default'
 
 require 'eventstore/client/endpoint'
 
-require 'eventstore/client/api/request_method'
-require 'eventstore/client/api/connection'
-require 'eventstore/client/api/client'
+require 'eventstore/client/adapter/api/request_method'
+require 'eventstore/client/adapter/api/connection'
+require 'eventstore/client/adapter/api/client'
 
 require 'eventstore/client/connection'

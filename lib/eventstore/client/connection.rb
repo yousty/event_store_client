@@ -49,4 +49,3 @@ module Eventstore
     end
   end
 end
-
