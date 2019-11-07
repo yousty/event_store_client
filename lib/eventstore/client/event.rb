@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "dry-struct"
+require 'securerandom'
+require 'json'
 
 module Eventstore
   module Client
@@ -15,7 +17,9 @@ module Eventstore
 
       def initialize(**args)
         @id = SecureRandom.uuid
-        args[:metadata] = (args[:metadata] || {}).merge(created_at: Time.now)
+        hash_meta =
+          JSON.parse(args[:metadata] || "{}").merge(created_at: Time.now)
+        args[:metadata] = JSON.generate(hash_meta)
         super(args)
       end
     end
