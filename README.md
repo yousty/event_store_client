@@ -2,10 +2,6 @@
 
 An easy-to use API client for connecting ruby applications with https://eventstore.org/
 
-## Usage
-
-How to use my plugin.
-
 ## Installation
 Add this line to your application's Gemfile:
 
@@ -22,6 +18,27 @@ Or install it yourself as:
 ```bash
 $ gem install event_store_client
 ```
+
+## Usage
+
+```
+# define your events
+class SomethingHappened < Dry::Struct
+  attribute :data, EventStoreClient::Types::Strict::Hash
+  attribute :metadata, EventStoreClient::Types::Strict::Hash
+end
+
+event = SomethingHappened.new(
+  data: { user_id: SecureRandom.uuid, title: "Something happened" },
+  metadata: {}
+)
+
+connection = EventStoreClient::Connection.new
+connection.publish(stream: 'dummystream', event: event)
+connection.read('dummystream')
+```
+
+
 
 ## Contributing
 Contribution directions go here.
