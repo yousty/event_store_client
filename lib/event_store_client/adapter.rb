@@ -2,6 +2,8 @@
 
 module EventStoreClient
   module Adapter
+    module Api
+    end
   end
 end
 

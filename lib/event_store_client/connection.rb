@@ -2,27 +2,28 @@
 
 module EventStoreClient
   class Connection
-    def publish(stream:, domain_event:, expected_version: nil)
-      event = adapter.new(domain_event)
+    def publish(stream:, event:, expected_version: nil)
+      serialized_event = mapper.serialize(event)
       client.append_to_stream(
-        stream, event, expected_version: expected_version
+        stream, serialized_event, expected_version: expected_version
       )
-      event
+      serialized_event
     end
 
     def read(stream, direction: 'forward')
-      if direction == 'forward'
+      response = if direction == 'forward'
         client.read_stream_forward(stream, start: 0)
       else
         client.read_stream_backward(stream, start: 0)
       end
-      res = JSON.parse[response.body]['entries'].map do |entry|
-        Event.new(
+      JSON.parse(response.body)['entries'].map do |entry|
+        event = EventStoreClient::Event.new(
           id: entry['eventId'],
           type: entry['eventType'],
-          data: JSON.parse(event.data),
-          metadata: event['isMetaData'] ? JSON.parse(event['metaData']) : {}
+          data: entry['data'],
+          metadata: entry['isMetaData'] ? entry['metaData'] : "{}"
         )
+        mapper.deserialize(event)
       end
     end
 
@@ -32,18 +33,22 @@ module EventStoreClient
 
     private
 
-    attr_reader :host, :port
+    attr_reader :host, :port, :mapper, :per_page
 
     def initialize
-      @host = "localhost"
+      @host = "http://localhost"
       @port = 2113
       @per_page = 20
+      @mapper = Mapper::Default.new
 
       yield(self) if block_given?
     end
 
     def client
-      @client ||= Api::Client.new(host: host, port: port, per_page: per_page)
+      @client ||=
+        EventStoreClient::Adapter::Api::Client.new(
+          host: host, port: port, per_page: per_page
+        )
     end
   end
 end

@@ -9,7 +9,7 @@ module EventStoreClient
             "ES-ExpectedVersion" => "#{expected_version}"
           }.reject { |_key, val| val.empty? }
 
-          data = Array.wrap(event_data).map do |event|
+          data = [events].flatten.map do |event|
             {
               eventId: event.id,
               eventType: event.type,
@@ -18,7 +18,7 @@ module EventStoreClient
             }
           end
 
-          make_request(:post, "/streams/#{stream_name}", data, headers)
+          make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
         end
 
         def delete_stream(stream_name, hard_delete)

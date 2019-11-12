@@ -5,10 +5,10 @@ module EventStoreClient
     class Default
       def serialize(event)
         Event.new(
-          event_id: event.id,
-          metadata: event.metadata,
+          event_id: event.try(:id) || SecureRandom.uuid,
+          metadata: serializer.serialize(event.metadata),
           data: serializer.serialize(event.data),
-          event_type: domain_event.class.to_s
+          type: event.class.to_s
         )
       end
 
@@ -16,8 +16,8 @@ module EventStoreClient
         metadata = serializer.deserialize(event.metadata)
         data = serializer.deserialize(event.data)
 
-        Object.const_get(record.type).new(
-          id: record.id,
+        Object.const_get(event.type).new(
+          id: event.id,
           metadata: metadata,
           data: data
         )
@@ -25,7 +25,9 @@ module EventStoreClient
 
       private
 
-      def initialize(serializer: EventStore::Client::Serializer::Json)
+      attr_reader :serializer
+
+      def initialize(serializer: Serializer::Json)
         @serializer = serializer
       end
     end
