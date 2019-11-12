@@ -21,6 +21,22 @@ $ gem install event_store_client
 
 ## Usage
 
+1. Download Event Store From https://eventstore.org/downloads/ or docker
+
+` docker pull eventstore/eventstore`
+
+2. Run the Event Store server
+
+`docker run --name eventstore -it -p 2113:2113 -p 1113:1113 eventstore/eventstore`
+
+3. Set Basic HTTP auth enviornment variables #below are defaults
+  - export EVENT_STORE_USER=admin
+  - export EVENT_STORE_PASSWORD=changeit
+
+Ref: https://eventstore.org/docs/http-api/security
+
+4. Checkout connection
+
 ```
 # define your events
 class SomethingHappened < Dry::Struct
@@ -34,14 +50,18 @@ event = SomethingHappened.new(
 )
 
 connection = EventStoreClient::Connection.new
-connection.publish(stream: 'dummystream', event: event)
+connection.publish(stream: 'newstream', event: event)
 connection.read('dummystream')
 ```
 
-
-
 ## Contributing
-Contribution directions go here.
+
+Do you want to contribute? Welcome!
+
+1. Fork repository
+2. Create Issue
+3. Create PR ;)
 
 ## License
+
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
