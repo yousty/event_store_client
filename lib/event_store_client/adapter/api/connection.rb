@@ -11,7 +11,7 @@ module EventStoreClient
             url: endpoint.url,
             headers: DEFAULT_HEADERS
           ) do |conn|
-            conn.basic_auth('admin', 'changeit')
+            conn.basic_auth(ENV['EVENT_STORE_USER'], ENV['EVENT_STORE_PASSWORD'])
             conn.adapter Faraday.default_adapter
           end
         end
