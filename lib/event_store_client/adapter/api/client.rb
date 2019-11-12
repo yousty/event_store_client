@@ -6,7 +6,7 @@ module EventStoreClient
       class Client
         def append_to_stream(stream_name, events, expected_version: nil)
           headers = {
-            "ES-ExpectedVersion" => "#{expected_version}"
+            'ES-ExpectedVersion' => expected_version.to_s
           }.reject { |_key, val| val.empty? }
 
           data = [events].flatten.map do |event|
@@ -22,7 +22,7 @@ module EventStoreClient
         end
 
         def delete_stream(stream_name, hard_delete)
-          headers = JSON_HEADERS.merge({"ES-HardDelete" => "#{hard_delete}"})
+          headers = JSON_HEADERS.merge('ES-HardDelete' => hard_delete.to_s)
           make_request(:delete, "/streams/#{stream_name}", {}, headers)
         end
 

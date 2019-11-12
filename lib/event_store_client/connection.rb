@@ -12,31 +12,29 @@ module EventStoreClient
 
     def read(stream, direction: 'forward')
       response = if direction == 'forward'
-        client.read_stream_forward(stream, start: 0)
-      else
-        client.read_stream_backward(stream, start: 0)
+                   client.read_stream_forward(stream, start: 0)
+                 else
+                   client.read_stream_backward(stream, start: 0)
       end
       JSON.parse(response.body)['entries'].map do |entry|
         event = EventStoreClient::Event.new(
           id: entry['eventId'],
           type: entry['eventType'],
           data: entry['data'],
-          metadata: entry['isMetaData'] ? entry['metaData'] : "{}"
+          metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
         )
         mapper.deserialize(event)
       end
     end
 
-    def delete_stream(stream)
-
-    end
+    def delete_stream(stream); end
 
     private
 
     attr_reader :host, :port, :mapper, :per_page
 
     def initialize
-      @host = "http://localhost"
+      @host = 'http://localhost'
       @port = 2113
       @per_page = 20
       @mapper = Mapper::Default.new
