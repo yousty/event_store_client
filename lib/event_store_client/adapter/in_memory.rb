@@ -67,9 +67,9 @@ module EventStoreClient
           []
         else
           [{
-                'uri' => "http://#{endpoint.url}/streams/#{stream_name}/#{batch_size}/#{direction}/#{count}",
-                'relation' => direction
-            }]
+            'uri' => "http://#{endpoint.url}/streams/#{stream_name}/#{batch_size}/#{direction}/#{count}",
+            'relation' => direction
+          }]
         end
       end
     end

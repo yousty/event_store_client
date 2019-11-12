@@ -3,12 +3,12 @@
 module EventStoreClient
   RSpec.describe Adapter::InMemory do
     subject { described_class.new(host: 'localhost', port: 2113) }
-    describe "#append_to_stream" do
+    describe '#append_to_stream' do
       it 'adds one event to a stream' do
         expect do
           subject.append_to_stream('sample_stream', something_happened)
-        end.to change { subject.event_store['sample_stream']&.length }.
-          from(nil).to(1)
+        end.to change { subject.event_store['sample_stream']&.length }
+          .from(nil).to(1)
 
         expect(subject.event_store['sample_stream']).to contain_exactly(
           hash_including(
@@ -25,9 +25,9 @@ module EventStoreClient
 
       it 'adds multiple events to a stream' do
         events = [something_happened, something_else_happened]
-        expect {
+        expect do
           subject.append_to_stream('sample_stream', events)
-        }.to change { subject.event_store['sample_stream']&.length }.from(nil).to(2)
+        end.to change { subject.event_store['sample_stream']&.length }.from(nil).to(2)
 
         expect(subject.event_store['sample_stream']).to include(
           hash_including(
@@ -46,7 +46,7 @@ module EventStoreClient
       end
     end
 
-    describe "#read_events_backward" do
+    describe '#read_events_backward' do
       before do
         events = [something_happened, something_else_happened]
         subject.append_to_stream('sample_stream', events)
@@ -66,7 +66,7 @@ module EventStoreClient
       end
     end
 
-    describe "#read_events_forward" do
+    describe '#read_events_forward' do
       before do
         events = [something_happened, something_else_happened]
         subject.append_to_stream('sample_stream', events)
@@ -86,7 +86,7 @@ module EventStoreClient
       end
     end
 
-    describe "#delete_stream" do
+    describe '#delete_stream' do
       it 'adds one event to a stream' do
         subject.append_to_stream('sample_stream', something_happened)
         expect(subject.event_store).to have_key('sample_stream')
