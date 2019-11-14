@@ -51,7 +51,28 @@ event = SomethingHappened.new(
 
 connection = EventStoreClient::Connection.new
 connection.publish(stream: 'newstream', event: event)
-connection.read('dummystream')
+events = connection.read('newstream')
+connection.subscribe('$et-SomethingHappened', name: 'default')
+events = connection.consume_feed('$et-SomethingHappened', 'default')
+
+class DummyHandler
+  def self.call(event)
+    puts "Handled #{event.class.name}"
+  end
+end
+connection = EventStoreClient::Connection.new
+event_store = EventStoreClient::EventStore.new do |es|
+  es.connection = connection
+end
+event_store.subscribe(DummyHandler, to: [SomethingHappened])
+event_store.poll
+
+connection.publish(stream: 'newstream', event: event)
+connection.publish(stream: 'newstream', event: event)
+connection.publish(stream: 'newstream', event: event)
+connection.publish(stream: 'newstream', event: event)
+
+event_store.stop_polling
 ```
 
 ## Contributing
