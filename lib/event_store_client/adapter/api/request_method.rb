@@ -18,12 +18,12 @@ module EventStoreClient
         attr_reader :name
 
         def initialize(name)
-          raise InvalidEndDateError unless name.to_s.in?(SUPPORTED_METHODS)
+          raise InvalidMethodError unless name.to_s.in?(SUPPORTED_METHODS)
 
           @name = name.to_s
         end
 
-        SUPPORTED_METHODS = %w[get post].freeze
+        SUPPORTED_METHODS = %w[get post put].freeze
       end
     end
   end
