@@ -57,13 +57,15 @@ module EventStoreClient
 
     attr_reader :host, :port, :mapper, :per_page
 
-    def initialize
-      @host = 'http://localhost'
-      @port = 2113
-      @per_page = 20
-      @mapper = Mapper::Default.new
+    def config
+      EventStoreClient.configuration
+    end
 
-      yield(self) if block_given?
+    def initialize
+      @host = config.host
+      @port = config.port
+      @per_page = config.per_page
+      @mapper = config.mapper
     end
 
     def client

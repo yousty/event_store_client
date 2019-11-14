@@ -3,6 +3,7 @@
 module EventStoreClient
 end
 
+require 'event_store_client/configuration'
 require 'event_store_client/types'
 require 'event_store_client/event'
 

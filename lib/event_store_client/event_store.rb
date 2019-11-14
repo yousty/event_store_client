@@ -33,13 +33,15 @@ module EventStoreClient
 
     attr_reader :subscriptions, :broker
 
-    def initialize
-      yield(self) if block_given?
+    def config
+      EventStoreClient.configuration
+    end
 
-      @connection ||= Connection.new
+    def initialize
+      @connection = Connection.new
       @service_name ||= 'default'
       @broker ||= Broker.new(connection: connection)
-      @subscriptions ||= Subscriptions.new(connection: connection, service: service_name)
+      @subscriptions ||= Subscriptions.new(connection: connection, service: config.service_name)
     end
   end
 end
