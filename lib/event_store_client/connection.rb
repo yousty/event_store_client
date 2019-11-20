@@ -2,12 +2,12 @@
 
 module EventStoreClient
   class Connection
-    def publish(stream:, event:, expected_version: nil)
-      serialized_event = mapper.serialize(event)
+    def publish(stream:, events:, expected_version: nil)
+      serialized_events = events.map { |event| mapper.serialize(event) }
       client.append_to_stream(
-        stream, serialized_event, expected_version: expected_version
+        stream, serialized_events, expected_version: expected_version
       )
-      serialized_event
+      serialized_events
     end
 
     def read(stream, direction: 'forward')
@@ -56,7 +56,7 @@ module EventStoreClient
     attr_reader :host, :port, :mapper, :per_page
 
     def config
-      EventStoreClient.configuration
+      EventStoreClient::Configuration.instance
     end
 
     def initialize

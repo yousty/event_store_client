@@ -5,7 +5,6 @@ module EventStoreClient
     class Default
       def serialize(event)
         Event.new(
-          event_id: event.try(:id) || SecureRandom.uuid,
           metadata: serializer.serialize(event.metadata),
           data: serializer.serialize(event.data),
           type: event.class.to_s
@@ -17,7 +16,6 @@ module EventStoreClient
         data = serializer.deserialize(event.data)
 
         Object.const_get(event.type).new(
-          id: event.id,
           metadata: metadata,
           data: data
         )

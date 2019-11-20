@@ -1,19 +1,17 @@
 # frozen_string_literal: true
 
 require 'dry-struct'
+require 'singleton'
 
 module EventStoreClient
-  class << self
-    attr_accessor :configuration
-  end
-
-  def self.configure
-    self.configuration ||= Configuration.new
-    yield(configuration) if block_given?
-  end
-
   class Configuration
+    include Singleton
+
     attr_accessor :host, :port, :per_page, :service_name, :mapper
+
+    def configure
+      yield(self) if block_given?
+    end
 
     private
 

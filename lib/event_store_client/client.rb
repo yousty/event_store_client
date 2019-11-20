@@ -4,7 +4,7 @@ require 'dry-struct'
 
 module EventStoreClient
   class Client
-  NoCallMethodOnSubscriber = Class.new(StandardError)
+    NoCallMethodOnSubscriber = Class.new(StandardError)
 
     def publish(stream:, events:, expected_version: nil)
       connection.publish(stream: stream, events: events, expected_version: expected_version)
@@ -47,7 +47,7 @@ module EventStoreClient
     attr_reader :subscriptions, :broker
 
     def config
-      EventStoreClient.configuration
+      EventStoreClient::Configuration.instance
     end
 
     def initialize
