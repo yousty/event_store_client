@@ -86,37 +86,39 @@ class DummyHandler
   end
 end
 ```
+## Usage
+
+```ruby
+# initialize the client
+client = EventStoreClient::EventStore.new
+```
 
 ### Publishing events
 
 ```ruby
-#todo - move this interface to the event_store object
-connection = EventStoreClient::Connection.new
-connection.publish(stream: 'newstream', event: event)
+client.publish(stream: 'newstream', events: [event])
 ```
 
 ### Reading from a stream
 
 ```ruby
-connection = EventStoreClient::Connection.new
-events = connection.read('newstream')
+events = client.read('newstream')
 ```
-### Subscribing to events
 
-# Using connection object (manual call)
+**Changing reading direction
 
 ```ruby
-connection.subscribe('newstream', name: 'default')
-events = connection.consume_feed('newstream', 'default')
+events = client.read('newstream', direction: 'backward') #default 'forward'
 ```
+
+### Subscribing to events
 
 # Using automatic polling
 
 ```ruby
-connection = EventStoreClient::Connection.new
-event_store = EventStoreClient::EventStore.new
-event_store.subscribe(DummyHandler, to: [SomethingHappened])
-event_store.poll
+client = EventStoreClient::EventStore.new
+client.subscribe(DummyHandler, to: [SomethingHappened])
+client.poll
 
 # now try to publish several events
 connection.publish(stream: 'newstream', event: event)
@@ -129,7 +131,7 @@ connection.publish(stream: 'newstream', event: event)
 ### Stop polling
 
 ```ruby
-event_store.stop_polling
+client.stop_polling
 ```
 
 ## Contributing

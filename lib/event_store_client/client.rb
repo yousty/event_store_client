@@ -3,8 +3,16 @@
 require 'dry-struct'
 
 module EventStoreClient
-  class EventStore
-    NoCallMethodOnSubscriber = Class.new(StandardError)
+  class Client
+  NoCallMethodOnSubscriber = Class.new(StandardError)
+
+    def publish(stream:, events:, expected_version: nil)
+      connection.publish(stream: stream, events: events, expected_version: expected_version)
+    end
+
+    def read(stream, direction: 'forward')
+      connection.read(stream, direction: direction)
+    end
 
     def subscribe(subscriber, to: [])
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
@@ -12,6 +20,8 @@ module EventStoreClient
     end
 
     def poll(interval: 5)
+      # TODO: add graceful shutdown to finish processing events.
+
       thread1 = Thread.new { loop { broker.call(subscriptions); Thread.stop } }
       thread2 = Thread.new do
         loop { sleep interval; break unless thread1.alive?; thread1.run }
