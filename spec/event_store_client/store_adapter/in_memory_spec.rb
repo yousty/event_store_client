@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module EventStoreClient
-  RSpec.describe Adapter::InMemory do
+  RSpec.describe StoreAdapter::InMemory do
     subject { described_class.new(host: 'localhost', port: 2113) }
     describe '#append_to_stream' do
       it 'adds one event to a stream' do
