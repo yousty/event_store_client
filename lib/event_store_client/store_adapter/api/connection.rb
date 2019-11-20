@@ -3,7 +3,7 @@
 require 'faraday'
 
 module EventStoreClient
-  module Adapter
+  module StoreAdapter
     module Api
       class Connection
         def call

@@ -2,7 +2,7 @@
 
 require 'irb'
 require 'event_store_client'
-require 'event_store_client/adapter/in_memory'
+require 'event_store_client/store_adapter/in_memory'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|

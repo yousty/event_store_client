@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module EventStoreClient
-  module Adapter
+  module StoreAdapter
     module Api
       class Client
         def append_to_stream(stream_name, events, expected_version: nil)

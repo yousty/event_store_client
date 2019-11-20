@@ -13,7 +13,7 @@ require 'event_store_client/mapper'
 
 require 'event_store_client/endpoint'
 
-require 'event_store_client/adapter'
+require 'event_store_client/store_adapter'
 
 require 'event_store_client/connection'
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module EventStoreClient
-  module Adapter
+  module StoreAdapter
     module Api
       class RequestMethod
         InvalidMethodError = Class.new(StandardError)

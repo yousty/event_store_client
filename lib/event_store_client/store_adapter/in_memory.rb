@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module EventStoreClient
-  module Adapter
+  module StoreAdapter
     class InMemory
       attr_reader :event_store
 
