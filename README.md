@@ -74,6 +74,12 @@ event = SomethingHappened.new(
   data: { user_id: SecureRandom.uuid, title: "Something happened" },
   metadata: {}
 )
+class DummyHandler
+  def self.call(event)
+    puts "Handled #{event.class.name}"
+  end
+end
+
 ```
 
 Now create a handler. It can be anything, which responds to a `call` method
@@ -90,7 +96,7 @@ end
 
 ```ruby
 # initialize the client
-client = EventStoreClient::EventStore.new
+client = EventStoreClient::Client.new
 ```
 
 ### Publishing events
@@ -116,14 +122,13 @@ events = client.read('newstream', direction: 'backward') #default 'forward'
 # Using automatic pooling
 
 ```ruby
-client = EventStoreClient::EventStore.new
 client.subscribe(DummyHandler, to: [SomethingHappened])
 
 # now try to publish several events
-connection.publish(stream: 'newstream', event: event)
-connection.publish(stream: 'newstream', event: event)
-connection.publish(stream: 'newstream', event: event)
-connection.publish(stream: 'newstream', event: event)
+client.publish(stream: 'newstream', events: [event])
+client.publish(stream: 'newstream', events: [event])
+client.publish(stream: 'newstream', events: [event])
+client.publish(stream: 'newstream', events: [event])
 # .... wait a little bit ... Your handler should be called for every single event you publish
 ```
 

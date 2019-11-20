@@ -22,7 +22,7 @@ module EventStoreClient
 
     def pool(interval: 5)
       # TODO: add graceful shutdown to finish processing events.
-      return unless @pooling_started
+      return if @pooling_started
       @pooling_started = true
       thread1 = Thread.new { loop { broker.call(subscriptions); Thread.stop } }
       thread2 = Thread.new do
@@ -33,6 +33,7 @@ module EventStoreClient
     end
 
     def stop_pooling
+      return if @threads.none?
       @threads.each do |thread|
         thread.kill
       end
@@ -51,6 +52,7 @@ module EventStoreClient
     end
 
     def initialize
+      @threads = []
       @connection = Connection.new
       @service_name ||= 'default'
       @broker ||= Broker.new(connection: connection)

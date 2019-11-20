@@ -12,7 +12,7 @@ module EventStoreClient
 
     def read(stream, direction: 'forward')
       response =
-        client.read_stream_forward(stream, start: 0, direction: direction)
+        client.read(stream, start: 0, direction: direction)
       return [] unless response.body
       JSON.parse(response.body)['entries'].map do |entry|
         event = EventStoreClient::Event.new(
@@ -68,7 +68,7 @@ module EventStoreClient
 
     def client
       @client ||=
-        EventStoreClient::Adapter::Api::Client.new(
+        EventStoreClient::StoreAdapter::Api::Client.new(
           host: host, port: port, per_page: per_page
         )
     end
