@@ -11,17 +11,15 @@ module EventStoreClient
     end
 
     def read(stream, direction: 'forward')
-      response = if direction == 'forward'
-                   client.read_stream_forward(stream, start: 0)
-                 else
-                   client.read_stream_backward(stream, start: 0)
-      end
+      response =
+        client.read_stream_forward(stream, start: 0, direction: direction)
+      return [] unless response.body
       JSON.parse(response.body)['entries'].map do |entry|
         event = EventStoreClient::Event.new(
           id: entry['eventId'],
           type: entry['eventType'],
           data: entry['data'],
-          metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
+          metadata: entry['metaData']
         )
         mapper.deserialize(event)
       end
@@ -29,17 +27,43 @@ module EventStoreClient
 
     def delete_stream(stream); end
 
+    def subscribe(stream, name:)
+      client.subscribe_to_stream(stream, name)
+    end
+
+    def consume_feed(stream, subscription)
+      response = client.consume_feed(stream, subscription)
+      return [] unless response.body
+      body = JSON.parse(response.body)
+      ack_uri =
+        body['links'].find { |link| link['relation'] == 'ackAll' }.
+          try(:[], 'uri')
+      events = body['entries'].map do |entry|
+        event = EventStoreClient::Event.new(
+          id: entry['eventId'],
+          type: entry['eventType'],
+          data: entry['data'] || '{}',
+          metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
+        )
+        mapper.deserialize(event)
+      end
+      client.ack(ack_uri)
+      events
+    end
+
     private
 
     attr_reader :host, :port, :mapper, :per_page
 
-    def initialize
-      @host = 'http://localhost'
-      @port = 2113
-      @per_page = 20
-      @mapper = Mapper::Default.new
+    def config
+      EventStoreClient.configuration
+    end
 
-      yield(self) if block_given?
+    def initialize
+      @host = config.host
+      @port = config.port
+      @per_page = config.per_page
+      @mapper = config.mapper
     end
 
     def client

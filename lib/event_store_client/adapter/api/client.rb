@@ -26,12 +26,47 @@ module EventStoreClient
           make_request(:delete, "/streams/#{stream_name}", {}, headers)
         end
 
-        def read_stream_backward(stream_name, start: 0, count: per_page)
-          make_request(:get, "/streams/#{stream_name}/#{start}/backward/#{count}")
+        def read(stream_name, direction: 'forward', start: 0, count: per_page)
+          make_request(:get, "/streams/#{stream_name}/#{start}/#{direction}/#{count}")
         end
 
-        def read_stream_forward(stream_name, start: 0, count: per_page)
-          make_request(:get, "/streams/#{stream_name}/#{start}/forward/#{count}")
+        def subscribe_to_stream(
+          stream_name, subscription_name, stats: true, start_from: 0, retries: 5
+        )
+          make_request(
+            :put,
+            "/subscriptions/#{stream_name}/#{subscription_name}",
+            body: {
+              extraStatistics: stats,
+              startFrom: start_from,
+              maxRetryCount: retries,
+              resolveLinkTos: true
+            },
+            headers: {
+              "Content-Type" => "application/json"
+            }
+          )
+        end
+
+        def consume_feed(
+          stream_name,
+          subscription_name,
+          start: 0,
+          count: 1,
+          long_pool: 0
+        )
+          headers = long_pool > 0 ? { "ES-LongPoll" => "#{long_pool}" } : {}
+          headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
+          headers['Accept'] = 'application/vnd.eventstore.competingatom+json'
+          make_request(
+          :get,
+            "/subscriptions/#{stream_name}/#{subscription_name}/#{count}",
+            headers: headers
+          )
+        end
+
+        def ack(url)
+          make_request(:post, url)
         end
 
         private

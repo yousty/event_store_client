@@ -25,8 +25,8 @@ module EventStoreClient
         attr_reader :endpoint
 
         DEFAULT_HEADERS = {
-          'Content-Type' => 'application/vnd.eventstore.events+json',
-          'Accept' => 'application/vnd.eventstore.atom+json'
+          'Content-Type' => 'application/vnd.eventstore.events+json'
+          # 'Accept' => 'application/vnd.eventstore.atom+json',
           # 'ES-EventType' => 'UserRegistered',
           # 'ES-EventId' => SecureRandom.uuid
         }.freeze
