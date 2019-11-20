@@ -14,14 +14,16 @@ module EventStoreClient
       connection.read(stream, direction: direction)
     end
 
-    def subscribe(subscriber, to: [])
+    def subscribe(subscriber, to: [], pooling: true)
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to)
+      pool if pooling
     end
 
-    def poll(interval: 5)
+    def pool(interval: 5)
       # TODO: add graceful shutdown to finish processing events.
-
+      return unless @pooling_started
+      @pooling_started = true
       thread1 = Thread.new { loop { broker.call(subscriptions); Thread.stop } }
       thread2 = Thread.new do
         loop { sleep interval; break unless thread1.alive?; thread1.run }
@@ -30,10 +32,11 @@ module EventStoreClient
       nil
     end
 
-    def stop_polling
+    def stop_pooling
       @threads.each do |thread|
         thread.kill
       end
+      @pooling_started = false
       nil
     end
 

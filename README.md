@@ -113,12 +113,11 @@ events = client.read('newstream', direction: 'backward') #default 'forward'
 
 ### Subscribing to events
 
-# Using automatic polling
+# Using automatic pooling
 
 ```ruby
 client = EventStoreClient::EventStore.new
 client.subscribe(DummyHandler, to: [SomethingHappened])
-client.poll
 
 # now try to publish several events
 connection.publish(stream: 'newstream', event: event)
@@ -128,10 +127,10 @@ connection.publish(stream: 'newstream', event: event)
 # .... wait a little bit ... Your handler should be called for every single event you publish
 ```
 
-### Stop polling
+### Stop pooling
 
 ```ruby
-client.stop_polling
+client.stop_pooling
 ```
 
 ## Contributing

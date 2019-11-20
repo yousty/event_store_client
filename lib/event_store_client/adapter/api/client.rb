@@ -26,12 +26,8 @@ module EventStoreClient
           make_request(:delete, "/streams/#{stream_name}", {}, headers)
         end
 
-        def read_stream_backward(stream_name, start: 0, count: per_page)
-          make_request(:get, "/streams/#{stream_name}/#{start}/backward/#{count}")
-        end
-
-        def read_stream_forward(stream_name, start: 0, count: per_page)
-          make_request(:get, "/streams/#{stream_name}/#{start}/forward/#{count}")
+        def read(stream_name, direction: 'forward', start: 0, count: per_page)
+          make_request(:get, "/streams/#{stream_name}/#{start}/#{direction}/#{count}")
         end
 
         def subscribe_to_stream(
@@ -42,7 +38,7 @@ module EventStoreClient
             "/subscriptions/#{stream_name}/#{subscription_name}",
             body: {
               extraStatistics: stats,
-              start_from: start_from,
+              startFrom: start_from,
               maxRetryCount: retries,
               resolveLinkTos: true
             },
