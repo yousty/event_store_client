@@ -74,12 +74,6 @@ event = SomethingHappened.new(
   data: { user_id: SecureRandom.uuid, title: "Something happened" },
   metadata: {}
 )
-class DummyHandler
-  def self.call(event)
-    puts "Handled #{event.class.name}"
-  end
-end
-
 ```
 
 Now create a handler. It can be anything, which responds to a `call` method
@@ -125,10 +119,13 @@ events = client.read('newstream', direction: 'backward') #default 'forward'
 client.subscribe(DummyHandler, to: [SomethingHappened])
 
 # now try to publish several events
-client.publish(stream: 'newstream', events: [event])
-client.publish(stream: 'newstream', events: [event])
-client.publish(stream: 'newstream', events: [event])
-client.publish(stream: 'newstream', events: [event])
+10.times { client.publish(stream: 'newstream', events: [event]) }
+
+You can also publish multiple events at once
+
+events = (1..10).map { event }
+client.publish(stream: 'newstream', events: events)
+
 # .... wait a little bit ... Your handler should be called for every single event you publish
 ```
 
