@@ -19,6 +19,12 @@ module EventStoreClient
         end
       end
 
+      def read(stream_name, direction: 'forward', start: 0, count: per_page)
+        return [] unless event_store.key?(stream_name)
+        # TODO: implement behavior which simulates EventStoreClient::Connection#read
+        []
+      end
+
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
         event_store.delete(stream_name)
       end

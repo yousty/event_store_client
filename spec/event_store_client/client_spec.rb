@@ -22,6 +22,31 @@ module EventStoreClient
     end
 
     describe '#read' do
+      before do
+        events = [
+          Event.new(type: 'SomethingHappened', data: { foo: 'bar' }.to_json),
+          Event.new(type: 'SomethingElseHappened', data: { foo: 'bar' }.to_json)
+        ]
+        store_adapter.append_to_stream('stream', events)
+      end
+
+      context 'forward' do
+        it 'reads events from the store', pending: true do
+          pending('missing implementation of EventStoreClient::StoreAdapter::InMemory#read')
+          events = client.read('stream', direction: 'forward')
+          expect(events[0].type).to eq('SomethingHappened')
+          expect(events[1].type).to eq('SomethingElseHappened')
+        end
+      end
+
+      context 'backward' do
+        it 'reads events from the store', pending: true do
+          pending('missing implementation of EventStoreClient::StoreAdapter::InMemory#read')
+          events = client.read('stream', direction: 'backard')
+          expect(events[0].type).to eq('SomethingElseHappened')
+          expect(events[1].type).to eq('SomethingHappened')
+        end
+      end
     end
 
     describe 'subscribe' do
