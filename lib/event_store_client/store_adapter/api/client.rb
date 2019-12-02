@@ -22,8 +22,11 @@ module EventStoreClient
         end
 
         def delete_stream(stream_name, hard_delete)
-          headers = JSON_HEADERS.merge('ES-HardDelete' => hard_delete.to_s)
-          make_request(:delete, "/streams/#{stream_name}", {}, headers)
+          headers = {
+            'ES-HardDelete' => hard_delete.to_s
+          }.reject { |_key, val| val.empty? }
+
+          make_request(:delete, "/streams/#{stream_name}", body: {}, headers: headers)
         end
 
         def read(stream_name, direction: 'forward', start: 0, count: per_page)
