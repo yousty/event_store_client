@@ -55,7 +55,6 @@ GEM
       rspec-support (~> 3.9.0)
     rspec-support (3.9.0)
     rss (0.2.8)
-    sqlite3 (1.4.1)
 
 PLATFORMS
   ruby
@@ -63,7 +62,6 @@ PLATFORMS
 DEPENDENCIES
   event_store_client!
   rspec
-  sqlite3
 
 BUNDLED WITH
    1.17.3
