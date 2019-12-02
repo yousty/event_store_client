@@ -14,15 +14,15 @@ module EventStoreClient
       connection.read(stream, direction: direction)
     end
 
-    def subscribe(subscriber, to: [], pooling: true)
+    def subscribe(subscriber, to: [], polling: true)
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to)
-      pool if pooling
+      pool if polling
     end
 
     def pool(interval: 5)
-      return if @pooling_started
-      @pooling_started = true
+      return if @polling_started
+      @polling_started = true
       thread1 = Thread.new do
         loop do
           create_pid_file
@@ -50,12 +50,12 @@ module EventStoreClient
       nil
     end
 
-    def stop_pooling
+    def stop_polling
       return if @threads.none?
       @threads.each do |thread|
         thread.kill
       end
-      @pooling_started = false
+      @polling_started = false
       nil
     end
 
