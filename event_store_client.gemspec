@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rss', '~> 0.2.8'
 
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'webmock'
 end
