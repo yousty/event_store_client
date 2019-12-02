@@ -19,7 +19,7 @@ module EventStoreClient
       @host = 'http://localhost'
       @port = 2113
       @per_page = 20
-      @pid_path = 'tmp/pool.pid'
+      @pid_path = 'tmp/poll.pid'
       @mapper = Mapper::Default.new
       @service_name = 'default'
       @error_handler = nil

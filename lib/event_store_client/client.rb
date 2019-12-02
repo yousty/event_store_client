@@ -17,10 +17,10 @@ module EventStoreClient
     def subscribe(subscriber, to: [], polling: true)
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to)
-      pool if polling
+      poll if polling
     end
 
-    def pool(interval: 5)
+    def poll(interval: 5)
       return if @polling_started
       @polling_started = true
       thread1 = Thread.new do
