@@ -30,7 +30,7 @@ module EventStoreClient
     describe "pool" do
     end
 
-    describe "#stop_pooling" do
+    describe "#stop_polling" do
     end
   end
  end

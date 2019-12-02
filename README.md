@@ -113,8 +113,6 @@ events = client.read('newstream', direction: 'backward') #default 'forward'
 
 ### Subscribing to events
 
-# Using automatic pooling
-
 ```ruby
 client.subscribe(DummyHandler, to: [SomethingHappened])
 
@@ -129,10 +127,10 @@ client.publish(stream: 'newstream', events: events)
 # .... wait a little bit ... Your handler should be called for every single event you publish
 ```
 
-### Stop pooling
+### Stop polling for new events
 
 ```ruby
-client.stop_pooling
+client.stop_polling
 ```
 
 ## Contributing
