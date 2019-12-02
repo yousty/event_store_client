@@ -7,8 +7,8 @@ module EventStoreClient
       it 'adds one event to a stream' do
         expect do
           subject.append_to_stream('sample_stream', something_happened)
-        end.to change { subject.event_store['sample_stream']&.length }
-          .from(nil).to(1)
+        end.to change { subject.event_store['sample_stream']&.length }.
+          from(nil).to(1)
 
         expect(subject.event_store['sample_stream']).to contain_exactly(
           hash_including(

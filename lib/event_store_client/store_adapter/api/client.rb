@@ -43,7 +43,7 @@ module EventStoreClient
               resolveLinkTos: true
             },
             headers: {
-              "Content-Type" => "application/json"
+              'Content-Type' => 'application/json'
             }
           )
         end
@@ -51,15 +51,14 @@ module EventStoreClient
         def consume_feed(
           stream_name,
           subscription_name,
-          start: 0,
           count: 1,
           long_pool: 0
         )
-          headers = long_pool > 0 ? { "ES-LongPoll" => "#{long_pool}" } : {}
+          headers = long_pool.positive? ? { 'ES-LongPoll' => long_pool.to_s } : {}
           headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
           headers['Accept'] = 'application/vnd.eventstore.competingatom+json'
           make_request(
-          :get,
+            :get,
             "/subscriptions/#{stream_name}/#{subscription_name}/#{count}",
             headers: headers
           )

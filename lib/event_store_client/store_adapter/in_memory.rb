@@ -5,7 +5,7 @@ module EventStoreClient
     class InMemory
       attr_reader :event_store
 
-      def append_to_stream(stream_name, events, expected_version: nil)
+      def append_to_stream(stream_name, events, expected_version: nil) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
         event_store[stream_name] = [] unless event_store.key?(stream_name)
 
         [events].flatten.each do |event|
@@ -19,14 +19,14 @@ module EventStoreClient
         end
       end
 
-      def delete_stream(stream_name, hard_delete: false)
+      def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
         event_store.delete(stream_name)
       end
 
       def read_stream_backward(stream_name, start: 0, count: per_page)
         return [] unless event_store.key?(stream_name)
 
-        start = start == 0 ? event_store[stream_name].length - 1 : start
+        start = start.zero? ? event_store[stream_name].length - 1 : start
         last_index = start - count
         entries = event_store[stream_name].select do |event|
           event['positionEventNumber'] > last_index &&
@@ -63,11 +63,12 @@ module EventStoreClient
       end
 
       def links(stream_name, batch_size, direction, entries, count)
-        if entries.empty? || batch_size < 0
+        if entries.empty? || batch_size.negative?
           []
         else
           [{
-            'uri' => "http://#{endpoint.url}/streams/#{stream_name}/#{batch_size}/#{direction}/#{count}",
+            'uri' =>
+              "http://#{endpoint.url}/streams/#{stream_name}/#{batch_size}/#{direction}/#{count}",
             'relation' => direction
           }]
         end

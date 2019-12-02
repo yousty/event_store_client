@@ -26,25 +26,27 @@ module EventStoreClient
       thread1 = Thread.new do
         loop do
           create_pid_file
-          Thread.handle_interrupt(Interrupt => :never) {
-            begin
-              Thread.handle_interrupt(Interrupt => :immediate) {
-                broker.call(subscriptions)
-              }
-            rescue Exception => e
-              # When the thread had been interrupted or broker.call returned an error
-              sleep(interval) # wait for events to be processed
-              delete_pid_file
-              error_handler.call(e) if error_handler
-            ensure
-              # this code is run always
-              Thread.stop
+          Thread.handle_interrupt(Interrupt => :never) do
+            Thread.handle_interrupt(Interrupt => :immediate) do
+              broker.call(subscriptions)
             end
-          }
+          rescue Exception => e # rubocop:disable Lint/RescueException
+            # When the thread had been interrupted or broker.call returned an error
+            sleep(interval) # wait for events to be processed
+            delete_pid_file
+            error_handler&.call(e)
+          ensure
+            # this code is run always
+            Thread.stop
+          end
         end
       end
       thread2 = Thread.new do
-        loop { sleep 1; break unless thread1.alive?; thread1.run }
+        loop do
+          sleep 1
+          break unless thread1.alive?
+          thread1.run
+        end
       end
       @threads = [thread1, thread2]
       nil
@@ -52,9 +54,7 @@ module EventStoreClient
 
     def stop_polling
       return if @threads.none?
-      @threads.each do |thread|
-        thread.kill
-      end
+      @threads.each(&:kill)
       @polling_started = false
       nil
     end
@@ -79,7 +79,7 @@ module EventStoreClient
     end
 
     def create_pid_file
-      return unless File.exists?(config.pid_path)
+      return unless File.exist?(config.pid_path)
       File.open(config.pid_path, 'w') { |file| file.write(SecureRandom.uuid) }
     end
 

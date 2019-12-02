@@ -6,6 +6,7 @@ module EventStoreClient
     attr_reader :stream, :name
 
     private
+
     def initialize(type:, name:)
       @name = name
       @subscribers = []
