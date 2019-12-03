@@ -52,9 +52,9 @@ module EventStoreClient
           stream_name,
           subscription_name,
           count: 1,
-          long_pool: 0
+          long_poll: 0
         )
-          headers = long_pool.positive? ? { 'ES-LongPoll' => long_pool.to_s } : {}
+          headers = long_poll.positive? ? { 'ES-LongPoll' => long_poll.to_s } : {}
           headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
           headers['Accept'] = 'application/vnd.eventstore.competingatom+json'
           make_request(

@@ -27,7 +27,7 @@ module EventStoreClient
     describe 'subscribe' do
     end
 
-    describe 'pool' do
+    describe 'poll' do
     end
 
     describe '#stop_polling' do
