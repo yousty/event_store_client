@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../../event_store_helpers'
-require 'webmock/rspec'
-
 module EventStoreClient::StoreAdapter::Api
   RSpec.describe Client do
     let(:api_client) { described_class.new(host: 'https://www.example.com', port: 8080) }

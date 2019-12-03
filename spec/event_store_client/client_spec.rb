@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative './event_store_helpers'
-
 module EventStoreClient
   RSpec.describe Client do
     let(:client) { described_class.new }
