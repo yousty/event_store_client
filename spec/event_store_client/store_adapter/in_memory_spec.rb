@@ -54,12 +54,12 @@ module EventStoreClient
 
       it 'returns empty array if there is no stream' do
         expect(
-          subject.read_stream_backward('nonexisting', start: 0)
+          subject.send(:read_stream_backward, 'nonexisting', start: 0)
         ).to be_empty
       end
 
       it 'returns events in proper order' do
-        events = subject.read_stream_backward('sample_stream', start: 0)['entries']
+        events = subject.send(:read_stream_backward, 'sample_stream', start: 0)['entries']
         expect(
           events.map { |event| event['positionEventNumber'] }
         ).to eq([1, 0])
@@ -74,12 +74,12 @@ module EventStoreClient
 
       it 'returns empty array if there is no stream' do
         expect(
-          subject.read_stream_forward('nonexisting', start: 0)
+          subject.send(:read_stream_forward, 'nonexisting', start: 0)
         ).to be_empty
       end
 
       it 'returns events in proper order' do
-        events = subject.read_stream_forward('sample_stream', start: 0)['entries']
+        events = subject.send(:read_stream_forward, 'sample_stream', start: 0)['entries']
         expect(
           events.map { |event| event['positionEventNumber'] }
         ).to eq([0, 1])

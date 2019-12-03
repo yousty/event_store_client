@@ -3,6 +3,8 @@
 require 'irb'
 require 'event_store_client'
 require 'event_store_client/store_adapter/in_memory'
+require 'webmock/rspec'
+require_relative 'event_store_client/event_store_helpers.rb'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|

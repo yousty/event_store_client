@@ -19,8 +19,26 @@ module EventStoreClient
         end
       end
 
+      def read(stream_name, direction: 'forward', start: 0, count: per_page)
+        if direction == 'forward'
+          read_stream_forward(stream_name, start: start, count: per_page)
+        else
+          read_stream_backward(stream_name, start: start, count: per_page)
+        end
+      end
+
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
         event_store.delete(stream_name)
+      end
+
+      private
+
+      attr_reader :endpoint, :per_page
+
+      def initialize(host:, port:, per_page: 20)
+        @endpoint = Endpoint.new(host: host, port: port)
+        @per_page = per_page
+        @event_store = {}
       end
 
       def read_stream_backward(stream_name, start: 0, count: per_page)
@@ -50,16 +68,6 @@ module EventStoreClient
           'entries' => entries,
           'links' => links(stream_name, last_index, 'previous', entries, count)
         }
-      end
-
-      private
-
-      attr_reader :endpoint, :per_page
-
-      def initialize(host:, port:, per_page: 20)
-        @endpoint = Endpoint.new(host: host, port: port)
-        @per_page = per_page
-        @event_store = {}
       end
 
       def links(stream_name, batch_size, direction, entries, count)

@@ -17,13 +17,13 @@ module EventStoreClient
 
         attr_reader :name
 
+        SUPPORTED_METHODS = %w[get post put delete].freeze
+
         def initialize(name)
-          raise InvalidMethodError unless name.to_s.in?(SUPPORTED_METHODS)
+          raise InvalidMethodError unless SUPPORTED_METHODS.include?(name.to_s)
 
           @name = name.to_s
         end
-
-        SUPPORTED_METHODS = %w[get post put].freeze
       end
     end
   end
