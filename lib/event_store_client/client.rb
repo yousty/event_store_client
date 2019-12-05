@@ -81,12 +81,12 @@ module EventStoreClient
     end
 
     def create_pid_file
-      return unless File.exist?(config.pid_path)
-      File.open(config.pid_path, 'w') { |file| file.write(SecureRandom.uuid) }
+      Dir.mkdir('tmp') unless File.exist?('tmp')
+      File.open(config.pid_path, 'w') { |file| file.write(Process.pid) }
     end
 
     def delete_pid_file
-      File.delete(config.pid_path)
+      File.delete(config.pid_path) if File.exist?(config.pid_path)
     end
   end
 end
