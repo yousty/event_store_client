@@ -6,3 +6,4 @@ module EventStoreClient
 end
 
 require 'event_store_client/mapper/default'
+require 'event_store_client/mapper/encrypted'
