@@ -50,29 +50,20 @@ Before you start, add this to the `initializer` or to the top of your script:
 To test out the behavior, you'll need a sample event and handler to work with:
 
 ```ruby
-# Sample Event using dry-struct (recommended)
-require 'dry-struct'
-class SomethingHappened < Dry::Struct
-  attribute :data, EventStoreClient::Types::Strict::Hash
-  attribute :metadata, EventStoreClient::Types::Strict::Hash
-end
 
-# Sample Event without types check (not recommended)
+require 'securerandom'
 
-class SomethingHappened < Dry::Struct
-  attr_reader :data, :metadata
-
-  private
-
-  def initialize(data: {}, metadata: {})
-    @data = data
-    @metadata = metadata
+class SomethingHappened < EventStoreClient::DeserializedEvent
+  def schema
+    Dry::Schema.Params do
+      required(:user_id).value(:string)
+      required(:email).value(:string)
+    end
   end
 end
 
 event = SomethingHappened.new(
   data: { user_id: SecureRandom.uuid, title: "Something happened" },
-  metadata: {}
 )
 ```
 
