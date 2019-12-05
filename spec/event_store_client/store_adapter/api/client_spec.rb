@@ -94,7 +94,7 @@ module EventStoreClient::StoreAdapter::Api
       end
 
       it 'sends a correct request' do
-        api_client.consume_feed('stream_name', 'subscription_name', count: 10, long_pool: 5)
+        api_client.consume_feed('stream_name', 'subscription_name', count: 10, long_poll: 5)
         expect(stub).to have_been_requested
       end
     end
