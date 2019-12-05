@@ -13,7 +13,7 @@ module EventStoreClient
     def read(stream, direction: 'forward')
       response =
         client.read(stream, start: 0, direction: direction)
-      return [] if response.body&.empty?
+      return [] if response.body.nil? || response.body.empty?
       JSON.parse(response.body)['entries'].map do |entry|
         event = EventStoreClient::Event.new(
           id: entry['eventId'],

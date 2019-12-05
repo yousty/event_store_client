@@ -21,9 +21,9 @@ module EventStoreClient
 
       def read(stream_name, direction: 'forward', start: 0, count: per_page)
         if direction == 'forward'
-          read_stream_forward(stream_name, start: start, count: per_page)
+          read_stream_forward(stream_name, start: start, count: count)
         else
-          read_stream_backward(stream_name, start: start, count: per_page)
+          read_stream_backward(stream_name, start: start, count: count)
         end
       end
 

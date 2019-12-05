@@ -10,7 +10,7 @@ module EventStoreClient
     end
 
     describe '#serialize' do
-      let(:user_registered) { UserRegistered.new(data: data) }
+      let(:user_registered) { DefaultEvent.new(data: data) }
 
       subject { described_class.new.serialize(user_registered) }
 
@@ -18,25 +18,25 @@ module EventStoreClient
         expect(subject).to be_kind_of(EventStoreClient::Event)
         expect(subject.data).to eq(JSON.generate(data))
         expect(subject.metadata).to include('created_at')
-        expect(subject.type).to eq('UserRegistered')
+        expect(subject.type).to eq('DefaultEvent')
       end
     end
 
     describe '#deserialize' do
       context 'when the event type const exists' do
-        let(:event) { SerializedEvent.new(type: 'UserRegistered') }
+        let(:event) { SerializedDefaultEvent.new(type: 'DefaultEvent') }
         subject { described_class.new.deserialize(event) }
 
-        it 'returns instance of UserRegistered' do
-          expect(subject).to be_kind_of(UserRegistered)
+        it 'returns instance of DefaultEvent' do
+          expect(subject).to be_kind_of(DefaultEvent)
           expect(subject.data).to eq(data)
           expect(subject.metadata['created_at']).not_to be_nil
-          expect(subject.type).to eq('UserRegistered')
+          expect(subject.type).to eq('DefaultEvent')
         end
       end
 
       context 'when the event type const does not exist' do
-        let(:event) { SerializedEvent.new(type: 'SomethingHappened') }
+        let(:event) { SerializedDefaultEvent.new(type: 'SomethingHappened') }
 
         subject { described_class.new.deserialize(event) }
 
@@ -51,13 +51,7 @@ module EventStoreClient
   end
 end
 
-class DummyRepository
-  def encrypt(*)
-    'encrypted'
-  end
-end
-
-class UserRegistered < EventStoreClient::DeserializedEvent
+class DefaultEvent < EventStoreClient::DeserializedEvent
   def schema
     Dry::Schema.Params do
       required(:user_id).value(:string)
@@ -66,7 +60,7 @@ class UserRegistered < EventStoreClient::DeserializedEvent
   end
 end
 
-class SerializedEvent
+class SerializedDefaultEvent
   attr_reader :type
 
   def metadata
