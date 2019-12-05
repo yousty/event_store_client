@@ -6,6 +6,7 @@ end
 require 'event_store_client/configuration'
 require 'event_store_client/types'
 require 'event_store_client/event'
+require 'event_store_client/deserialized_event'
 
 require 'event_store_client/serializer/json'
 

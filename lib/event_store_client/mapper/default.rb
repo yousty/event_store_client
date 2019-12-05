@@ -15,10 +15,19 @@ module EventStoreClient
         metadata = serializer.deserialize(event.metadata)
         data = serializer.deserialize(event.data)
 
-        Object.const_get(event.type).new(
-          metadata: metadata,
-          data: data
-        )
+        event_class = event.type.safe_constantize
+        if event_class
+          event_class.new(
+            metadata: metadata,
+            data: data
+          )
+        else
+          EventStoreClient::DeserializedEvent.new(
+            metadata: metadata,
+            data: data,
+            type: event.type
+          )
+        end
       end
 
       private
