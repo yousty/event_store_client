@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 module EventStoreClient
+  def self.configure(&block)
+    config = Configuration.instance
+    config.configure(&block)
+  end
 end
 
 require 'event_store_client/configuration'
