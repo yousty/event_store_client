@@ -27,17 +27,19 @@ module EventStoreClient
         loop do
           create_pid_file
           Thread.handle_interrupt(Interrupt => :never) do
-            Thread.handle_interrupt(Interrupt => :immediate) do
-              broker.call(subscriptions)
+            begin # rubocop:disable Style/RedundantBegin
+              Thread.handle_interrupt(Interrupt => :immediate) do
+                broker.call(subscriptions)
+              end
+            rescue Exception => e # rubocop:disable Lint/RescueException
+              # When the thread had been interrupted or broker.call returned an error
+              sleep(interval) # wait for events to be processed
+              delete_pid_file
+              error_handler&.call(e)
+            ensure
+              # this code is run always
+              Thread.stop
             end
-          rescue Exception => e # rubocop:disable Lint/RescueException
-            # When the thread had been interrupted or broker.call returned an error
-            sleep(interval) # wait for events to be processed
-            delete_pid_file
-            error_handler&.call(e)
-          ensure
-            # this code is run always
-            Thread.stop
           end
         end
       end
