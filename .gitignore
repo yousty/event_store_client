@@ -3,3 +3,4 @@ log/*.log
 pkg/
 spec/examples.txt
 spec/dummy
+tmp

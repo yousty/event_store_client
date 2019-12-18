@@ -51,6 +51,18 @@ module EventStoreClient
     end
 
     describe 'poll' do
+      it 'creates two threads' do
+        threads_count = Thread.list.count
+        client.poll
+        expect(Thread.list.count).to be == (threads_count + 2)
+        client.stop_polling
+      end
+
+      it 'creates a pid file' do
+        client.poll
+        expect(File).to exist('tmp/poll.pid')
+        client.stop_polling
+      end
     end
 
     describe '#stop_polling' do
