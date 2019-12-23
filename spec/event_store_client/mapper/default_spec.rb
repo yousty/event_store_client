@@ -61,7 +61,7 @@ class DefaultEvent < EventStoreClient::DeserializedEvent
 end
 
 class SerializedDefaultEvent
-  attr_reader :type
+  attr_reader :type, :id, :title
 
   def metadata
     '{"created_at":"2019-12-05 19:37:38 +0100"}'

@@ -9,14 +9,7 @@ module EventStoreClient
             'ES-ExpectedVersion' => expected_version.to_s
           }.reject { |_key, val| val.empty? }
 
-          data = [events].flatten.map do |event|
-            {
-              eventId: event.id,
-              eventType: event.type,
-              data: event.data,
-              metadata: event.metadata
-            }
-          end
+          data = build_events_data(events)
 
           make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
         end
@@ -29,8 +22,12 @@ module EventStoreClient
           make_request(:delete, "/streams/#{stream_name}", body: {}, headers: headers)
         end
 
-        def read(stream_name, direction: 'forward', start: 0, count: per_page)
-          make_request(:get, "/streams/#{stream_name}/#{start}/#{direction}/#{count}")
+        def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: true)
+          headers = {
+            'ES-ResolveLinkTos' => resolve_links.to_s
+          }
+
+          make_request(:get, "/streams/#{stream_name}/#{start}/#{direction}/#{count}", headers: headers)
         end
 
         def subscribe_to_stream(
@@ -67,6 +64,16 @@ module EventStoreClient
           )
         end
 
+        def link_to(stream_name, events)
+          data = build_linkig_data(events)
+
+          make_request(
+            :post,
+            "/streams/#{stream_name}",
+            body: data
+          )
+        end
+
         def ack(url)
           make_request(:post, url)
         end
@@ -78,6 +85,27 @@ module EventStoreClient
         def initialize(host:, port:, per_page: 20)
           @endpoint = Endpoint.new(host: host, port: port)
           @per_page = per_page
+        end
+
+        def build_events_data(events)
+          [events].flatten.map do |event|
+            {
+              eventId: event.id,
+              eventType: event.type,
+              data: event.data,
+              metadata: event.metadata
+            }
+          end
+        end
+
+        def build_linkig_data(events)
+          [events].flatten.map do |event|
+            {
+              eventId: event.id,
+              eventType: '$>',
+              data: event.title,
+            }
+          end
         end
 
         def make_request(method_name, path, body: {}, headers: {})
