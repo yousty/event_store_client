@@ -8,9 +8,10 @@ module EventStoreClient
   class Event < Dry::Struct
     attr_reader :id
 
+    attribute :type, Types::Strict::String
+    attribute :title, Types::Strict::String.optional.default(nil)
     attribute :data, Types::Strict::String.default('{}')
     attribute :metadata, Types::Strict::String.default('{}')
-    attribute :type, Types::Strict::String
 
     private
 

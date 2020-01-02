@@ -61,6 +61,13 @@ module EventStoreClient
       nil
     end
 
+    def link_to(stream:, events:)
+      raise ArgumentError if !stream || stream == ''
+      raise ArgumentError if events.nil? || (events.is_a?(Array) && events.empty?)
+
+      connection.link_to(stream, events)
+    end
+
     attr_accessor :connection, :service_name
 
     private

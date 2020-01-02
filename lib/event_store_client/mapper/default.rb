@@ -5,9 +5,9 @@ module EventStoreClient
     class Default
       def serialize(event)
         Event.new(
-          metadata: serializer.serialize(event.metadata),
+          type: event.class.to_s,
           data: serializer.serialize(event.data),
-          type: event.class.to_s
+          metadata: serializer.serialize(event.metadata)
         )
       end
 
@@ -23,9 +23,11 @@ module EventStoreClient
           end
 
         event_class.new(
-          metadata: metadata,
+          id: event.id,
+          type: event.type,
+          title: event.title,
           data: data,
-          type: event.type
+          metadata: metadata
         )
       end
 

@@ -86,6 +86,24 @@ module EventStoreClient
       end
     end
 
+    describe '#link_to' do
+      let(:stream_name) { 'sample_stream' }
+      let(:events) { [something_happened] }
+
+      before do
+        allow_any_instance_of(StoreAdapter::InMemory).to receive(:append_to_stream).with(
+          stream_name,
+          events
+        )
+      end
+
+      it 'invokes append event to stream' do
+        expect_any_instance_of(StoreAdapter::InMemory).to receive(:append_to_stream).with(stream_name, events)
+
+        subject.link_to(stream_name, events)
+      end
+    end
+
     describe '#delete_stream' do
       it 'adds one event to a stream' do
         subject.append_to_stream('sample_stream', something_happened)

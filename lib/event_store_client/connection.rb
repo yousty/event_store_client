@@ -10,13 +10,14 @@ module EventStoreClient
       serialized_events
     end
 
-    def read(stream, direction: 'forward')
+    def read(stream, direction: 'forward', resolve_links: true)
       response =
-        client.read(stream, start: 0, direction: direction)
+        client.read(stream, start: 0, direction: direction, resolve_links: resolve_links)
       return [] if response.body.nil? || response.body.empty?
       JSON.parse(response.body)['entries'].map do |entry|
         event = EventStoreClient::Event.new(
           id: entry['eventId'],
+          title: entry['title'],
           type: entry['eventType'],
           data: entry['data'],
           metadata: entry['metaData']
@@ -49,6 +50,12 @@ module EventStoreClient
       end
       client.ack(ack_uri)
       events
+    end
+
+    def link_to(stream, events)
+      client.link_to(stream, events)
+
+      true
     end
 
     private

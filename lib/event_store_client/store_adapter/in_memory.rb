@@ -19,16 +19,18 @@ module EventStoreClient
         end
       end
 
-      def read(stream_name, direction: 'forward', start: 0, count: per_page)
-        if direction == 'forward'
-          read_stream_forward(stream_name, start: start, count: count)
-        else
-          read_stream_backward(stream_name, start: start, count: count)
-        end
+      def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: nil)
+        read_stream_forward(stream_name, start: start, count: count) if direction == 'forward'
+
+        read_stream_backward(stream_name, start: start, count: count)
       end
 
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
         event_store.delete(stream_name)
+      end
+
+      def link_to(stream_name, events)
+        append_to_stream(stream_name, events)
       end
 
       private

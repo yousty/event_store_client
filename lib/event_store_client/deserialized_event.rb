@@ -6,9 +6,11 @@ module EventStoreClient
   class DeserializedEvent
     InvalidDataError = Class.new(StandardError)
 
+    attr_reader :id
+    attr_reader :type
+    attr_reader :title
     attr_reader :data
     attr_reader :metadata
-    attr_reader :type
 
     def schema
       Dry::Schema.Params do
@@ -22,6 +24,8 @@ module EventStoreClient
       @data = args.fetch(:data) { {} }
       @metadata = args.fetch(:metadata) { {} }
       @type = args[:type] || self.class.name
+      @title = args[:title]
+      @id = args[:id]
     end
   end
 end
