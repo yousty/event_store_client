@@ -26,3 +26,6 @@ require 'event_store_client/subscription'
 require 'event_store_client/subscriptions'
 require 'event_store_client/broker'
 require 'event_store_client/client'
+
+require 'event_store_client/errors/generic'
+require 'event_store_client/errors/connection/errors'

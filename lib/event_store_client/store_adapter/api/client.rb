@@ -110,15 +110,28 @@ module EventStoreClient
 
         def make_request(method_name, path, body: {}, headers: {})
           method = RequestMethod.new(method_name)
-          connection.send(method.to_s, path) do |req|
+          response = connection.send(method.to_s, path) do |req|
             req.headers = req.headers.merge(headers)
             req.body = body.to_json
             req.params['embed'] = 'body' if method == :get
           end
+
+          raise connection_error(response) unless response.success?
+
+          response
         end
 
         def connection
           @connection ||= Api::Connection.new(endpoint).call
+        end
+
+        def connection_error(response)
+          case response.status
+          when 401
+            EventStoreClient::Errors::Connection::AuthorizationFailed.new
+          else
+           EventStoreClient::Errors::Connection::GenericError.new(message: response.reason_phrase, status: response.status)
+          end
         end
       end
     end
