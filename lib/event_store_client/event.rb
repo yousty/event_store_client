@@ -17,8 +17,8 @@ module EventStoreClient
 
     def initialize(**args)
       @id = SecureRandom.uuid
-      hash_meta =
-        JSON.parse(args[:metadata] || '{}').merge(created_at: Time.now)
+      hash_meta = JSON.parse(args[:metadata] || '{}')
+      hash_meta['created_at'] ||= Time.now
       args[:metadata] = JSON.generate(hash_meta)
       super(args)
     end
