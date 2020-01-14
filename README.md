@@ -57,7 +57,7 @@ class SomethingHappened < EventStoreClient::DeserializedEvent
   def schema
     Dry::Schema.Params do
       required(:user_id).value(:string)
-      required(:email).value(:string)
+      required(:title).value(:string)
     end
   end
 end
@@ -123,6 +123,19 @@ client.publish(stream: 'newstream', events: events)
 ```ruby
 client.stop_polling
 ```
+
+### Linking existing events to the streem
+
+Event to be linked properly has to coantians original event id.
+Real events could be mixed with linked events in the same stream.
+
+```ruby
+exisiting_event1 = client.read('newstream').last
+client.link_to(stream: 'anotherstream', events: [exisiting_event1, ...])
+```
+
+When you read from stream where links are placed. By default Event Store Client always resolve links for you returning the event that points to the link. You can use the ES-ResolveLinkTos: false HTTP header during readin stream to tell Event Store Client to return you the actual link and to not resolve it.
+More info: [ES-ResolveLinkTos](https://eventstore.org/docs/http-api/optional-http-headers/resolve-linkto/index.html?tabs=tabid-1%2Ctabid-3).
 
 ## Contributing
 
