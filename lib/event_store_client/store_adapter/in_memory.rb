@@ -13,7 +13,7 @@ module EventStoreClient
             'eventId' => event.id,
             'data' => event.data,
             'eventType' => event.type,
-            'metadata' => event.metadata,
+            'metaData' => event.metadata,
             'positionEventNumber' => event_store[stream_name].length
           )
         end

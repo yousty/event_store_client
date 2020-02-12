@@ -18,7 +18,7 @@ module EventStoreClient
             'positionEventNumber' => 0
           )
         )
-        metadata = JSON.parse(subject.event_store['sample_stream'].first['metadata'])
+        metadata = JSON.parse(subject.event_store['sample_stream'].first['metaData'])
         expect(metadata['created_at']).not_to be_empty
         expect(metadata['bar']).to eq('foo')
       end
