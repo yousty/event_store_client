@@ -62,7 +62,7 @@ module EventStoreClient
         events = subject.send(:read_stream_backward, 'sample_stream', start: 10)['entries']
         expect(
           events.map { |event| event['positionEventNumber'] }
-        ).to eq([0, 1])
+        ).to eq([1, 0])
       end
 
       context 'when a start is equal to 0' do
@@ -80,7 +80,7 @@ module EventStoreClient
           events = subject.send(:read_stream_backward, 'sample_stream', start: 'head')['entries']
           expect(
             events.map { |event| event['positionEventNumber'] }
-          ).to eq([0, 1])
+          ).to eq([1, 0])
         end
       end
     end
@@ -101,7 +101,7 @@ module EventStoreClient
         events = subject.send(:read_stream_forward, 'sample_stream', start: 0)['entries']
         expect(
           events.map { |event| event['positionEventNumber'] }
-        ).to eq([0, 1])
+        ).to eq([1, 0])
       end
 
       context 'when a start is equal to a last event position' do
