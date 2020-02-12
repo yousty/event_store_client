@@ -112,8 +112,7 @@ module EventStoreClient
         title: entry['title'],
         type: entry['eventType'],
         data: entry['data'],
-        metadata: entry['metaData'],
-        number: entry['eventNumber'].to_s
+        metadata: entry['metaData']
       )
       mapper.deserialize(event)
     end
