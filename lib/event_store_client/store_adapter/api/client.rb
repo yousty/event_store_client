@@ -24,10 +24,15 @@ module EventStoreClient
 
         def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: true)
           headers = {
-            'ES-ResolveLinkTos' => resolve_links.to_s
+            'ES-ResolveLinkTos' => resolve_links.to_s,
+            'Accept' => 'application/vnd.eventstore.atom+json'
           }
 
-          make_request(:get, "/streams/#{stream_name}/#{start}/#{direction}/#{count}", headers: headers)
+          make_request(
+            :get,
+            "/streams/#{stream_name}/#{start}/#{direction}/#{count}",
+            headers: headers
+          )
         end
 
         def subscribe_to_stream(
