@@ -21,7 +21,6 @@ module EventStoreClient
 
       def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: nil)
         read_stream_forward(stream_name, start: start, count: count) if direction == 'forward'
-
         read_stream_backward(stream_name, start: start, count: count)
       end
 
@@ -46,9 +45,9 @@ module EventStoreClient
       def read_stream_backward(stream_name, start: 0, count: per_page)
         return [] unless event_store.key?(stream_name)
 
-        start = start.zero? ? event_store[stream_name].length - 1 : start
+        start = start == 'head' ? event_store[stream_name].length - 1 : start
         last_index = start - count
-        entries = event_store[stream_name].select do |event|
+        entries = event_store[stream_name].reverse.select do |event|
           event['positionEventNumber'] > last_index &&
             event['positionEventNumber'] <= start
         end
