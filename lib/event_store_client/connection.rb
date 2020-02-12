@@ -82,8 +82,7 @@ module EventStoreClient
       return [] if response.body.nil? || response.body.empty?
       JSON.parse(response.body)['entries'].map do |entry|
         deserialize_event(entry)
-      end
-      response.reverse
+      end.reverse
     end
 
     def read_all_from_stream(stream, resolve_links:)
