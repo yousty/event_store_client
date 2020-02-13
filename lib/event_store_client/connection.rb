@@ -85,10 +85,18 @@ module EventStoreClient
     def read_all_from_stream(stream, start:, resolve_links:)
       count = per_page
       events = []
+      failed_requests_count = 0
 
-      loop do
-        response =
-          client.read(stream, start: start, direction: 'forward', resolve_links: resolve_links)
+      while failed_requests_count < 3
+        begin
+          response =
+            client.read(stream, start: start, direction: 'forward', resolve_links: resolve_links)
+          failed_requests_count += 1 && next unless response.success?
+        rescue Faraday::ConnectionFailed
+          failed_requests_count += 1
+          next
+        end
+        failed_requests_count = 0
         break if response.body.nil? || response.body.empty?
         entries = JSON.parse(response.body)['entries']
         break if entries.empty?

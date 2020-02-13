@@ -3,7 +3,11 @@
 module EventStoreClient
   module StoreAdapter
     class InMemory
-      Response = Struct.new(:body)
+      Response = Struct.new(:body, :status) do
+        def success?
+          status == 200
+        end
+      end
 
       attr_reader :event_store
 
@@ -29,7 +33,7 @@ module EventStoreClient
             read_stream_backward(stream_name, start: start)
           end
 
-        Response.new(response.to_json)
+        Response.new(response.to_json, 200)
       end
 
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
