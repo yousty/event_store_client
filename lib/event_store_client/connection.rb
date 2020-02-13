@@ -11,13 +11,10 @@ module EventStoreClient
     end
 
     def read(stream, direction:, start:, count:, all:, resolve_links: true)
-      if all
-        read_all_from_stream(stream, resolve_links: resolve_links)
-      else
-        read_from_stream(
-          stream, direction: direction, start: start, count: count, resolve_links: resolve_links
-        )
-      end
+      return read_all_from_stream(stream, resolve_links: resolve_links) if all
+      read_from_stream(
+        stream, direction: direction, start: start, count: count, resolve_links: resolve_links
+      )
     end
 
     def delete_stream(stream); end
