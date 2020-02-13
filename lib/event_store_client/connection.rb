@@ -10,10 +10,10 @@ module EventStoreClient
       serialized_events
     end
 
-    def read(stream, direction:, start:, count:, all:, resolve_links: true)
-      return read_all_from_stream(stream, resolve_links: resolve_links) if all
+    def read(stream, direction:, start:, all:, resolve_links: true)
+      return read_all_from_stream(stream, start: start, resolve_links: resolve_links) if all
       read_from_stream(
-        stream, direction: direction, start: start, count: count, resolve_links: resolve_links
+        stream, direction: direction, start: start, resolve_links: resolve_links
       )
     end
 
@@ -71,10 +71,10 @@ module EventStoreClient
         )
     end
 
-    def read_from_stream(stream, direction:, start:, count:, resolve_links:)
+    def read_from_stream(stream, direction:, start:, resolve_links:)
       response =
         client.read(
-          stream, start: start, direction: direction, count: count, resolve_links: resolve_links
+          stream, start: start, direction: direction, resolve_links: resolve_links
         )
       return [] if response.body.nil? || response.body.empty?
       JSON.parse(response.body)['entries'].map do |entry|
@@ -82,21 +82,17 @@ module EventStoreClient
       end.reverse
     end
 
-    def read_all_from_stream(stream, resolve_links:)
-      count = 20
-      start = 0
+    def read_all_from_stream(stream, start:, resolve_links:)
+      count = per_page
       events = []
 
       loop do
         response =
-          client.read(
-            stream, start: start, direction: 'forward', count: count, resolve_links: resolve_links
-          )
+          client.read(stream, start: start, direction: 'forward', resolve_links: resolve_links)
         break if response.body.nil? || response.body.empty?
         entries = JSON.parse(response.body)['entries']
         break if entries.empty?
-        deserialzied_events = entries.map { |entry| deserialize_event(entry) }
-        events = events + deserialzied_events.reverse
+        events += entries.map { |entry| deserialize_event(entry) }.reverse
         start += count
       end
       events

@@ -21,12 +21,12 @@ module EventStoreClient
         end
       end
 
-      def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: nil)
+      def read(stream_name, direction: 'forward', start: 0, resolve_links: nil)
         response =
           if direction == 'forward'
-            read_stream_forward(stream_name, start: start, count: count)
+            read_stream_forward(stream_name, start: start)
           else
-            read_stream_backward(stream_name, start: start, count: count)
+            read_stream_backward(stream_name, start: start)
           end
 
         Response.new(response.to_json)
@@ -50,32 +50,32 @@ module EventStoreClient
         @event_store = {}
       end
 
-      def read_stream_backward(stream_name, start: 0, count: per_page)
+      def read_stream_backward(stream_name, start: 0)
         return [] unless event_store.key?(stream_name)
 
         start = start == 'head' ? event_store[stream_name].length - 1 : start
-        last_index = start - count
+        last_index = start - per_page
         entries = event_store[stream_name].select do |event|
           event['positionEventNumber'] > last_index &&
             event['positionEventNumber'] <= start
         end
         {
           'entries' => entries,
-          'links' => links(stream_name, last_index, 'next', entries, count)
+          'links' => links(stream_name, last_index, 'next', entries, per_page)
         }
       end
 
-      def read_stream_forward(stream_name, start: 0, count: per_page)
+      def read_stream_forward(stream_name, start: 0)
         return [] unless event_store.key?(stream_name)
 
-        last_index = start + count
+        last_index = start + per_page
         entries = event_store[stream_name].select do |event|
           event['positionEventNumber'] < last_index &&
             event['positionEventNumber'] >= start
         end
         {
           'entries' => entries,
-          'links' => links(stream_name, last_index, 'previous', entries, count)
+          'links' => links(stream_name, last_index, 'previous', entries, per_page)
         }
       end
 

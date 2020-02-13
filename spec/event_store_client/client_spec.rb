@@ -38,16 +38,17 @@ module EventStoreClient
       end
 
       context 'backward' do
-        it 'reads a latest event from a stream' do
-          events = client.read('stream', direction: 'backard', start: 'head', count: 1)
-          expect(events.count).to eq(1)
-          expect(events.first.type).to eq('SomethingElseHappened')
+        it 'reads events from a stream' do
+          events = client.read('stream', direction: 'backard', start: 'head')
+          expect(events.count).to eq(2)
+          expect(events.map { |event| event.type }).
+            to eq(['SomethingHappened', 'SomethingElseHappened'])
         end
       end
 
       context 'all' do
         it 'reads all events from a stream' do
-          events = client.read('stream', count: 1, all: true)
+          events = client.read('stream', all: true)
           expect(events.count).to eq(2)
           expect(events.map { |event| event.type }).
             to eq(['SomethingHappened', 'SomethingElseHappened'])
