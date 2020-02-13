@@ -3,6 +3,8 @@
 module EventStoreClient
   module StoreAdapter
     class InMemory
+      Response = Struct.new(:body)
+
       attr_reader :event_store
 
       def append_to_stream(stream_name, events, expected_version: nil) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
@@ -26,7 +28,8 @@ module EventStoreClient
           else
             read_stream_backward(stream_name, start: start, count: count)
           end
-        OpenStruct.new(body: response.to_json)
+
+        Response.new(response.to_json)
       end
 
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
