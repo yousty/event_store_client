@@ -3,6 +3,12 @@
 module EventStoreClient
   module StoreAdapter
     class InMemory
+      Response = Struct.new(:body, :status) do
+        def success?
+          status == 200
+        end
+      end
+
       attr_reader :event_store
 
       def append_to_stream(stream_name, events, expected_version: nil) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
@@ -13,16 +19,21 @@ module EventStoreClient
             'eventId' => event.id,
             'data' => event.data,
             'eventType' => event.type,
-            'metadata' => event.metadata,
+            'metaData' => event.metadata,
             'positionEventNumber' => event_store[stream_name].length
           )
         end
       end
 
-      def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: nil)
-        read_stream_forward(stream_name, start: start, count: count) if direction == 'forward'
+      def read(stream_name, direction: 'forward', start: 0, resolve_links: nil)
+        response =
+          if direction == 'forward'
+            read_stream_forward(stream_name, start: start)
+          else
+            read_stream_backward(stream_name, start: start)
+          end
 
-        read_stream_backward(stream_name, start: start, count: count)
+        Response.new(response.to_json, 200)
       end
 
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
@@ -43,32 +54,32 @@ module EventStoreClient
         @event_store = {}
       end
 
-      def read_stream_backward(stream_name, start: 0, count: per_page)
+      def read_stream_backward(stream_name, start: 0)
         return [] unless event_store.key?(stream_name)
 
-        start = start.zero? ? event_store[stream_name].length - 1 : start
-        last_index = start - count
+        start = start == 'head' ? event_store[stream_name].length - 1 : start
+        last_index = start - per_page
         entries = event_store[stream_name].select do |event|
           event['positionEventNumber'] > last_index &&
             event['positionEventNumber'] <= start
         end
         {
           'entries' => entries,
-          'links' => links(stream_name, last_index, 'next', entries, count)
+          'links' => links(stream_name, last_index, 'next', entries, per_page)
         }
       end
 
-      def read_stream_forward(stream_name, start: 0, count: per_page)
+      def read_stream_forward(stream_name, start: 0)
         return [] unless event_store.key?(stream_name)
 
-        last_index = start + count
-        entries = event_store[stream_name].reverse.select do |event|
+        last_index = start + per_page
+        entries = event_store[stream_name].select do |event|
           event['positionEventNumber'] < last_index &&
             event['positionEventNumber'] >= start
         end
         {
           'entries' => entries,
-          'links' => links(stream_name, last_index, 'previous', entries, count)
+          'links' => links(stream_name, last_index, 'previous', entries, per_page)
         }
       end
 

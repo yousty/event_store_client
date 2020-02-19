@@ -10,8 +10,8 @@ module EventStoreClient
       connection.publish(stream: stream, events: events, expected_version: expected_version)
     end
 
-    def read(stream, direction: 'forward')
-      connection.read(stream, direction: direction)
+    def read(stream, direction: 'forward', start: 0, all: false)
+      connection.read(stream, direction: direction, start: start, all: all)
     end
 
     def subscribe(subscriber, to: [], polling: true)

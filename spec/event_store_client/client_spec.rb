@@ -29,20 +29,29 @@ module EventStoreClient
       end
 
       context 'forward' do
-        it 'reads events from the store', pending: true do
-          pending('missing implementation of EventStoreClient::StoreAdapter::InMemory#read')
-          events = client.read('stream', direction: 'forward')
-          expect(events[0].type).to eq('SomethingHappened')
-          expect(events[1].type).to eq('SomethingElseHappened')
+        it 'reads events from a stream' do
+          events = client.read('stream')
+          expect(events.count).to eq(2)
+          expect(events.map { |event| event.type }).
+            to eq(['SomethingHappened', 'SomethingElseHappened'])
         end
       end
 
       context 'backward' do
-        it 'reads events from the store', pending: true do
-          pending('missing implementation of EventStoreClient::StoreAdapter::InMemory#read')
-          events = client.read('stream', direction: 'backard')
-          expect(events[0].type).to eq('SomethingElseHappened')
-          expect(events[1].type).to eq('SomethingHappened')
+        it 'reads events from a stream' do
+          events = client.read('stream', direction: 'backard', start: 'head')
+          expect(events.count).to eq(2)
+          expect(events.map { |event| event.type }).
+            to eq(['SomethingHappened', 'SomethingElseHappened'])
+        end
+      end
+
+      context 'all' do
+        it 'reads all events from a stream' do
+          events = client.read('stream', all: true)
+          expect(events.count).to eq(2)
+          expect(events.map { |event| event.type }).
+            to eq(['SomethingHappened', 'SomethingElseHappened'])
         end
       end
     end

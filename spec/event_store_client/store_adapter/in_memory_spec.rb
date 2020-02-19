@@ -18,7 +18,7 @@ module EventStoreClient
             'positionEventNumber' => 0
           )
         )
-        metadata = JSON.parse(subject.event_store['sample_stream'].first['metadata'])
+        metadata = JSON.parse(subject.event_store['sample_stream'].first['metaData'])
         expect(metadata['created_at']).not_to be_empty
         expect(metadata['bar']).to eq('foo')
       end
@@ -59,10 +59,29 @@ module EventStoreClient
       end
 
       it 'returns events in proper order' do
-        events = subject.send(:read_stream_backward, 'sample_stream', start: 0)['entries']
+        events = subject.send(:read_stream_backward, 'sample_stream', start: 10)['entries']
         expect(
           events.map { |event| event['positionEventNumber'] }
         ).to eq([1, 0])
+      end
+
+      context 'when a start is equal to 0' do
+        it 'returns the oldest event' do
+          events = subject.send(:read_stream_backward, 'sample_stream', start: 0)['entries']
+          expect(events.count).to eq(1)
+          expect(
+            events.map { |event| event['positionEventNumber'] }
+          ).to eq([0])
+        end
+      end
+
+      context 'when a start is equal to head' do
+        it 'returns events' do
+          events = subject.send(:read_stream_backward, 'sample_stream', start: 'head')['entries']
+          expect(
+            events.map { |event| event['positionEventNumber'] }
+          ).to eq([1, 0])
+        end
       end
     end
 
@@ -82,7 +101,17 @@ module EventStoreClient
         events = subject.send(:read_stream_forward, 'sample_stream', start: 0)['entries']
         expect(
           events.map { |event| event['positionEventNumber'] }
-        ).to eq([0, 1])
+        ).to eq([1, 0])
+      end
+
+      context 'when a start is equal to a last event position' do
+        it 'returns the newest event' do
+          events = subject.send(:read_stream_forward, 'sample_stream', start: 1)['entries']
+          expect(events.count).to eq(1)
+          expect(
+            events.map { |event| event['positionEventNumber'] }
+          ).to eq([1])
+        end
       end
     end
 
