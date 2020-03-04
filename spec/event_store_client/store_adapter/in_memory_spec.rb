@@ -158,5 +158,10 @@ module EventStoreClient
         metadata: { bar: 'foo' }.to_json
       )
     end
+
+    it 'implmenetes the same methods as the Client' do
+      client_methods = EventStoreClient::StoreAdapter::Api::Client.instance_methods(false).sort
+      expect(described_class.instance_methods(false).sort - [:event_store]).to eq(client_methods)
+    end
   end
 end

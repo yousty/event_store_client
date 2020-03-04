@@ -36,12 +36,24 @@ module EventStoreClient
         Response.new(response.to_json, 200)
       end
 
+      def subscribe_to_stream
+        # TODO: implement method body
+      end
+
+      def consume_feed
+        # TODO: implement method body
+      end
+
       def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
         event_store.delete(stream_name)
       end
 
       def link_to(stream_name, events)
         append_to_stream(stream_name, events)
+      end
+
+      def ack
+        # TODO: implement method body
       end
 
       private
