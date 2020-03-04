@@ -4,6 +4,8 @@ module EventStoreClient
   module StoreAdapter
     module Api
       class Client
+        WrongExpectedEventVersion = Class.new(StandardError)
+
         def append_to_stream(stream_name, events, expected_version: nil)
           headers = {
             'ES-ExpectedVersion' => expected_version.to_s
@@ -11,7 +13,14 @@ module EventStoreClient
 
           data = build_events_data(events)
 
-          make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
+          response = make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
+          if response.status == 400 && response.reason_phrase == 'Wrong expected EventNumber'
+            raise WrongExpectedEventVersion.new(
+              "current version: #{response.headers.fetch('es-currentversion')} | "\
+              "expected: #{expected_version}"
+            )
+          end
+          response
         end
 
         def delete_stream(stream_name, hard_delete)
