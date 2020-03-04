@@ -161,7 +161,7 @@ module EventStoreClient
 
     it 'implmenetes the same methods as the Client' do
       client_methods = EventStoreClient::StoreAdapter::Api::Client.instance_methods(false).sort
-      expect(subject.class.instance_methods(false).sort).to eq(client_methods)
+      expect(described_class.instance_methods(false).sort - [:event_store]).to eq(client_methods)
     end
   end
 end
