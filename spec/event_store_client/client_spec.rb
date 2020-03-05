@@ -66,7 +66,8 @@ module EventStoreClient
       before do
         allow_any_instance_of(Connection).to receive(:link_to).with(
           stream_name,
-          events
+          events,
+          expected_version: nil
         ).and_return(events)
       end
 
@@ -78,7 +79,11 @@ module EventStoreClient
 
       shared_examples 'correct linking events' do
         it 'invokes link event for the store' do
-          expect_any_instance_of(Connection).to receive(:link_to).with(stream_name, events)
+          expect_any_instance_of(Connection).to receive(:link_to).with(
+            stream_name,
+            events,
+            expected_version: nil
+          )
 
           subject.call
         end
