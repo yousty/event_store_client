@@ -12,14 +12,8 @@ module EventStoreClient
           }.reject { |_key, val| val.nil? }
 
           data = build_events_data(events)
-
           response = make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
-          if response.status == 400 && response.reason_phrase == 'Wrong expected EventNumber'
-            raise WrongExpectedEventVersion.new(
-              "current version: #{response.headers.fetch('es-currentversion')} | "\
-              "expected: #{expected_version}"
-            )
-          end
+          validate_response(response, expected_version)
           response
         end
 
@@ -78,14 +72,20 @@ module EventStoreClient
           )
         end
 
-        def link_to(stream_name, events)
+        def link_to(stream_name, events, expected_version: nil)
           data = build_linkig_data(events)
+          headers = {
+            'ES-ExpectedVersion' => expected_version&.to_s
+          }.reject { |_key, val| val.nil? }
 
-          make_request(
+          response = make_request(
             :post,
             "/streams/#{stream_name}",
-            body: data
+            body: data,
+            headers: headers
           )
+          validate_response(response, expected_version)
+          response
         end
 
         def ack(url)
@@ -133,6 +133,14 @@ module EventStoreClient
 
         def connection
           @connection ||= Api::Connection.new(endpoint).call
+        end
+
+        def validate_response(resp, expected_version)
+          return unless resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
+          raise WrongExpectedEventVersion.new(
+            "current version: #{resp.headers.fetch('es-currentversion')} | "\
+            "expected: #{expected_version}"
+          )
         end
       end
     end
