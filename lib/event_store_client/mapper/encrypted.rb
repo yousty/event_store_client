@@ -28,9 +28,7 @@ module EventStoreClient
         )
       end
 
-      def deserialize(event)
-        # todo
-      end
+      def deserialize(_event); end
 
       private
 

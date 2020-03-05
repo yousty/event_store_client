@@ -3,17 +3,16 @@
 module EventStoreClient
   class DataEncryptor
     def call
-      return encrypted_data unless encryption_metadata
-      encryption_metadata.each do |key_id, val|
-        key = key_repository.find(key_id) || key_repository.create(key_id)
-        val[:iv] ||= key.iv
-        val[:attributes].each do |att|
-          encrypted_data[att] = encrypt_attribute(
-            key, encrypted_data.fetch(att)
-          )
-        end
-      end
-      encrypted_data
+      return encrypted_data if encryption_metadata.empty?
+
+      key_id = encryption_metadata[:key]
+      key = key_repository.find(key_id) || key_repository.create(key_id)
+      encryption_metadata[:iv] = key.iv
+      encrypt_attributes(
+        key: key,
+        data: encrypted_data,
+        attributes: encryption_metadata[:attributes]
+      )
     end
 
     attr_reader :encrypted_data, :encryption_metadata
@@ -23,15 +22,19 @@ module EventStoreClient
     attr_reader :key_repository
 
     def initialize(data:, schema:, repository:)
-      @encrypted_data = deep_dup(data)
+      @encrypted_data = deep_dup(data).transform_keys!(&:to_sym)
       @key_repository = repository
       @encryption_metadata = EncryptionMetadata.new(data: data, schema: schema).call
     end
 
-    def encrypt_attribute(key, text)
-      key_repository.encrypt(
+    def encrypt_attributes(key:, data:, attributes:)
+      text = JSON.generate(data.select { |hash_key, _value| attributes.include?(hash_key) })
+      encrypted = key_repository.encrypt(
         key_id: key.id, text: text, cipher: key.cipher, iv: key.iv
       )
+      attributes.each { |att| data[att] = 'encrypted' }
+      data[:encrypted] = encrypted
+      data
     end
 
     def deep_dup(hash)

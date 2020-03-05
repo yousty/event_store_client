@@ -5,9 +5,9 @@ module EventStoreClient
     let(:data) do
       {
         'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-        'email' => 'darth@vader.sv',
         'first_name' => 'Anakin',
-        'last_name' => 'Skylwalker'
+        'last_name' => 'Skylwalker',
+        'profession' => 'Jedi'
       }
     end
 
@@ -15,9 +15,10 @@ module EventStoreClient
       let(:encrypted_data) do
         {
           'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-          'email' => 'encrypted',
           'first_name' => 'encrypted',
-          'last_name' => 'Skylwalker'
+          'last_name' => 'encrypted',
+          'profession' => 'Jedi',
+          'encrypted' => 'darthvader'
         }
       end
 
@@ -53,11 +54,11 @@ class DummyRepository
   end
 
   def encrypt(*)
-    'encrypted'
+    'darthvader'
   end
 
   def decrypt(*)
-    'decrypted'
+    JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker')
   end
 end
 
@@ -65,16 +66,16 @@ class EncryptedEvent < EventStoreClient::DeserializedEvent
   def schema
     Dry::Schema.Params do
       required(:user_id).value(:string)
-      required(:email).value(:string)
       required(:first_name).value(:string)
       required(:last_name).value(:string)
+      required(:profession).value(:string)
     end
   end
 
   def self.encryption_schema
     {
-      'email' => ->(data) { data['user_id'] },
-      'first_name' => ->(data) { data['user_id'] }
+      key: ->(data) { data[:user_id] },
+      attributes: %i[first_name last_name]
     }
   end
 end
@@ -87,7 +88,13 @@ class SerializedEncryptedEvent
   end
 
   def data
-    '{"user_id":"dab48d26-e4f8-41fc-a9a8-59657e590716","email":"encrypted","first_name":"encrypted"}' # rubocop:disable Metrics/LineLength
+    JSON.generate(
+      user_id: 'dab48d26-e4f8-41fc-a9a8-59657e590716',
+      first_name: 'encrypted',
+      last_name: 'encrypted',
+      profession: 'Jedi',
+      encrypted: 'darthvader'
+    )
   end
 
   private

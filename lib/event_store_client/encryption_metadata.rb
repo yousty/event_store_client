@@ -6,12 +6,10 @@ module EventStoreClient
     def call
       return {} unless schema
 
-      schema.each_with_object({}) do |(attr_name, key_proc), acc|
-        key_identifier = key_proc.call(data)
-        acc[key_identifier] ||= { attributes: [] }
-        acc[key_identifier][:attributes] |= [attr_name]
-        acc
-      end
+      {
+        key: schema[:key].call(data),
+        attributes: schema[:attributes].map(&:to_sym)
+      }
     end
 
     private

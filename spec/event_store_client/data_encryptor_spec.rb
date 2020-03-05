@@ -4,37 +4,49 @@ require 'securerandom'
 
 module EventStoreClient
   RSpec.describe DataEncryptor do
+    describe '#call' do
+      let(:repository) { DummyRepository.new }
+
+      subject { described_class.new(data: data, schema: schema, repository: repository) }
+
+      it 'returns encrypted data' do
+        expect(subject.call).to eq(
+          user_id: user_id,
+          first_name: 'encrypted',
+          last_name: 'encrypted',
+          profession: 'Jedi',
+          encrypted: 'darthvader'
+        )
+      end
+
+      it 'updates the encrypted data reader' do
+        subject.call
+        expect(subject.encrypted_data).to eq(
+          user_id: user_id,
+          first_name: 'encrypted',
+          last_name: 'encrypted',
+          profession: 'Jedi',
+          encrypted: 'darthvader'
+        )
+      end
+    end
+
     let(:key_repository) { DummyRepository.new }
     let(:user_id) { SecureRandom.uuid }
     let(:data) do
       {
         user_id: user_id,
-        email: 'darth@vader.sv',
-        encrypted: 'Foo',
-        not_encrypted: 'Bar'
+        first_name: 'Anakin',
+        last_name: 'Skylwalker',
+        profession: 'Jedi'
       }
     end
 
     let(:schema) do
       {
-        email: ->(data) { data[:user_id] },
-        encrypted: ->(data) { data[:user_id] }
+        key: ->(data) { data[:user_id] },
+        attributes: %i[first_name last_name]
       }
-    end
-
-    describe '#call' do
-      let(:repository) { DummyRepository.new }
-
-      subject { described_class.new(data: data, schema: schema, repository: repository).call }
-
-      it 'returns encrypted data' do
-        expect(subject).to eq(
-          user_id: user_id,
-          email: 'encrypted',
-          encrypted: 'encrypted',
-          not_encrypted: 'Bar'
-        )
-      end
     end
   end
 end
@@ -52,10 +64,10 @@ class DummyRepository
   end
 
   def encrypt(*)
-    'encrypted'
+    'darthvader'
   end
 
   def decrypt(*)
-    'decrypted'
+    JSON.gnereate(first_name: 'Anakin', last_name: 'Skylwalker')
   end
 end

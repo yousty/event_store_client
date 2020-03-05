@@ -8,16 +8,16 @@ module EventStoreClient
     let(:data) do
       {
         user_id: user_id,
-        email: 'darth@vader.sv',
-        encrypted: 'Foo',
-        not_encrypted: 'Bar'
+        first_name: 'Anakin',
+        last_name: 'Skylwalker',
+        profession: 'Jedi'
       }
     end
 
     let(:schema) do
       {
-        email: ->(data) { data[:user_id] },
-        encrypted: ->(data) { data[:user_id] }
+        key: ->(data) { data[:user_id] },
+        attributes: %i[first_name last_name]
       }
     end
 
@@ -28,7 +28,8 @@ module EventStoreClient
 
       it 'returns transformed object' do
         expect(subject).to eq(
-          user_id => { attributes: %i[email encrypted] }
+          key: user_id,
+          attributes: %i[first_name last_name]
         )
       end
     end
