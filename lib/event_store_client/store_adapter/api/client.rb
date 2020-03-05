@@ -8,8 +8,8 @@ module EventStoreClient
 
         def append_to_stream(stream_name, events, expected_version: nil)
           headers = {
-            'ES-ExpectedVersion' => expected_version.to_s
-          }.reject { |_key, val| val.empty? }
+            'ES-ExpectedVersion' => expected_version&.to_s
+          }.reject { |_key, val| val.nil? }
 
           data = build_events_data(events)
 
