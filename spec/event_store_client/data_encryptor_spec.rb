@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require 'support/dummy_repository'
 
 module EventStoreClient
   RSpec.describe DataEncryptor do
@@ -48,26 +49,5 @@ module EventStoreClient
         attributes: %i[first_name last_name]
       }
     end
-  end
-end
-
-class DummyRepository
-  class Key
-    attr_accessor :iv, :cipher, :id
-    def initialize(id:, **)
-      @id = id
-    end
-  end
-
-  def find(user_id)
-    Key.new(id: user_id)
-  end
-
-  def encrypt(*)
-    'darthvader'
-  end
-
-  def decrypt(*)
-    JSON.gnereate(first_name: 'Anakin', last_name: 'Skylwalker')
   end
 end
