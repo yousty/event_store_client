@@ -59,8 +59,8 @@ module EventStoreClient
       # * +key_repoistory+ - repository stored encryption keys. Passed down to the +DataEncryptor+
       # * +serializer+ - object used to serialize data. By default JSON serializer is used.
       def initialize(key_repository, serializer: Serializer::Json)
-        @key_repository         = key_repository
-        @serializer             = serializer
+        @key_repository = key_repository
+        @serializer = serializer
       end
     end
   end
