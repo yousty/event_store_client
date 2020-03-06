@@ -9,7 +9,7 @@ module EventStoreClient
         def append_to_stream(stream_name, events, expected_version: nil)
           headers = {
             'ES-ExpectedVersion' => expected_version&.to_s
-          }.reject { |_key, val| val.nil? }
+          }.reject { |_key, val| val.nil? || val.empty? }
 
           data = build_events_data(events)
           response = make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
@@ -76,7 +76,7 @@ module EventStoreClient
           data = build_linkig_data(events)
           headers = {
             'ES-ExpectedVersion' => expected_version&.to_s
-          }.reject { |_key, val| val.nil? }
+          }.reject { |_key, val| val.nil? || val.empty? }
 
           response = make_request(
             :post,
