@@ -28,10 +28,26 @@ module EventStoreClient::StoreAdapter::Api
         stub_request(:post, stream_url(stream_name)).
           with(headers: { 'ES-ExpectedVersion': '0' }, body: body.to_json)
       end
+      let!(:invalid_request_stub) do
+        stub_request(:post, stream_url(stream_name)).
+          with(headers: { 'ES-ExpectedVersion': '10' }, body: body.to_json).
+          to_return(
+            status: [400, 'Wrong expected EventNumber'],
+            headers: { 'es-currentversion': 0 }
+          )
+      end
 
       it 'sends a correct request' do
         api_client.append_to_stream(stream_name, events, expected_version: 0)
         expect(stub).to have_been_requested
+      end
+
+      it 'raises exception when passed a wrong expected wersion' do
+        expect { api_client.append_to_stream(stream_name, events, expected_version: 10) }.
+          to raise_error(
+            EventStoreClient::StoreAdapter::Api::Client::WrongExpectedEventVersion,
+            'current version: 0 | expected: 10'
+          )
       end
     end
 

@@ -4,14 +4,17 @@ module EventStoreClient
   module StoreAdapter
     module Api
       class Client
+        WrongExpectedEventVersion = Class.new(StandardError)
+
         def append_to_stream(stream_name, events, expected_version: nil)
           headers = {
-            'ES-ExpectedVersion' => expected_version.to_s
-          }.reject { |_key, val| val.empty? }
+            'ES-ExpectedVersion' => expected_version&.to_s
+          }.reject { |_key, val| val.nil? || val.empty? }
 
           data = build_events_data(events)
-
-          make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
+          response = make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
+          validate_response(response, expected_version)
+          response
         end
 
         def delete_stream(stream_name, hard_delete)
@@ -69,14 +72,20 @@ module EventStoreClient
           )
         end
 
-        def link_to(stream_name, events)
+        def link_to(stream_name, events, expected_version: nil)
           data = build_linkig_data(events)
+          headers = {
+            'ES-ExpectedVersion' => expected_version&.to_s
+          }.reject { |_key, val| val.nil? || val.empty? }
 
-          make_request(
+          response = make_request(
             :post,
             "/streams/#{stream_name}",
-            body: data
+            body: data,
+            headers: headers
           )
+          validate_response(response, expected_version)
+          response
         end
 
         def ack(url)
@@ -124,6 +133,14 @@ module EventStoreClient
 
         def connection
           @connection ||= Api::Connection.new(endpoint).call
+        end
+
+        def validate_response(resp, expected_version)
+          return unless resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
+          raise WrongExpectedEventVersion.new(
+            "current version: #{resp.headers.fetch('es-currentversion')} | "\
+            "expected: #{expected_version}"
+          )
         end
       end
     end

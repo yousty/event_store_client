@@ -43,8 +43,8 @@ module EventStoreClient
       events
     end
 
-    def link_to(stream, events)
-      client.link_to(stream, events)
+    def link_to(stream, events, expected_version: nil)
+      client.link_to(stream, events, expected_version: expected_version)
 
       true
     end

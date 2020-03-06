@@ -5,9 +5,12 @@ require 'dry-struct'
 module EventStoreClient
   class Client
     NoCallMethodOnSubscriber = Class.new(StandardError)
+    WrongExpectedEventVersion = Class.new(StandardError)
 
     def publish(stream:, events:, expected_version: nil)
       connection.publish(stream: stream, events: events, expected_version: expected_version)
+    rescue StoreAdapter::Api::Client::WrongExpectedEventVersion => e
+      raise WrongExpectedEventVersion.new(e.message)
     end
 
     def read(stream, direction: 'forward', start: 0, all: false)
@@ -61,12 +64,15 @@ module EventStoreClient
       nil
     end
 
-    def link_to(stream:, events:)
+    # rubocop:disable Metrics/CyclomaticComplexity
+    def link_to(stream:, events:, expected_version: nil)
       raise ArgumentError if !stream || stream == ''
       raise ArgumentError if events.nil? || (events.is_a?(Array) && events.empty?)
-
-      connection.link_to(stream, events)
+      connection.link_to(stream, events, expected_version: expected_version)
+    rescue StoreAdapter::Api::Client::WrongExpectedEventVersion => e
+      raise WrongExpectedEventVersion.new(e.message)
     end
+    # rubocop:enable Metrics/CyclomaticComplexity
 
     attr_accessor :connection, :service_name
 
