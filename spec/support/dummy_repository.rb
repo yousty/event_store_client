@@ -17,6 +17,6 @@ class DummyRepository
   end
 
   def decrypt(*)
-    JSON.gnereate(first_name: 'Anakin', last_name: 'Skylwalker')
+    JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker')
   end
 end
