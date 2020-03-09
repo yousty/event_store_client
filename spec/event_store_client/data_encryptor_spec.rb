@@ -30,6 +30,18 @@ module EventStoreClient
           es_encrypted: 'darthvader'
         )
       end
+
+      it 'skips the encryption of non-existing keys' do
+        schema[:attributes] << :side
+        subject.call
+        expect(subject.encrypted_data).to eq(
+          user_id: user_id,
+          first_name: 'es_encrypted',
+          last_name: 'es_encrypted',
+          profession: 'Jedi',
+          es_encrypted: 'darthvader'
+        )
+      end
     end
 
     let(:key_repository) { DummyRepository.new }
