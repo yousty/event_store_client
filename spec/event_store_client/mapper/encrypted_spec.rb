@@ -18,10 +18,10 @@ module EventStoreClient
       let(:encrypted_data) do
         {
           'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-          'first_name' => 'encrypted',
-          'last_name' => 'encrypted',
+          'first_name' => 'es_encrypted',
+          'last_name' => 'es_encrypted',
           'profession' => 'Jedi',
-          'encrypted' => 'darthvader'
+          'es_encrypted' => 'darthvader'
         }
       end
 

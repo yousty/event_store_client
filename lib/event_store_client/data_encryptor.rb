@@ -32,8 +32,8 @@ module EventStoreClient
       encrypted = key_repository.encrypt(
         key_id: key.id, text: text, cipher: key.cipher, iv: key.iv
       )
-      attributes.each { |att| data[att] = 'encrypted' }
-      data[:encrypted] = encrypted
+      attributes.each { |att| data[att] = 'es_encrypted' }
+      data[:es_encrypted] = encrypted
       data
     end
 

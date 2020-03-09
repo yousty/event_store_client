@@ -13,10 +13,10 @@ module EventStoreClient
       it 'returns encrypted data' do
         expect(subject.call).to eq(
           user_id: user_id,
-          first_name: 'encrypted',
-          last_name: 'encrypted',
+          first_name: 'es_encrypted',
+          last_name: 'es_encrypted',
           profession: 'Jedi',
-          encrypted: 'darthvader'
+          es_encrypted: 'darthvader'
         )
       end
 
@@ -24,10 +24,10 @@ module EventStoreClient
         subject.call
         expect(subject.encrypted_data).to eq(
           user_id: user_id,
-          first_name: 'encrypted',
-          last_name: 'encrypted',
+          first_name: 'es_encrypted',
+          last_name: 'es_encrypted',
           profession: 'Jedi',
-          encrypted: 'darthvader'
+          es_encrypted: 'darthvader'
         )
       end
     end
