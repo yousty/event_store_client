@@ -33,6 +33,7 @@ module EventStoreClient
       events = body['entries'].map do |entry|
         event = EventStoreClient::Event.new(
           id: entry['eventId'],
+          title: entry['title'],
           type: entry['eventType'],
           data: entry['data'] || '{}',
           metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
