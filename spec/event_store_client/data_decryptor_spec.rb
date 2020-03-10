@@ -9,34 +9,27 @@ module EventStoreClient
       let(:repository) { DummyRepository.new }
 
       subject { described_class.new(data: data, schema: schema, repository: repository) }
-
-      it 'returns decrypted data' do
-        expect(subject.call).to eq(
+      let(:decrypted_data) do
+        {
           user_id: user_id,
           first_name: 'Anakin',
           last_name: 'Skylwalker',
           profession: 'Jedi'
-        )
+        }
+      end
+
+      it 'returns decrypted data' do
+        expect(subject.call).to eq(decrypted_data)
       end
 
       it 'updates the data reader' do
         subject.call
-        expect(subject.decrypted_data).to eq(
-          user_id: user_id,
-          first_name: 'Anakin',
-          last_name: 'Skylwalker',
-          profession: 'Jedi'
-        )
+        expect(subject.decrypted_data).to eq(decrypted_data)
       end
 
       it 'skips the decryption of non-existing keys' do
         schema[:attributes] << :side
-        expect(subject.call).to eq(
-          user_id: user_id,
-          first_name: 'Anakin',
-          last_name: 'Skylwalker',
-          profession: 'Jedi'
-        )
+        expect(subject.call).to eq(decrypted_data)
       end
     end
 
