@@ -9,6 +9,7 @@ module EventStoreClient
       let(:repository) { DummyRepository.new }
 
       subject { described_class.new(data: data, schema: schema, repository: repository) }
+
       let(:decrypted_data) do
         {
           user_id: user_id,
@@ -31,6 +32,11 @@ module EventStoreClient
         schema[:attributes] << :side
         expect(subject.call).to eq(decrypted_data)
       end
+
+      it 'returns error if repository key finding returns error' do
+        allow_any_instance_of(DummyRepository).to receive(:find).with(user_id).and_raise
+        expect { subject.call }.to raise_error(EventStoreClient::DataDecryptor::KeyNotFoundError)
+      end
     end
 
     let(:key_repository) { DummyRepository.new }
@@ -47,7 +53,7 @@ module EventStoreClient
 
     let(:schema) do
       {
-        key: ->(data) { data[:user_id] },
+        key: user_id,
         attributes: %i[first_name last_name]
       }
     end

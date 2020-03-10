@@ -2,12 +2,13 @@
 
 module EventStoreClient
   class DataDecryptor
+    KeyNotFoundError = Class.new(StandardError)
+
     def call
       return encrypted_data if encryption_metadata.empty?
 
-      key = key_repository.find(encryption_metadata[:key])
       decrypt_attributes(
-        key: key,
+        key: find_key(encryption_metadata[:key]),
         data: decrypted_data,
         attributes: encryption_metadata[:attributes]
       )
@@ -39,6 +40,18 @@ module EventStoreClient
       dupl = hash.dup
       dupl.each { |k, v| dupl[k] = v.instance_of?(Hash) ? deep_dup(v) : v }
       dupl
+    end
+
+    def find_key(identifier)
+      key =
+        begin
+          key_repository.find(identifier)
+        rescue StandardError => e
+          nil
+        end
+      raise KeyNotFoundError unless key
+
+      key
     end
   end
 end
