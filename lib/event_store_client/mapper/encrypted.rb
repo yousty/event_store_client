@@ -2,6 +2,7 @@
 
 require 'event_store_client/encryption_metadata'
 require 'event_store_client/data_encryptor'
+require 'event_store_client/data_decryptor'
 
 module EventStoreClient
   module Mapper
@@ -48,7 +49,30 @@ module EventStoreClient
       #   which key should be used as an identifier.
       # *Returns*: Specific event class with all data decrypted
 
-      def deserialize(_event); end
+      def deserialize(event)
+        metadata = serializer.deserialize(event.metadata)
+        encryption_schema = serializer.deserialize(event.metadata)['encryption']
+        decrypted_data = DataDecryptor.new(
+          data: serializer.deserialize(event.data),
+          schema: encryption_schema,
+          repository: key_repository
+        ).call
+
+        event_class =
+          begin
+            Object.const_get(event.type)
+          rescue NameError
+            EventStoreClient::DeserializedEvent
+          end
+
+        event_class.new(
+          id: event.id,
+          type: event.type,
+          title: event.title,
+          data: decrypted_data,
+          metadata: metadata
+        )
+      end
 
       private
 
