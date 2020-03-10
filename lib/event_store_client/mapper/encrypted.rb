@@ -52,13 +52,11 @@ module EventStoreClient
       def deserialize(event)
         metadata = serializer.deserialize(event.metadata)
         encryption_schema = serializer.deserialize(event.metadata)['encryption']
-        data = serializer.deserialize(event.data)
-        decryptor = DataDecryptor.new(
-          data: data,
+        decrypted_data = DataDecryptor.new(
+          data: serializer.deserialize(event.data),
           schema: encryption_schema,
           repository: key_repository
-        )
-        decryptor.call
+        ).call
 
         event_class =
           begin
@@ -67,13 +65,11 @@ module EventStoreClient
             EventStoreClient::DeserializedEvent
           end
 
-        data = decryptor.decrypted_data
-
         event_class.new(
           id: event.id,
           type: event.type,
           title: event.title,
-          data: data,
+          data: decrypted_data,
           metadata: metadata
         )
       end
