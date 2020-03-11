@@ -96,10 +96,16 @@ client.publish(stream: 'newstream', events: [event])
 events = client.read('newstream')
 ```
 
-**Changing reading direction
+**Changing reading direction**
 
 ```ruby
 events = client.read('newstream', direction: 'backward') #default 'forward'
+```
+
+**Reading all events from a stream**
+
+```ruby
+events = client.read('newstream', all: true) #default 'false'
 ```
 
 ### Subscribing to events
