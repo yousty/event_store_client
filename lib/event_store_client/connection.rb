@@ -92,7 +92,7 @@ module EventStoreClient
         begin
           response =
             client.read(stream, start: start, direction: 'forward', resolve_links: resolve_links)
-          failed_requests_count += 1 && next unless response.success?
+          failed_requests_count += 1 && next unless response.success? || response.status == 404
         rescue Faraday::ConnectionFailed
           failed_requests_count += 1
           next
