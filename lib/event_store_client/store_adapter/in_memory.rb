@@ -67,7 +67,7 @@ module EventStoreClient
       end
 
       def read_stream_backward(stream_name, start: 0)
-        return [] unless event_store.key?(stream_name)
+        return {} unless event_store.key?(stream_name)
 
         start = start == 'head' ? event_store[stream_name].length - 1 : start
         last_index = start - per_page
@@ -82,7 +82,7 @@ module EventStoreClient
       end
 
       def read_stream_forward(stream_name, start: 0)
-        return [] unless event_store.key?(stream_name)
+        return {} unless event_store.key?(stream_name)
 
         last_index = start + per_page
         entries = event_store[stream_name].select do |event|
