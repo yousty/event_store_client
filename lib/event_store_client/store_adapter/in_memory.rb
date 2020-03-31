@@ -67,32 +67,40 @@ module EventStoreClient
       end
 
       def read_stream_backward(stream_name, start: 0)
-        return {} unless event_store.key?(stream_name)
+        response = {
+          'entries' => [],
+          'links' => []
+        }
+        return response unless event_store.key?(stream_name)
 
         start = start == 'head' ? event_store[stream_name].length - 1 : start
         last_index = start - per_page
-        entries = event_store[stream_name].select do |event|
+        response['entries'] = event_store[stream_name].select do |event|
           event['positionEventNumber'] > last_index &&
             event['positionEventNumber'] <= start
         end
-        {
-          'entries' => entries,
-          'links' => links(stream_name, last_index, 'next', entries, per_page)
-        }
+        response['links'] = links(stream_name, last_index, 'next', response['entries'], per_page)
+
+        response
       end
 
       def read_stream_forward(stream_name, start: 0)
-        return {} unless event_store.key?(stream_name)
+        response = {
+          'entries' => [],
+          'links' => []
+        }
+
+        return response unless event_store.key?(stream_name)
 
         last_index = start + per_page
-        entries = event_store[stream_name].select do |event|
+        response['entries'] = event_store[stream_name].select do |event|
           event['positionEventNumber'] < last_index &&
             event['positionEventNumber'] >= start
         end
-        {
-          'entries' => entries,
-          'links' => links(stream_name, last_index, 'previous', entries, per_page)
-        }
+        response['links'] =
+          links(stream_name, last_index, 'previous', response['entries'], per_page)
+
+        response
       end
 
       def links(stream_name, batch_size, direction, entries, count)

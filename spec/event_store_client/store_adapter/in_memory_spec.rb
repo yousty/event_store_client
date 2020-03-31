@@ -54,7 +54,7 @@ module EventStoreClient
 
       it 'returns empty array if there is no stream' do
         expect(
-          subject.send(:read_stream_backward, 'nonexisting', start: 0)
+          subject.send(:read_stream_backward, 'nonexisting', start: 0)['entries']
         ).to be_empty
       end
 
@@ -93,7 +93,7 @@ module EventStoreClient
 
       it 'returns empty array if there is no stream' do
         expect(
-          subject.send(:read_stream_forward, 'nonexisting', start: 0)
+          subject.send(:read_stream_forward, 'nonexisting', start: 0)['entries']
         ).to be_empty
       end
 
