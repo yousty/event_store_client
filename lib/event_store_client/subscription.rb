@@ -15,7 +15,7 @@ module EventStoreClient
         end
       @name = "#{service}-#{subscriber_class}"
       @subscriber = subscriber
-      @stream = "$projections-#{name}-order"
+      @stream = name
       @observed_streams = event_types.reduce([]) { |r, type| r << "$et-#{type}" }
     end
   end

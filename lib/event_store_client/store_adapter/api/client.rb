@@ -41,6 +41,11 @@ module EventStoreClient
         def join_streams(name, streams)
           data = <<~STRING
             fromStreams(#{streams})
+            .when({
+              $any: function(s,e) {
+                linkTo("#{name}", e)
+              }
+            })
           STRING
 
           make_request(
