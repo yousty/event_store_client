@@ -3,16 +3,17 @@
 module EventStoreClient
   class Subscriptions
     def create(subscriber, event_types)
-      event_types.each do |type|
-        subscription = subscriptions[type.to_s] || Subscription.new(type: type, name: service)
-        subscription.subscribers |= [subscriber]
-        create_subscription(subscription) unless @subscriptions.key?(type.to_s)
-        @subscriptions[type.to_s] = subscription
+      subscription = Subscription.new(subscriber, event_types: event_types, service: service)
+      connection.join_streams(subscriber.class.name, subscription.observed_streams)
+      unless @subscriptions.detect { |sub| sub.name == subscription.name }
+        create_subscription(subscription)
       end
+
+      subscriptions << subscription
     end
 
     def each
-      subscriptions.values.each do |subscription|
+      subscriptions.each do |subscription|
         yield(subscription)
       end
     end
@@ -24,6 +25,7 @@ module EventStoreClient
     private
 
     def create_subscription(subscription)
+      connection.join_streams(subscription.name, subscription.observed_streams)
       connection.subscribe(subscription.stream, name: subscription.name)
     end
 
@@ -32,7 +34,7 @@ module EventStoreClient
     def initialize(connection:, service: 'default')
       @connection = connection
       @service = service
-      @subscriptions = {}
+      @subscriptions = []
     end
   end
 end

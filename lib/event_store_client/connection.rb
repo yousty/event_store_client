@@ -19,6 +19,10 @@ module EventStoreClient
 
     def delete_stream(stream); end
 
+    def join_streams(name, streams)
+      client.join_streams(name, streams)
+    end
+
     def subscribe(stream, name:)
       client.subscribe_to_stream(stream, name)
     end
@@ -27,18 +31,12 @@ module EventStoreClient
       response = client.consume_feed(stream, subscription)
       return [] unless response.body
       body = JSON.parse(response.body)
-      ack_uri =
-        body['links'].find { |link| link['relation'] == 'ackAll' }.
-          try(:[], 'uri')
+
+      ack = body['links'].find { |link| link['relation'] == 'ackAll' }
+      return unless ack
+      ack_uri = ack['uri']
       events = body['entries'].map do |entry|
-        event = EventStoreClient::Event.new(
-          id: entry['eventId'],
-          title: entry['title'],
-          type: entry['eventType'],
-          data: entry['data'] || '{}',
-          metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
-        )
-        mapper.deserialize(event)
+        deserialize_event(entry)
       end
       client.ack(ack_uri)
       events
@@ -112,9 +110,10 @@ module EventStoreClient
         id: entry['eventId'],
         title: entry['title'],
         type: entry['eventType'],
-        data: entry['data'],
-        metadata: entry['metaData']
+        data: entry['data'] || '{}',
+        metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
       )
+
       mapper.deserialize(event)
     end
   end

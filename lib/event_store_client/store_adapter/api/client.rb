@@ -38,6 +38,24 @@ module EventStoreClient
           )
         end
 
+        def join_streams(name, streams)
+          data = <<~STRING
+            fromStreams(#{streams})
+            .when({
+              $any: function(s,e) {
+                linkTo("#{name}", e)
+              }
+            })
+          STRING
+
+          make_request(
+            :post,
+            "/projections/continuous?name=#{name}&type=js&enabled=true&emit=true%26trackemittedstreams=true", # rubocop:disable Metrics/LineLength
+            body: data,
+            headers: {}
+          )
+        end
+
         def subscribe_to_stream(
           stream_name, subscription_name, stats: true, start_from: 0, retries: 5
         )
@@ -48,7 +66,7 @@ module EventStoreClient
               extraStatistics: stats,
               startFrom: start_from,
               maxRetryCount: retries,
-              resolveLinkTos: true
+              resolveLinktos: true
             },
             headers: {
               'Content-Type' => 'application/json'
@@ -60,11 +78,14 @@ module EventStoreClient
           stream_name,
           subscription_name,
           count: 1,
-          long_poll: 0
+          long_poll: 0,
+          resolve_links: true
         )
           headers = long_poll.positive? ? { 'ES-LongPoll' => long_poll.to_s } : {}
           headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
           headers['Accept'] = 'application/vnd.eventstore.competingatom+json'
+          headers['ES-ResolveLinkTos'] = resolve_links.to_s
+
           make_request(
             :get,
             "/subscriptions/#{stream_name}/#{subscription_name}/#{count}",
@@ -126,7 +147,7 @@ module EventStoreClient
           method = RequestMethod.new(method_name)
           connection.send(method.to_s, path) do |req|
             req.headers = req.headers.merge(headers)
-            req.body = body.to_json
+            req.body = body.is_a?(String) ? body : body.to_json
             req.params['embed'] = 'body' if method == :get
           end
         end

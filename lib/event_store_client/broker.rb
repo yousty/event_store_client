@@ -6,11 +6,7 @@ module EventStoreClient
       subscriptions.each do |subscription|
         new_events = connection.consume_feed(subscription.stream, subscription.name)
         next if new_events.none?
-        new_events.each do |event|
-          subscription.subscribers.each do |subscriber|
-            subscriber.call(event)
-          end
-        end
+        new_events.each { |event| subscription.subscriber.call(event) }
       end
     end
 
