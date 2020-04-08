@@ -5,7 +5,7 @@ module EventStoreClient
     KeyNotFoundError = Class.new(StandardError)
 
     def call
-      return encrypted_data if encryption_metadata.empty?
+      return decrypted_data if encryption_metadata.empty?
 
       decrypt_attributes(
         key: find_key(encryption_metadata[:key]),
@@ -23,7 +23,7 @@ module EventStoreClient
     def initialize(data:, schema:, repository:)
       @decrypted_data = deep_dup(data).transform_keys!(&:to_sym)
       @key_repository = repository
-      @encryption_metadata = schema.transform_keys(&:to_sym)
+      @encryption_metadata = schema&.transform_keys(&:to_sym) || {}
     end
 
     def decrypt_attributes(key:, data:, attributes:)
