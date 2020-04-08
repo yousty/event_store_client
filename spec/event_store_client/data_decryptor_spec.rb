@@ -37,6 +37,14 @@ module EventStoreClient
         allow_any_instance_of(DummyRepository).to receive(:find).with(user_id).and_raise
         expect { subject.call }.to raise_error(EventStoreClient::DataDecryptor::KeyNotFoundError)
       end
+
+      context 'when data has not been encrypted (schema is nil)' do
+        subject { described_class.new(data: decrypted_data, schema: nil, repository: repository) }
+
+        it 'returns decrypted data' do
+          expect(subject.call).to eq(decrypted_data)
+        end
+      end
     end
 
     let(:key_repository) { DummyRepository.new }
