@@ -7,7 +7,8 @@ module EventStoreClient
   class Configuration
     include Singleton
 
-    attr_accessor :host, :port, :per_page, :service_name, :mapper, :error_handler, :pid_path
+    attr_accessor :host, :port, :per_page, :service_name, :mapper, :error_handler, :pid_path,
+                  :adapter
 
     def configure
       yield(self) if block_given?
@@ -23,6 +24,8 @@ module EventStoreClient
       @mapper = Mapper::Default.new
       @service_name = 'default'
       @error_handler = nil
+      @adapter =
+        EventStoreClient::StoreAdapter::Api::Client.new(host: host, port: port, per_page: per_page)
     end
   end
 end
