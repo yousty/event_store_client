@@ -45,6 +45,14 @@ Before you start, add this to the `initializer` or to the top of your script:
 
 `EventStoreClient.configure`
 
+For testing, you can use the InMemory adapter. To do it you should change the configuration.
+
+```ruby
+EventStoreClient.configure do |config|
+  config.adapter = EventStoreClient::StoreAdapter::InMemory.new(host: 'http://localhost', port: '2113')
+end
+```
+
 ### Create Dummy event and dummy Handler
 
 To test out the behavior, you'll need a sample event and handler to work with:
