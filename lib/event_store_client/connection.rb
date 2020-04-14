@@ -50,7 +50,7 @@ module EventStoreClient
 
     private
 
-    attr_reader :host, :port, :mapper, :per_page
+    attr_reader :host, :port, :mapper, :per_page, :client
 
     def config
       EventStoreClient::Configuration.instance
@@ -61,13 +61,7 @@ module EventStoreClient
       @port = config.port
       @per_page = config.per_page
       @mapper = config.mapper
-    end
-
-    def client
-      @client ||=
-        EventStoreClient::StoreAdapter::Api::Client.new(
-          host: host, port: port, per_page: per_page
-        )
+      @client = config.adapter
     end
 
     def read_from_stream(stream, direction:, start:, resolve_links:)
