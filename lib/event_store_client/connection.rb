@@ -50,15 +50,13 @@ module EventStoreClient
 
     private
 
-    attr_reader :host, :port, :mapper, :per_page, :client
+    attr_reader :mapper, :per_page, :client
 
     def config
       EventStoreClient::Configuration.instance
     end
 
     def initialize
-      @host = config.host
-      @port = config.port
       @per_page = config.per_page
       @mapper = config.mapper
       @client = config.adapter
