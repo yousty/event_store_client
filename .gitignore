@@ -4,3 +4,4 @@ pkg/
 spec/examples.txt
 spec/dummy
 tmp
+.env*
