@@ -36,11 +36,15 @@ module EventStoreClient
         Response.new(response.to_json, 200)
       end
 
-      def subscribe_to_stream
+      def subscribe_to_stream(stream_name, subscription_name, **)
         # TODO: implement method body
       end
 
-      def consume_feed
+      def consume_feed(
+        stream_name,
+        subscription_name,
+        **
+      )
         # TODO: implement method body
       end
 
@@ -48,11 +52,11 @@ module EventStoreClient
         event_store.delete(stream_name)
       end
 
-      def link_to(stream_name, events)
+      def link_to(stream_name, events, **)
         append_to_stream(stream_name, events)
       end
 
-      def ack
+      def ack(url)
         # TODO: implement method body
       end
 

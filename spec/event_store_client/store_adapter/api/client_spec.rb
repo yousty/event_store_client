@@ -58,7 +58,7 @@ module EventStoreClient::StoreAdapter::Api
       end
 
       it 'sends a correct request' do
-        api_client.delete_stream(stream_name, true)
+        api_client.delete_stream(stream_name, hard_delete: true)
         expect(stub).to have_been_requested
       end
     end

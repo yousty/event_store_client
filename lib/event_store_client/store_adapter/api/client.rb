@@ -17,7 +17,7 @@ module EventStoreClient
           response
         end
 
-        def delete_stream(stream_name, hard_delete)
+        def delete_stream(stream_name, hard_delete: false)
           headers = {
             'ES-HardDelete' => hard_delete.to_s
           }.reject { |_key, val| val.empty? }
