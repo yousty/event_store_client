@@ -56,6 +56,8 @@ module EventStoreClient
         # TODO: implement method body
       end
 
+      def join_streams(name, streams); end
+
       private
 
       attr_reader :endpoint, :per_page

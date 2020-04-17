@@ -66,7 +66,7 @@ module EventStoreClient
               extraStatistics: stats,
               startFrom: start_from,
               maxRetryCount: retries,
-              resolveLinktos: true
+              resolveLinkTos: true
             },
             headers: {
               'Content-Type' => 'application/json'
