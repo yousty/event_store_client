@@ -84,7 +84,7 @@ module EventStoreClient
           headers = long_poll.positive? ? { 'ES-LongPoll' => long_poll.to_s } : {}
           headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
           headers['Accept'] = 'application/vnd.eventstore.competingatom+json'
-          headers['ES-ResolveLinkTos'] = resolve_links.to_s
+          headers['ES-ResolveLinktos'] = resolve_links.to_s
 
           make_request(
             :get,

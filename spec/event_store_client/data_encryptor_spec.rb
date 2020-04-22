@@ -12,22 +12,22 @@ module EventStoreClient
 
       it 'returns encrypted data' do
         expect(subject.call).to eq(
-          user_id: user_id,
-          first_name: 'es_encrypted',
-          last_name: 'es_encrypted',
-          profession: 'Jedi',
-          es_encrypted: 'darthvader'
+          'user_id' => user_id,
+          'first_name' => 'es_encrypted',
+          'last_name' => 'es_encrypted',
+          'profession' => 'Jedi',
+          'es_encrypted' => 'darthvader'
         )
       end
 
       it 'updates the encrypted data reader' do
         subject.call
         expect(subject.encrypted_data).to eq(
-          user_id: user_id,
-          first_name: 'es_encrypted',
-          last_name: 'es_encrypted',
-          profession: 'Jedi',
-          es_encrypted: 'darthvader'
+          'user_id' => user_id,
+          'first_name' => 'es_encrypted',
+          'last_name' => 'es_encrypted',
+          'profession' => 'Jedi',
+          'es_encrypted' => 'darthvader'
         )
       end
 
@@ -35,11 +35,11 @@ module EventStoreClient
         schema[:attributes] << :side
         subject.call
         expect(subject.encrypted_data).to eq(
-          user_id: user_id,
-          first_name: 'es_encrypted',
-          last_name: 'es_encrypted',
-          profession: 'Jedi',
-          es_encrypted: 'darthvader'
+          'user_id' => user_id,
+          'first_name' => 'es_encrypted',
+          'last_name' => 'es_encrypted',
+          'profession' => 'Jedi',
+          'es_encrypted' => 'darthvader'
         )
       end
     end

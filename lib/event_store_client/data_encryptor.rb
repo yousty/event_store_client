@@ -22,18 +22,18 @@ module EventStoreClient
     attr_reader :key_repository
 
     def initialize(data:, schema:, repository:)
-      @encrypted_data = deep_dup(data).transform_keys!(&:to_sym)
+      @encrypted_data = deep_dup(data).transform_keys!(&:to_s)
       @key_repository = repository
       @encryption_metadata = EncryptionMetadata.new(data: data, schema: schema).call
     end
 
     def encrypt_attributes(key:, data:, attributes:)
-      text = JSON.generate(data.select { |hash_key, _value| attributes.include?(hash_key) })
+      text = JSON.generate(data.select { |hash_key, _value| attributes.include?(hash_key.to_s) })
       encrypted = key_repository.encrypt(
         key_id: key.id, text: text, cipher: key.cipher, iv: key.iv
       )
-      attributes.each { |att| data[att] = 'es_encrypted' if data.key?(att) }
-      data[:es_encrypted] = encrypted
+      attributes.each { |att| data[att.to_s] = 'es_encrypted' if data.key?(att.to_s) }
+      data['es_encrypted'] = encrypted
       data
     end
 
