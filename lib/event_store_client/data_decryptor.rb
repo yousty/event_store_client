@@ -8,9 +8,9 @@ module EventStoreClient
       return decrypted_data if encryption_metadata.empty?
 
       decrypt_attributes(
-        key: find_key(encryption_metadata[:key]),
+        key: find_key(encryption_metadata['key']),
         data: decrypted_data,
-        attributes: encryption_metadata[:attributes]
+        attributes: encryption_metadata['attributes']
       )
     end
 
@@ -21,18 +21,18 @@ module EventStoreClient
     attr_reader :key_repository
 
     def initialize(data:, schema:, repository:)
-      @decrypted_data = deep_dup(data).transform_keys!(&:to_sym)
+      @decrypted_data = deep_dup(data).transform_keys!(&:to_s)
       @key_repository = repository
-      @encryption_metadata = schema&.transform_keys(&:to_sym) || {}
+      @encryption_metadata = schema&.transform_keys(&:to_s) || {}
     end
 
     def decrypt_attributes(key:, data:, attributes:)
       decrypted_text = key_repository.decrypt(
         key_id: key.id, text: data[:es_encrypted], cipher: key.cipher, iv: key.iv
       )
-      decrypted = JSON.parse(decrypted_text).transform_keys(&:to_sym)
+      decrypted = JSON.parse(decrypted_text).transform_keys(&:to_s)
       decrypted.each { |key, value| data[key] = value if data.key?(key) }
-      data.delete(:es_encrypted)
+      data.delete('es_encrypted')
       data
     end
 

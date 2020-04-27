@@ -12,10 +12,10 @@ module EventStoreClient
 
       let(:decrypted_data) do
         {
-          user_id: user_id,
-          first_name: 'Anakin',
-          last_name: 'Skylwalker',
-          profession: 'Jedi'
+          'user_id' => user_id,
+          'first_name' => 'Anakin',
+          'last_name' => 'Skylwalker',
+          'profession' => 'Jedi'
         }
       end
 
@@ -51,11 +51,11 @@ module EventStoreClient
     let(:user_id) { SecureRandom.uuid }
     let(:data) do
       {
-        user_id: user_id,
-        first_name: 'es_encrypted',
-        last_name: 'es_encrypted',
-        profession: 'Jedi',
-        es_encrypted: 'darthvader'
+        'user_id' => user_id,
+        'first_name' => 'es_encrypted',
+        'last_name' => 'es_encrypted',
+        'profession' => 'Jedi',
+        'es_encrypted' => 'darthvader'
       }
     end
 
