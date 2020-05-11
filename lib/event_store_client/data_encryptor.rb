@@ -11,7 +11,7 @@ module EventStoreClient
       encrypt_attributes(
         key: key,
         data: encrypted_data,
-        attributes: encryption_metadata[:attributes]
+        attributes: encryption_metadata[:attributes].map(&:to_s)
       )
     end
 

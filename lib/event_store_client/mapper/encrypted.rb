@@ -26,13 +26,13 @@ module EventStoreClient
           event.class.respond_to?(:encryption_schema) &&
           event.class.encryption_schema
         )
-        encryptor = DataEncryptor.new(
+        encryptor = EventStoreClient::DataEncryptor.new(
           data: event.data,
           schema: encryption_schema,
           repository: key_repository
         )
         encryptor.call
-        Event.new(
+        EventStoreClient::Event.new(
           data: serializer.serialize(encryptor.encrypted_data),
           metadata: serializer.serialize(
             event.metadata.merge(encryption: encryptor.encryption_metadata)
@@ -52,7 +52,7 @@ module EventStoreClient
       def deserialize(event)
         metadata = serializer.deserialize(event.metadata)
         encryption_schema = serializer.deserialize(event.metadata)['encryption']
-        decrypted_data = DataDecryptor.new(
+        decrypted_data = EventStoreClient::DataDecryptor.new(
           data: serializer.deserialize(event.data),
           schema: encryption_schema,
           repository: key_repository

@@ -28,7 +28,7 @@ module EventStoreClient
 
     def decrypt_attributes(key:, data:, attributes:)
       decrypted_text = key_repository.decrypt(
-        key_id: key.id, text: data[:es_encrypted], cipher: key.cipher, iv: key.iv
+        key_id: key.id, text: data['es_encrypted'], cipher: key.cipher, iv: key.iv
       )
       decrypted = JSON.parse(decrypted_text).transform_keys(&:to_s)
       decrypted.each { |key, value| data[key] = value if data.key?(key) }
