@@ -17,7 +17,7 @@ module EventStoreClient
     attr_reader :data, :schema
 
     def initialize(data:, schema:)
-      @data = data
+      @data = data.transform_keys(&:to_sym)
       @schema = schema
     end
   end
