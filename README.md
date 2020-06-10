@@ -1,3 +1,6 @@
+![Run tests](https://github.com/yousty/event_store_client/workflows/Run%20tests/badge.svg?branch=master&event=push)
+[![Gem Version](https://badge.fury.io/rb/event_store_client.svg)](https://badge.fury.io/rb/event_store_client)
+
 # EventStoreClient
 
 An easy-to use API client for connecting ruby applications with https://eventstore.org/
