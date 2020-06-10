@@ -255,6 +255,11 @@ Do you want to contribute? Welcome!
 2. Create Issue
 3. Create PR ;)
 
+### Publishing new version
+
+1. Push commit with updated `version.rb` file to the `release` branch. The new version will be automatically pushed to [rubygems](https://rubygems.org).
+2. Create release on github including change log.
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
