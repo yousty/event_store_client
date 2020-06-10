@@ -1,0 +1,23 @@
+name: Run tests
+
+on:
+  push:
+    branches-ignore: [ release ]
+  pull_request:
+    branches: [ master release ]
+
+jobs:
+  build:
+    name: Build + Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby 2.6.5
+      uses: actions/setup-ruby@v1
+      with:
+        version: 2.6.x
+    - name: Run tests
+      run: |
+        bundle install
+        bundle exec rspec
