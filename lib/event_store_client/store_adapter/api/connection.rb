@@ -8,8 +8,10 @@ module EventStoreClient
       class Connection
         def call
           Faraday.new(
-            url: endpoint.url,
-            headers: DEFAULT_HEADERS
+            {
+              url: endpoint.url,
+              headers: DEFAULT_HEADERS
+            }.merge(options)
           ) do |conn|
             conn.basic_auth(ENV['EVENT_STORE_USER'], ENV['EVENT_STORE_PASSWORD'])
             conn.adapter Faraday.default_adapter
@@ -18,11 +20,12 @@ module EventStoreClient
 
         private
 
-        def initialize(endpoint)
+        def initialize(endpoint, options = {})
           @endpoint = endpoint
+          @options = options
         end
 
-        attr_reader :endpoint
+        attr_reader :endpoint, :options
 
         DEFAULT_HEADERS = {
           'Content-Type' => 'application/vnd.eventstore.events+json'
