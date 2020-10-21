@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    event_store_client (0.2.2)
+    event_store_client (0.2.3)
       dry-schema (~> 1)
       dry-struct (~> 1)
       faraday (>= 0.17.0)
