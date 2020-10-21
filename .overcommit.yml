@@ -16,19 +16,18 @@
 # Uncomment the following lines to make the configuration take effect.
 
 PreCommit:
- RuboCop:
-   enabled: true
-   on_warn: pass # Treat all warnings as failures
-   problem_on_unmodified_line: warn
+  RuboCop:
+    enabled: true
+    on_warn: pass # Treat all warnings as failures
+    problem_on_unmodified_line: warn
 
 CommitMsg:
   MessageFormat:
     enabled: true
-    description: 'Check commit message matches expected pattern'
-    pattern: '(Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade|Revert|Merge) .+$'
-    expected_pattern_message: '<Commit Message Summary starting with Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade> <in next lines if needed: Detailed Description> <Issue Id>'
-    sample_message: 'Change title image alignment'
-
+    description: "Check commit message matches expected pattern"
+    pattern: "(Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade|Revert|Merge|Release) .+$"
+    expected_pattern_message: "<Commit Message Summary starting with Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade|Release> <in next lines if needed: Detailed Description> <Issue Id>"
+    sample_message: "Change title image alignment"
 #
 #  TrailingWhitespace:
 #    enabled: true
