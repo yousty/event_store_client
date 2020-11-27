@@ -133,8 +133,7 @@ module EventStoreClient
           events = body['entries'].map do |entry|
             deserialize_event(entry)
           end
-          ack(ack_uri)
-          events
+          { ack_uri: ack_uri, events: events }
         end
 
         def link_to(stream_name, events, expected_version: nil)
