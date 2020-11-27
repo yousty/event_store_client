@@ -18,11 +18,13 @@ module EventStoreClient
     def initialize
       @per_page = 20
       @pid_path = 'tmp/poll.pid'
-      @mapper = Mapper::Default.new
       @service_name = 'default'
       @error_handler = nil
       @adapter = EventStoreClient::StoreAdapter::Api::Client.new(
-        host: 'http://localhost', port: 2113, per_page: per_page
+        host: 'http://localhost',
+        port: 2113,
+        per_page: per_page,
+        mapper: mapper || Mapper::Default.new
       )
     end
   end

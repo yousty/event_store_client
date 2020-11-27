@@ -8,13 +8,21 @@ module EventStoreClient
     WrongExpectedEventVersion = Class.new(StandardError)
 
     def publish(stream:, events:, expected_version: nil)
-      connection.publish(stream: stream, events: events, expected_version: expected_version)
+      connection.append_to_stream(stream, events, expected_version: expected_version)
     rescue StoreAdapter::Api::Client::WrongExpectedEventVersion => e
       raise WrongExpectedEventVersion.new(e.message)
     end
 
-    def read(stream, direction: 'forward', start: 0, all: false)
-      connection.read(stream, direction: direction, start: start, all: all)
+    def read(stream, direction: 'forward', start: 0, all: false, resolve_links: true)
+      if all
+        connection.read_all_from_stream(
+          stream, start: start, direction: direction, resolve_links: resolve_links
+        )
+      else
+        connection.read(
+          stream, start: start, direction: direction, resolve_links: resolve_links
+        )
+      end
     end
 
     def subscribe(subscriber, to: [], polling: true)
@@ -86,7 +94,7 @@ module EventStoreClient
 
     def initialize
       @threads = []
-      @connection ||= Connection.new
+      @connection ||= config.adapter
       @error_handler ||= config.error_handler
       @service_name ||= 'default'
       @broker ||= Broker.new(connection: connection)

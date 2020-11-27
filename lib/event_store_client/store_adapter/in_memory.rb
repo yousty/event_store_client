@@ -33,7 +33,27 @@ module EventStoreClient
             read_stream_backward(stream_name, start: start)
           end
 
-        Response.new(response.to_json, 200)
+        res = Response.new(response.to_json, 200)
+
+        return [] if res.body.nil? || res.body.empty?
+        JSON.parse(res.body)['entries'].map do |entry|
+          deserialize_event(entry)
+        end.reverse
+      end
+
+      def read_all_from_stream(stream_name, direction: 'forward', start: 0, resolve_links: true)
+        response =
+          if direction == 'forward'
+            read_stream_forward(stream_name, start: start)
+          else
+            read_stream_backward(stream_name, start: start)
+          end
+        res = Response.new(response.to_json, 200)
+
+        return [] if res.body.nil? || res.body.empty?
+          JSON.parse(res.body)['entries'].map do |entry|
+            deserialize_event(entry)
+          end.reverse
       end
 
       def subscribe_to_stream(stream_name, subscription_name, **)
@@ -54,6 +74,7 @@ module EventStoreClient
 
       def link_to(stream_name, events, **)
         append_to_stream(stream_name, events)
+        events
       end
 
       def ack(url)
@@ -64,11 +85,12 @@ module EventStoreClient
 
       private
 
-      attr_reader :endpoint, :per_page
+      attr_reader :endpoint, :per_page, :mapper
 
-      def initialize(host:, port:, per_page: 20)
+      def initialize(host:, port:, mapper:, per_page: 20)
         @endpoint = Endpoint.new(host: host, port: port)
         @per_page = per_page
+        @mapper = mapper
         @event_store = {}
       end
 
@@ -119,6 +141,20 @@ module EventStoreClient
             'relation' => direction
           }]
         end
+      end
+
+      private
+
+      def deserialize_event(entry)
+        event = EventStoreClient::Event.new(
+          id: entry['eventId'],
+          title: entry['title'],
+          type: entry['eventType'],
+          data: entry['data'] || '{}',
+          metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
+        )
+
+        mapper.deserialize(event)
       end
     end
   end

@@ -2,7 +2,8 @@
 
 module EventStoreClient::StoreAdapter::Api
   RSpec.describe Client do
-    let(:api_client) { described_class.new(host: 'https://www.example.com', port: 8080) }
+    let(:mapper) { EventStoreClient::Mapper::Default.new }
+    let(:api_client) { described_class.new(host: 'https://www.example.com', port: 8080, mapper: mapper) }
 
     let(:stream_name) { :stream_name }
     let(:events) { [event_1, event_2] }

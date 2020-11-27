@@ -3,9 +3,11 @@
 require 'dry-struct'
 
 module EventStoreClient
-  class SomethingHappened < Dry::Struct
-    attribute :data, EventStoreClient::Types::Strict::Hash
-    attribute :metadata, EventStoreClient::Types::Strict::Hash
+  class SomethingHappened < DeserializedEvent
+    def schema
+      Dry::Schema.Params do
+      end
+    end
   end
 
   class DummyHandler

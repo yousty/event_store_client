@@ -20,8 +20,6 @@ require 'event_store_client/endpoint'
 
 require 'event_store_client/store_adapter'
 
-require 'event_store_client/connection'
-
 require 'event_store_client/subscription'
 require 'event_store_client/subscriptions'
 require 'event_store_client/broker'

@@ -7,6 +7,8 @@ module Serializer
     end
 
     def self.serialize(data)
+      return data if data.is_a?(String)
+
       JSON.generate(data)
     end
   end

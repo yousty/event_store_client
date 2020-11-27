@@ -4,10 +4,12 @@ module EventStoreClient
   RSpec.describe Client do
     let(:client) { described_class.new }
     let(:event) { SomethingHappened.new(data: { foo: 'bar' }, metadata: {}) }
-    let(:store_adapter) { StoreAdapter::InMemory.new(host: 'localhost', port: '2013') }
+    let(:store_adapter) { StoreAdapter::InMemory.new(host: 'localhost', port: '2013', mapper: Mapper::Default.new) }
 
     before do
-      allow_any_instance_of(Connection).to receive(:client).and_return(store_adapter)
+      allow_any_instance_of(described_class).to(
+        receive(:connection).and_return(store_adapter)
+      )
     end
 
     describe '#publish' do
@@ -64,7 +66,7 @@ module EventStoreClient
       let(:events) { [event_1] }
 
       before do
-        allow_any_instance_of(Connection).to receive(:link_to).with(
+        allow_any_instance_of(EventStoreClient::StoreAdapter::InMemory).to receive(:link_to).with(
           stream_name,
           events,
           expected_version: nil
@@ -79,7 +81,7 @@ module EventStoreClient
 
       shared_examples 'correct linking events' do
         it 'invokes link event for the store' do
-          expect_any_instance_of(Connection).to receive(:link_to).with(
+          expect_any_instance_of(EventStoreClient::StoreAdapter::InMemory).to receive(:link_to).with(
             stream_name,
             events,
             expected_version: nil
