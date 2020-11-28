@@ -2,7 +2,7 @@
 # Source: streams.proto for package 'event_store.client.streams'
 
 require 'grpc'
-require 'streams_pb'
+require 'event_store_client/store_adapter/grpc/generated/streams_pb'
 
 module EventStore
   module Client
