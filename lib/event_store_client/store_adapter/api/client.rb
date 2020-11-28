@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'event_store_client/store_adapter/api/request_method'
+require 'event_store_client/store_adapter/api/connection'
+
 module EventStoreClient
   module StoreAdapter
     module Api

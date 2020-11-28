@@ -6,6 +6,7 @@ PATH
       dry-schema (~> 1)
       dry-struct (~> 1)
       faraday (~> 1.0)
+      grpc
       rss (>= 0.2.8)
 
 GEM
@@ -55,6 +56,12 @@ GEM
     faraday (1.1.0)
       multipart-post (>= 1.2, < 3)
       ruby2_keywords
+    google-protobuf (3.14.0)
+    googleapis-common-protos-types (1.0.5)
+      google-protobuf (~> 3.11)
+    grpc (1.32.0)
+      google-protobuf (~> 3.13)
+      googleapis-common-protos-types (~> 1.0)
     hashdiff (1.0.1)
     ice_nine (0.11.2)
     multipart-post (2.1.1)

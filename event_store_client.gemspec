@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'faraday', '~> 1.0'
   spec.add_dependency 'rss', '>= 0.2.8'
   spec.add_dependency 'dry-configurable', '>= 0.11'
+  spec.add_dependency 'grpc'
 
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'webmock'

@@ -3,7 +3,8 @@
 
 require 'google/protobuf'
 
-require 'shared_pb'
+require 'event_store_client/store_adapter/grpc/generated/shared_pb'
+
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("streams.proto", :syntax => :proto3) do
     add_message "event_store.client.streams.ReadReq" do

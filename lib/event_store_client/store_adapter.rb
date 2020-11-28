@@ -5,6 +5,5 @@ module EventStoreClient
   end
 end
 
-require 'event_store_client/store_adapter/api/request_method'
-require 'event_store_client/store_adapter/api/connection'
 require 'event_store_client/store_adapter/api/client'
+require 'event_store_client/store_adapter/grpc/client'
