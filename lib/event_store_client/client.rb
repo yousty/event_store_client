@@ -89,7 +89,7 @@ module EventStoreClient
     attr_reader :subscriptions, :broker, :error_handler
 
     def config
-      EventStoreClient::Configuration.instance
+      EventStoreClient.config
     end
 
     def initialize

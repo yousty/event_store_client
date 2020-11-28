@@ -85,10 +85,9 @@ module EventStoreClient
 
       private
 
-      attr_reader :endpoint, :per_page, :mapper
+      attr_reader :per_page, :mapper
 
-      def initialize(host:, port:, mapper:, per_page: 20)
-        @endpoint = Endpoint.new(host: host, port: port)
+      def initialize(mapper:, per_page: 20)
         @per_page = per_page
         @mapper = mapper
         @event_store = {}
@@ -137,7 +136,7 @@ module EventStoreClient
         else
           [{
             'uri' =>
-              "http://#{endpoint.url}/streams/#{stream_name}/#{batch_size}/#{direction}/#{count}",
+              "/streams/#{stream_name}/#{batch_size}/#{direction}/#{count}",
             'relation' => direction
           }]
         end

@@ -4,7 +4,7 @@ module EventStoreClient
   RSpec.describe Client do
     let(:client) { described_class.new }
     let(:event) { SomethingHappened.new(data: { foo: 'bar' }, metadata: {}) }
-    let(:store_adapter) { StoreAdapter::InMemory.new(host: 'localhost', port: '2013', mapper: Mapper::Default.new) }
+    let(:store_adapter) { StoreAdapter::InMemory.new(mapper: Mapper::Default.new) }
 
     before do
       allow_any_instance_of(described_class).to(

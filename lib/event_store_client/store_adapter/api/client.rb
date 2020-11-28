@@ -158,10 +158,10 @@ module EventStoreClient
 
         private
 
-        attr_reader :endpoint, :per_page, :connection_options, :mapper
+        attr_reader :uri, :per_page, :connection_options, :mapper
 
-        def initialize(host:, port:, per_page: 20, mapper:, connection_options: {})
-          @endpoint = Endpoint.new(host: host, port: port)
+        def initialize(uri, per_page: 20, mapper:, connection_options: {})
+          @uri = uri
           @per_page = per_page
           @mapper = mapper
           @connection_options = connection_options
@@ -198,7 +198,7 @@ module EventStoreClient
         end
 
         def connection
-          @connection ||= Api::Connection.new(endpoint, connection_options).call
+          @connection ||= Api::Connection.new(uri, connection_options).call
         end
 
         def validate_response(resp, expected_version)
