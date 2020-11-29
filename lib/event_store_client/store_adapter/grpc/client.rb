@@ -24,7 +24,7 @@ module EventStoreClient
             resolve_links: resolve_links,
             count: count || per_page,
             uuid_option: {
-              structured: {}
+              string: {}
             },
             no_filter: {}
           }
@@ -37,8 +37,7 @@ module EventStoreClient
           request = ::EventStore::Client::Streams::ReadReq.new(options: options)
 
           client.read(request).map do |res|
-            pp res.event.event.metadata
-            # deserialize_event(entry)
+            deserialize_event(res.event.event)
           end
         end
 
@@ -62,13 +61,55 @@ module EventStoreClient
           @connection_options = connection_options
         end
 
+        def build_events_data(events)
+          [events].flatten.map do |event|
+            {
+              eventId: event.id,
+              eventType: event.type,
+              data: event.data,
+              metadata: event.metadata
+            }
+          end
+        end
+
+        def build_linkig_data(events)
+          [events].flatten.map do |event|
+            {
+              eventId: event.id,
+              eventType: '$>',
+              data: event.title,
+            }
+          end
+        end
+
+        def make_request(method_name, path, body: {}, headers: {})
+          method = RequestMethod.new(method_name)
+          connection.send(method.to_s, path) do |req|
+            req.headers = req.headers.merge(headers)
+            req.body = body.is_a?(String) ? body : body.to_json
+            req.params['embed'] = 'body' if method == :get
+          end
+        end
+
+        def connection
+          EventStoreClient::StoreAdapter::GRPC::Connection.new(uri).call
+        end
+
+        def validate_response(resp, expected_version)
+          return unless resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
+          raise WrongExpectedEventVersion.new(
+            "current version: #{resp.headers.fetch('es-currentversion')} | "\
+            "expected: #{expected_version}"
+          )
+        end
+
         def deserialize_event(entry)
           event = EventStoreClient::Event.new(
-            id: entry['eventId'],
-            title: entry['title'],
-            type: entry['eventType'],
-            data: entry['data'] || '{}',
-            metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
+            id: entry.id.string,
+            title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
+            type: entry.metadata['type'],
+            data: entry.data || '{}',
+            metadata: (entry.metadata.to_h || {}).to_json
           )
 
           mapper.deserialize(event)
