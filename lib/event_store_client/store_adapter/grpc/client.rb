@@ -12,6 +12,7 @@ module EventStoreClient
     module GRPC
       class Client
         WrongExpectedEventVersion = Class.new(StandardError)
+        StreamNotFound = Class.new(StandardError)
 
         def read(stream_name, direction: 'forwards', count: nil, start: 0, resolve_links: true)
           options = {
@@ -35,8 +36,8 @@ module EventStoreClient
           )
 
           request = ::EventStore::Client::Streams::ReadReq.new(options: options)
-
           client.read(request).map do |res|
+            raise StreamNotFound.new("Can't find stream with name: #{stream_name}") if res.stream_not_found
             deserialize_event(res.event.event)
           end
         end
