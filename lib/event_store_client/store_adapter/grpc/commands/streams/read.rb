@@ -1,17 +1,23 @@
 # frozen_string_literal: true
 
-require 'dry-monads'
 require 'grpc'
 require 'event_store_client/store_adapter/grpc/generated/projections_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/projections_services_pb.rb'
+
+require 'event_store_client/configuration'
+require 'event_store_client/store_adapter/grpc/commands/command'
 
 module EventStoreClient
   module StoreAdapter
     module GRPC
       module Commands
         module Streams
-          class Read
-            include Dry::Monads[:result]
+          class Read < Command
+            use_request EventStore::Client::Streams::ReadReq
+            use_service EventStore::Client::Streams::Streams::Stub
+
+            StreamNotFound = Class.new(StandardError)
+
             include Configuration
 
             def call(name, options: {})
@@ -21,26 +27,22 @@ module EventStoreClient
                     streamName: name
                   }
                 },
-                read_direction: EventStoreClient::ReadDirection.new(options[:direction]).to_sym,
-                resolve_links: options[:resolve_links],
+                read_direction: EventStoreClient::ReadDirection.new(options[:direction] || 'forwards').to_sym,
+                resolve_links: options[:resolve_links] || true,
                 count: options[:count] || config.per_page,
                 uuid_option: {
                   string: {}
                 },
                 no_filter: {}
               }
-              if options[:start]&.zero?
+              options[:start] ||= 0
+              if options[:start].zero?
                 opts[:stream][:start] = {}
               else
                 opts[:stream][:revision] = options[:start]
               end
 
-              client = EventStore::Client::Streams::Streams::Stub.new(
-                uri.to_s, :this_channel_is_insecure
-              )
-
-              request = ::EventStore::Client::Streams::ReadReq.new(options: opts)
-              client.read(request).map do |res|
+              service.read(request.new(options: opts)).map do |res|
                 raise StreamNotFound if res.stream_not_found
 
                 deserialize_event(res.event.event)
@@ -61,12 +63,6 @@ module EventStoreClient
               )
 
               config.mapper.deserialize(event)
-            end
-
-            def client
-              EventStore::Client::Streams::Streams::Stub.new(
-                config.eventstore_url.to_s, :this_channel_is_insecure
-              )
             end
           end
         end

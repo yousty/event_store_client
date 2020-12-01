@@ -1,18 +1,19 @@
 # frozen_string_literal: true
 
-require 'dry-monads'
 require 'grpc'
 require 'event_store_client/store_adapter/grpc/generated/projections_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/projections_services_pb.rb'
+
+require 'event_store_client/store_adapter/grpc/commands/command'
 
 module EventStoreClient
   module StoreAdapter
     module GRPC
       module Commands
         module Projections
-          class Update
-            include Dry::Monads[:result]
-            include Configuration
+          class Update < Command
+            use_request EventStore::Client::Projections::UpdateReq
+            use_service EventStore::Client::Projections::Projections::Stub
 
             def call(name, streams)
               data = <<~STRING
@@ -30,18 +31,10 @@ module EventStoreClient
                   name: name,
                   emit_enabled: true
                 }
-              request = EventStore::Client::Projections::UpdateReq.new(options: options)
-              res = client.update(request)
+              service.update(request.new(options: options))
               Success()
             rescue ::GRPC::AlreadyExists
               Failure(:conflict)
-            end
-            private
-
-            def client
-              EventStore::Client::Projections::Projections::Stub.new(
-                config.eventstore_url.to_s, :this_channel_is_insecure
-              )
             end
           end
         end

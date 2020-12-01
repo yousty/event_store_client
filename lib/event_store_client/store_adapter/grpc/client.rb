@@ -20,14 +20,13 @@ require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions
 require 'event_store_client/store_adapter/grpc/commands/projections/create'
 require 'event_store_client/store_adapter/grpc/commands/projections/update'
 require 'event_store_client/store_adapter/grpc/commands/projections/delete'
-# require 'event_store_client/store_adapter/grpc/connection'
+
 
 module EventStoreClient
   module StoreAdapter
     module GRPC
       class Client
         WrongExpectedEventVersion = Class.new(StandardError)
-        StreamNotFound = Class.new(StandardError)
 
         def append_to_stream(stream_name, events, expected_version: nil)
           Commands::Streams::Append.new.call(stream_name, events, expected_version: expected_version)

@@ -1,21 +1,22 @@
 # frozen_string_literal: true
 
-require 'dry-monads'
 require 'grpc'
 require 'event_store_client/store_adapter/grpc/generated/persistent_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/persistent_services_pb.rb'
+
+require 'event_store_client/store_adapter/grpc/commands/command'
 
 module EventStoreClient
   module StoreAdapter
     module GRPC
       module Commands
         module PersistentSubscriptions
-          class Create
-            include Dry::Monads[:result]
-            include Configuration
+          class Create < Command
+            use_request EventStore::Client::PersistentSubscriptions::CreateReq
+            use_service EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub
 
             def call(stream, group, options: {})
-              options =
+              opts =
                 {
                   stream_identifier: {
                     streamName: stream
@@ -39,19 +40,10 @@ module EventStoreClient
                     checkpoint_after_ms: 100
                   }
                 }
-              request = EventStore::Client::PersistentSubscriptions::CreateReq.new(options: options)
-              client.create(request)
+              service.create(request.new(options: opts))
               Success()
             rescue ::GRPC::AlreadyExists
               Failure(:conflict)
-            end
-
-            private
-
-            def client
-              EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub.new(
-                config.eventstore_url.to_s, :this_channel_is_insecure
-              )
             end
           end
         end

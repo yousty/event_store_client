@@ -1,18 +1,19 @@
 # frozen_string_literal: true
 
-require 'dry-monads'
 require 'grpc'
 require 'event_store_client/store_adapter/grpc/generated/projections_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/projections_services_pb.rb'
+
+require 'event_store_client/store_adapter/grpc/commands/command'
 
 module EventStoreClient
   module StoreAdapter
     module GRPC
       module Commands
         module Projections
-          class Delete
-            include Dry::Monads[:result]
-            include Configuration
+          class Delete < Command
+            use_request EventStore::Client::Projections::DeleteReq
+            use_service EventStore::Client::Projections::Projections::Stub
 
             def call(name, options: {})
               options =
@@ -23,19 +24,10 @@ module EventStoreClient
                   delete_checkpoint_stream: true
                 }
 
-              request = EventStore::Client::Projections::DeleteReq.new(options: options)
-              client.delete(request)
+              service.delete(request.new(options: options))
               Success()
             rescue ::GRPC::Unknown => e
               Failure(:not_found) if e.message.include?('OperationFailed')
-            end
-
-            private
-
-            def client
-              EventStore::Client::Projections::Projections::Stub.new(
-                config.eventstore_url.to_s, :this_channel_is_insecure
-              )
             end
           end
         end

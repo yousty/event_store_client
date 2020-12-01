@@ -5,18 +5,18 @@ require 'grpc'
 require 'event_store_client/store_adapter/grpc/generated/persistent_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/persistent_services_pb.rb'
 
+require 'event_store_client/store_adapter/grpc/commands/command'
 module EventStoreClient
   module StoreAdapter
     module GRPC
       module Commands
         module PersistentSubscriptions
-          class Update
-            include Dry::Monads[:result]
-            include Configuration
-            # stream_name, subscription_name, stats: true, start_from: 0, retries: 5
+          class Update < Command
+            use_request EventStore::Client::PersistentSubscriptions::UpdateReq
+            use_service EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub
 
             def call(stream, group, options: {})
-              options =
+              opts =
                 {
                   stream_identifier: {
                     streamName: stream
@@ -40,20 +40,11 @@ module EventStoreClient
                     checkpoint_after_ms: 100
                   }
                 }
-              request = EventStore::Client::PersistentSubscriptions::UpdateReq.new(options: options)
-              client.update(request)
+              service.update(request.new(options: opts))
               Success()
             rescue ::GRPC::Unknown => e
               return Failure(:not_found) if e.message.include?('DoesNotExist')
               raise e
-            end
-
-            private
-
-            def client
-              EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub.new(
-                config.eventstore_url.to_s, :this_channel_is_insecure
-              )
             end
           end
         end
