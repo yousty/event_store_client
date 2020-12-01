@@ -182,6 +182,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :expected_no_stream, :message, 11, "event_store.client.shared.Empty"
       end
     end
+
+    # Delete stream request
+    #
     add_message "event_store.client.streams.DeleteReq" do
       optional :options, :message, 1, "event_store.client.streams.DeleteReq.Options"
     end
@@ -194,6 +197,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :stream_exists, :message, 5, "event_store.client.shared.Empty"
       end
     end
+
+    # Delete stream response
+    #
     add_message "event_store.client.streams.DeleteResp" do
       oneof :position_option do
         optional :position, :message, 1, "event_store.client.streams.DeleteResp.Position"
@@ -204,6 +210,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :commit_position, :uint64, 1
       optional :prepare_position, :uint64, 2
     end
+
+    # Tombstone stream request
+    #
     add_message "event_store.client.streams.TombstoneReq" do
       optional :options, :message, 1, "event_store.client.streams.TombstoneReq.Options"
     end
@@ -216,6 +225,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :stream_exists, :message, 5, "event_store.client.shared.Empty"
       end
     end
+
+    # Tombstone stream response
+    #
     add_message "event_store.client.streams.TombstoneResp" do
       oneof :position_option do
         optional :position, :message, 1, "event_store.client.streams.TombstoneResp.Position"

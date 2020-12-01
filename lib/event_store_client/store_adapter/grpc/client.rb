@@ -6,6 +6,10 @@ require 'event_store_client/store_adapter/grpc/generated/shared_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/streams_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/streams_services_pb.rb'
 
+require 'event_store_client/store_adapter/grpc/commands/streams/delete'
+require 'event_store_client/store_adapter/grpc/commands/streams/read'
+require 'event_store_client/store_adapter/grpc/commands/streams/tombstone'
+
 require 'event_store_client/store_adapter/grpc/generated/persistent_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/persistent_services_pb.rb'
 
@@ -25,37 +29,23 @@ module EventStoreClient
         WrongExpectedEventVersion = Class.new(StandardError)
         StreamNotFound = Class.new(StandardError)
 
-        def read(stream_name, direction: 'forwards', count: nil, start: 0, resolve_links: true)
-          options = {
-            stream: {
-              stream_identifier: {
-                streamName: stream_name
-              }
-            },
-            read_direction: EventStoreClient::ReadDirection.new(direction).to_sym,
-            resolve_links: resolve_links,
-            count: count || per_page,
-            uuid_option: {
-              string: {}
-            },
-            no_filter: {}
-          }
-          start.zero? ? (options[:stream][:start] = {}) : (options[:stream][:revision] = start)
-
-          client = EventStore::Client::Streams::Streams::Stub.new(
-            uri.to_s, :this_channel_is_insecure
-          )
-
-          request = ::EventStore::Client::Streams::ReadReq.new(options: options)
-          client.read(request).map do |res|
-            raise StreamNotFound.new("Can't find stream with name: #{stream_name}") if res.stream_not_found
-            deserialize_event(res.event.event)
-          end
+        def append_to_stream(stream_name, events, expected_version: nil)
+          Commands::Streams::Append.new.call(stream_name, events, expected_version: expected_version)
         end
 
-        def read_all_from_stream(stream, direction: 'forwards', per_page: 20, start: 0, resolve_links: true)
+        def delete_stream(stream_name, tombstone: false, options: {})
+          return Commands::Streams::Tombstone.new.call(stream_name, options: options) if tombstone
+
+          Commands::Streams::Delete.new.call(stream_name, options: options)
+        end
+
+        def read(stream_name, options: {})
+          Commands::Streams::Read.new.call(stream_name, options: options)
+        end
+
+        def read_all_from_stream(stream, options: {})
           events = []
-          while (entries = read(stream, start: start, direction: direction, count: per_page, resolve_links: resolve_links)).any?
+          while (entries = read(stream, options: options)).any?
             events += entries
             start += per_page
           end
@@ -75,17 +65,6 @@ module EventStoreClient
           @per_page = per_page
           @mapper = mapper
           @connection_options = connection_options
-        end
-
-        def build_events_data(events)
-          [events].flatten.map do |event|
-            {
-              eventId: event.id,
-              eventType: event.type,
-              data: event.data,
-              metadata: event.metadata
-            }
-          end
         end
 
         def build_linkig_data(events)
@@ -117,18 +96,6 @@ module EventStoreClient
             "current version: #{resp.headers.fetch('es-currentversion')} | "\
             "expected: #{expected_version}"
           )
-        end
-
-        def deserialize_event(entry)
-          event = EventStoreClient::Event.new(
-            id: entry.id.string,
-            title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
-            type: entry.metadata['type'],
-            data: entry.data || '{}',
-            metadata: (entry.metadata.to_h || {}).to_json
-          )
-
-          mapper.deserialize(event)
         end
       end
     end
