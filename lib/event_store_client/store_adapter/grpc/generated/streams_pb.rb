@@ -7,6 +7,8 @@ require 'event_store_client/store_adapter/grpc/generated/shared_pb'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("streams.proto", :syntax => :proto3) do
+    ### Read Request definition
+    #
     add_message "event_store.client.streams.ReadReq" do
       optional :options, :message, 1, "event_store.client.streams.ReadReq.Options"
     end
@@ -73,6 +75,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :Forwards, 0
       value :Backwards, 1
     end
+
+    # Read Response definition
+    #
     add_message "event_store.client.streams.ReadResp" do
       oneof :content do
         optional :event, :message, 1, "event_store.client.streams.ReadResp.ReadEvent"
@@ -109,6 +114,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "event_store.client.streams.ReadResp.StreamNotFound" do
       optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
     end
+
+    # Append to stream request
+    #
     add_message "event_store.client.streams.AppendReq" do
       oneof :content do
         optional :options, :message, 1, "event_store.client.streams.AppendReq.Options"
@@ -130,6 +138,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :custom_metadata, :bytes, 3
       optional :data, :bytes, 4
     end
+
+    # Append to stream response
+    #
     add_message "event_store.client.streams.AppendResp" do
       oneof :result do
         optional :success, :message, 1, "event_store.client.streams.AppendResp.Success"

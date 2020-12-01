@@ -2,14 +2,14 @@
 # Source: persistent.proto for package 'event_store.client.persistent_subscriptions'
 
 require 'grpc'
-require 'persistent_pb'
+
+require 'event_store_client/store_adapter/grpc/generated/persistent_pb'
 
 module EventStore
   module Client
     module PersistentSubscriptions
       module PersistentSubscriptions
         class Service
-
           include GRPC::GenericService
 
           self.marshal_class_method = :encode
