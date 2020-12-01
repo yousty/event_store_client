@@ -12,6 +12,10 @@ require 'event_store_client/store_adapter/grpc/generated/persistent_services_pb.
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/create'
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/update'
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/delete'
+
+require 'event_store_client/store_adapter/grpc/commands/projections/create'
+require 'event_store_client/store_adapter/grpc/commands/projections/update'
+require 'event_store_client/store_adapter/grpc/commands/projections/delete'
 # require 'event_store_client/store_adapter/grpc/connection'
 
 module EventStoreClient
@@ -56,6 +60,10 @@ module EventStoreClient
             start += per_page
           end
           events
+        end
+
+        def join_streams(name, streams)
+          Commands::Projections::Create.new.call(name, streams)
         end
 
         private

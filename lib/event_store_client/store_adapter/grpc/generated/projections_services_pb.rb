@@ -2,14 +2,13 @@
 # Source: projections.proto for package 'event_store.client.projections'
 
 require 'grpc'
-require 'projections_pb'
+require 'event_store_client/store_adapter/grpc/generated/projections_pb'
 
 module EventStore
   module Client
     module Projections
       module Projections
         class Service
-
           include GRPC::GenericService
 
           self.marshal_class_method = :encode
