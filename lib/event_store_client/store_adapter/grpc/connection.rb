@@ -1,27 +1,22 @@
 # frozen_string_literal: true
 
-require 'faraday'
+require 'grpc'
 
 module EventStoreClient
   module StoreAdapter
     module GRPC
       class Connection
-        def call
-          EventStore::Client::Streams::Streams::Stub.new(
-            uri.to_s, :this_channel_is_insecure
+        include Configuration
+
+        # Initializes the proper stub with the necessary credentials
+        # to create working gRPC connection - Refer to generated grpc files
+        # @return [Stub] Instance of a given `Stub` klass
+        #
+        def call(stub_klass)
+          stub_klass.new(
+            config.eventstore_url.to_s, :this_channel_is_insecure
           )
-          # ADD AUTH(ENV['EVENT_STORE_USER'], ENV['EVENT_STORE_PASSWORD'])
-          end
         end
-
-        private
-
-        def initialize(uri, options = {})
-          @uri = uri
-          @options = options
-        end
-
-        attr_reader :uri, :options
       end
     end
   end
