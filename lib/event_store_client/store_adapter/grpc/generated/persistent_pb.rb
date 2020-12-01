@@ -8,7 +8,7 @@ require 'event_store_client/store_adapter/grpc/generated/shared_pb'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("persistent.proto", :syntax => :proto3) do
-    # Create persistent Subscription request
+    # Read persistent Subscription request
     #
     add_message "event_store.client.persistent_subscriptions.ReadReq" do
       oneof :content do
@@ -47,7 +47,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :Stop, 4
     end
 
-    # Create persistent Subscription request
+    # Read persistent Subscription response
     #
     add_message "event_store.client.persistent_subscriptions.ReadResp" do
       oneof :content do

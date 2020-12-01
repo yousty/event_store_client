@@ -15,7 +15,7 @@ module EventStoreClient
             use_request EventStore::Client::PersistentSubscriptions::DeleteReq
             use_service EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub
 
-            def call(stream, group, options: {})
+            def call(stream, group)
               opts =
                 {
                   stream_identifier: {
