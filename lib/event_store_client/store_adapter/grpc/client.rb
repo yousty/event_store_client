@@ -77,25 +77,8 @@ module EventStoreClient
           end
         end
 
-        def make_request(method_name, path, body: {}, headers: {})
-          method = RequestMethod.new(method_name)
-          connection.send(method.to_s, path) do |req|
-            req.headers = req.headers.merge(headers)
-            req.body = body.is_a?(String) ? body : body.to_json
-            req.params['embed'] = 'body' if method == :get
-          end
-        end
-
         def connection
           EventStoreClient::StoreAdapter::GRPC::Connection.new(uri).call
-        end
-
-        def validate_response(resp, expected_version)
-          return unless resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
-          raise WrongExpectedEventVersion.new(
-            "current version: #{resp.headers.fetch('es-currentversion')} | "\
-            "expected: #{expected_version}"
-          )
         end
       end
     end
