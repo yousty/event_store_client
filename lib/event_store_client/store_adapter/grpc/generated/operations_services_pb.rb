@@ -9,7 +9,6 @@ module EventStore
     module Operations
       module Operations
         class Service
-
           include GRPC::GenericService
 
           self.marshal_class_method = :encode

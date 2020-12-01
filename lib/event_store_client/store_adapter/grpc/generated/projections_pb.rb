@@ -4,9 +4,12 @@
 require 'google/protobuf'
 
 require 'google/protobuf/struct_pb'
-require 'shared_pb'
+require 'event_store_client/store_adapter/grpc/generated/shared_pb'
+
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("projections.proto", :syntax => :proto3) do
+    # Create projection request
+    #
     add_message "event_store.client.projections.CreateReq" do
       optional :options, :message, 1, "event_store.client.projections.CreateReq.Options"
     end
@@ -25,8 +28,14 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :name, :string, 1
       optional :track_emitted_streams, :bool, 2
     end
+
+    # Create projection response
+    #
     add_message "event_store.client.projections.CreateResp" do
     end
+
+    # Update projection request
+    #
     add_message "event_store.client.projections.UpdateReq" do
       optional :options, :message, 1, "event_store.client.projections.UpdateReq.Options"
     end
@@ -38,8 +47,13 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :no_emit_options, :message, 4, "event_store.client.shared.Empty"
       end
     end
+
+    # Update projection response
+    #
     add_message "event_store.client.projections.UpdateResp" do
     end
+
+
     add_message "event_store.client.projections.DeleteReq" do
       optional :options, :message, 1, "event_store.client.projections.DeleteReq.Options"
     end
@@ -49,8 +63,13 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :delete_state_stream, :bool, 3
       optional :delete_checkpoint_stream, :bool, 4
     end
+
+    # Delete projection response
+    #
     add_message "event_store.client.projections.DeleteResp" do
     end
+
+
     add_message "event_store.client.projections.StatisticsReq" do
       optional :options, :message, 1, "event_store.client.projections.StatisticsReq.Options"
     end
