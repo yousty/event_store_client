@@ -12,8 +12,9 @@ module EventStoreClient
         module PersistentSubscriptions
           class Create
             include Dry::Monads[:result]
+            include Configuration
 
-            def call(uri, stream, group, options: {})
+            def call(stream, group, options: {})
               options =
                 {
                   stream_identifier: {
@@ -39,7 +40,7 @@ module EventStoreClient
                   }
                 }
               request = EventStore::Client::PersistentSubscriptions::CreateReq.new(options: options)
-              client(uri).create(request)
+              client.create(request)
               Success()
             rescue ::GRPC::AlreadyExists
               Failure(:conflict)
@@ -47,9 +48,9 @@ module EventStoreClient
 
             private
 
-            def client(uri)
+            def client
               EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub.new(
-                uri.to_s, :this_channel_is_insecure
+                config.eventstore_url.to_s, :this_channel_is_insecure
               )
             end
           end
