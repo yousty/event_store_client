@@ -12,9 +12,10 @@ module EventStoreClient
         module PersistentSubscriptions
           class Update
             include Dry::Monads[:result]
+            include Configuration
             # stream_name, subscription_name, stats: true, start_from: 0, retries: 5
 
-            def call(uri, stream, group, options: {})
+            def call(stream, group, options: {})
               options =
                 {
                   stream_identifier: {
@@ -40,7 +41,7 @@ module EventStoreClient
                   }
                 }
               request = EventStore::Client::PersistentSubscriptions::UpdateReq.new(options: options)
-              client(uri).update(request)
+              client.update(request)
               Success()
             rescue ::GRPC::Unknown => e
               return Failure(:not_found) if e.message.include?('DoesNotExist')
@@ -49,9 +50,9 @@ module EventStoreClient
 
             private
 
-            def client(uri)
+            def client
               EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub.new(
-                uri.to_s, :this_channel_is_insecure
+                config.eventstore_url.to_s, :this_channel_is_insecure
               )
             end
           end

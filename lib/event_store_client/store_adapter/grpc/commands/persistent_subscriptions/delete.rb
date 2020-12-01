@@ -12,10 +12,11 @@ module EventStoreClient
         module PersistentSubscriptions
           class Delete
             include Dry::Monads[:result]
+            include Configuration
 
             # stream_name, subscription_name, stats: true, start_from: 0, retries: 5
 
-            def call(uri, stream, group, options: {})
+            def call(stream, group, options: {})
               options =
                 {
                   stream_identifier: {
@@ -24,7 +25,7 @@ module EventStoreClient
                   group_name: group
                 }
               request = EventStore::Client::PersistentSubscriptions::DeleteReq.new(options: options)
-              client(uri).delete(request)
+              client.delete(request)
               Success()
             rescue ::GRPC::NotFound => e
               Failure(:not_found)
@@ -32,9 +33,9 @@ module EventStoreClient
 
             private
 
-            def client(uri)
+            def client
               EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub.new(
-                uri.to_s, :this_channel_is_insecure
+                config.eventstore_url.to_s, :this_channel_is_insecure
               )
             end
           end

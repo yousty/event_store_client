@@ -45,4 +45,16 @@ module EventStoreClient
       )
     end
   end
+
+  # Configuration module to be included in classes required configured variables
+  # Usage: include EventStore::Configuration
+  # config.eventstore_url
+  #
+  module Configuration
+    # An instance of the EventStoreClient's configuration
+    #
+    def config
+      EventStoreClient.config
+    end
+  end
 end
