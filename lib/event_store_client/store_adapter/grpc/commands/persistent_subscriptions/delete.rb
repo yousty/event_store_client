@@ -25,7 +25,7 @@ module EventStoreClient
                 }
               service.delete(request.new(options: opts))
               Success()
-            rescue ::GRPC::NotFound => e
+            rescue ::GRPC::NotFound
               Failure(:not_found)
             end
           end
