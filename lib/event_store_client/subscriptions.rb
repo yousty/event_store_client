@@ -25,8 +25,9 @@ module EventStoreClient
     private
 
     def create_subscription(subscription)
+      # store position somewhere.
       connection.join_streams(subscription.name, subscription.observed_streams)
-      connection.subscribe(subscription.stream, name: subscription.name)
+      connection.subscribe_to_stream(subscription.stream, name: subscription.name)
     end
 
     attr_reader :connection, :subscriptions, :service

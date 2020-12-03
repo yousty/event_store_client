@@ -2,7 +2,7 @@
 
 module EventStoreClient
   RSpec.describe StoreAdapter::InMemory do
-    subject { described_class.new(host: 'localhost', port: 2113) }
+    subject { described_class.new(mapper: Mapper::Default.new) }
     describe '#append_to_stream' do
       it 'adds one event to a stream' do
         expect do

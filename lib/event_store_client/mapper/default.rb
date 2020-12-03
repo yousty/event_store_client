@@ -5,7 +5,8 @@ module EventStoreClient
     class Default
       def serialize(event)
         Event.new(
-          type: event.class.to_s,
+          id: event.respond_to?(:id) ? event.id : nil,
+          type: (event.respond_to?(:type) ? event.type : nil) || event.class.to_s,
           data: serializer.serialize(event.data),
           metadata: serializer.serialize(event.metadata)
         )

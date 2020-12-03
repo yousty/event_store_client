@@ -1,28 +1,47 @@
 # frozen_string_literal: true
 
-require 'dry-struct'
-require 'singleton'
+require 'dry-configurable'
 
 module EventStoreClient
-  class Configuration
-    include Singleton
+  extend Dry::Configurable
 
-    attr_accessor :per_page, :service_name, :mapper, :error_handler, :pid_path, :adapter
+  # Supported adapters: %i[api in_memory]
+  #
+  setting :adapter, :api
 
-    def configure
-      yield(self) if block_given?
-    end
+  setting :error_handler
+  setting :eventstore_url, 'http://localhost:2113' do |value|
+    value.is_a?(URI) ? value : URI(value)
+  end
 
-    private
+  setting :eventstore_user, 'admin'
+  setting :eventstore_password, 'changeit'
 
-    def initialize
-      @per_page = 20
-      @pid_path = 'tmp/poll.pid'
-      @mapper = Mapper::Default.new
-      @service_name = 'default'
-      @error_handler = nil
-      @adapter = EventStoreClient::StoreAdapter::Api::Client.new(
-        host: 'http://localhost', port: 2113, per_page: per_page
+  setting :db_port, 2113
+
+  setting :per_page, 20
+  setting :pid_path, 'tmp/poll.pid'
+
+  setting :service_name, 'default'
+
+  setting :mapper, Mapper::Default.new
+
+  def self.configure
+    yield(config) if block_given?
+  end
+
+  def self.adapter
+    case config.adapter
+    when :api
+      StoreAdapter::Api::Client.new(
+        config.eventstore_url,
+        per_page: config.per_page,
+        mapper: config.mapper,
+        connection_options: {}
+      )
+    else
+      StoreAdapter::InMemory.new(
+        mapper: config.mapper, per_page: config.per_page
       )
     end
   end
