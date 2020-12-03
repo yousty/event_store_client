@@ -123,6 +123,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :proposed_message, :message, 2, "event_store.client.streams.AppendReq.ProposedMessage"
       end
     end
+    # first send options message with info to which stream to append
+    # then send the proposed message to the last options request.
+    #
     add_message "event_store.client.streams.AppendReq.Options" do
       optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
       oneof :expected_stream_revision do

@@ -6,6 +6,7 @@ require 'event_store_client/store_adapter/grpc/generated/shared_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/streams_pb.rb'
 require 'event_store_client/store_adapter/grpc/generated/streams_services_pb.rb'
 
+require 'event_store_client/store_adapter/grpc/commands/streams/append'
 require 'event_store_client/store_adapter/grpc/commands/streams/delete'
 require 'event_store_client/store_adapter/grpc/commands/streams/read'
 require 'event_store_client/store_adapter/grpc/commands/streams/tombstone'

@@ -15,30 +15,36 @@ module EventStoreClient
             use_request EventStore::Client::Streams::AppendReq
             use_service EventStore::Client::Streams::Streams::Stub
 
+            include Configuration
+
             # TODO: This is WIP, not working at the moment.
             #
-            def call(name, events, expected_version)
-              serialized_events = events.map { |event| mapper.serialize(event) }
+            def call(stream, events, expected_version)
+              serialized_events = events.map { |event| config.mapper.serialize(event) }
 
-              events = [events].map do |event|
-                request.new(
-                  options: {
-                    stream_identifier: {
-                      streamName: 'grpc'
-                    },
-                    any: {}
-                  },
-                  proposed_message: {
-                    id: {
-                      string: SecureRandom.uuid
-                    },
-                    data: '', # JSON.generate(event.data),
-                    custom_metadata: '',
-                    metadata: { 'type' => 'UserRegistered' } #event.metadata.merge('type' => event.type)
-                  }
-                )
-              end
-              service.append(events)
+              payload = serialized_events.map do |event|
+                [
+                  request.new(
+                    options: {
+                      stream_identifier: {
+                        streamName: stream
+                      },
+                      any: {}
+                    }
+                  ),
+                  request.new(
+                    proposed_message: {
+                      id: {
+                        string: SecureRandom.uuid
+                      },
+                      data: event.data,
+                      custom_metadata: '{}',
+                      metadata: JSON.parse(event.metadata)
+                    }
+                  )
+                ]
+              end.flatten
+              service.append(payload)
               Success()
             end
           end
