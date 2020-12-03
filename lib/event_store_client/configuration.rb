@@ -11,7 +11,7 @@ module EventStoreClient
 
   setting :error_handler
   setting :eventstore_url, 'http://localhost:2113' do |value|
-    value.is_a?(String) ? URI(value) : value
+    value.is_a?(URI) ? value : URI(value)
   end
 
   setting :eventstore_user, 'admin'
