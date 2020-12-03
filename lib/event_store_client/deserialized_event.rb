@@ -22,7 +22,10 @@ module EventStoreClient
       raise InvalidDataError.new(message: validation.errors.to_h) if validation.errors.any?
 
       @data = args.fetch(:data) { {} }
-      @metadata = args.fetch(:metadata) { {} }
+      @metadata = args.fetch(:metadata) { {} }.merge(
+        'type' => self.class.name,
+        'content-type' => 'application/vnd.eventstore.events+json'
+      )
       @type = args[:type] || self.class.name
       @title = args[:title]
       @id = args[:id]
