@@ -4,6 +4,8 @@ module Serializer
   module Json
     def self.deserialize(data)
       JSON.parse(data)
+    rescue JSON::ParserError
+      { 'message' => data }
     end
 
     def self.serialize(data)

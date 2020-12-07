@@ -44,11 +44,18 @@ module EventStoreClient
         end
 
         def read_all_from_stream(stream, options: {})
+          # Commands::Streams::ReadAll.new.call(stream_name, options: options)
+          count = per_page
+          start = 0
           events = []
-          while (entries = read(stream, options: options)).any?
+
+          loop do
+            entries = read(stream, options: options.merge(start: start))
+            break if entries.empty?
             events += entries
-            start += per_page
+            start += count
           end
+
           events
         end
 
