@@ -13,7 +13,7 @@ module EventStoreClient
       raise WrongExpectedEventVersion.new(e.message)
     end
 
-    def read(stream, direction: 'forward', start: 0, all: false, resolve_links: true)
+    def read(stream, direction: 'forwards', start: 0, all: false, resolve_links: true)
       if all
         connection.read_all_from_stream(
           stream, start: start, resolve_links: resolve_links

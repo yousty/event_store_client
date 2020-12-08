@@ -4,7 +4,7 @@ module EventStoreClient
   class Subscriptions
     def create(subscriber, event_types)
       subscription = Subscription.new(subscriber, event_types: event_types, service: service)
-      connection.join_streams(subscriber.class.name, subscription.observed_streams)
+      connection.join_streams(subscription.name, subscription.observed_streams)
       unless @subscriptions.detect { |sub| sub.name == subscription.name }
         create_subscription(subscription)
       end

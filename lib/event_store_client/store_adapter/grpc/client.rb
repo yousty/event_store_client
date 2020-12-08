@@ -39,18 +39,28 @@ module EventStoreClient
           Commands::Streams::Delete.new.call(stream_name, options: options)
         end
 
-        def read(stream_name, options: {})
-          Commands::Streams::Read.new.call(stream_name, options: options)
+        def read(stream_name, direction: 'forwards', start: 0, count: nil, resolve_links: true)
+          Commands::Streams::Read.new.call(
+            stream_name,
+            options: {
+              start: start, direction: direction, count: count, resolve_links: resolve_links
+            }
+          )
         end
 
-        def read_all_from_stream(stream, options: {})
+        def read_all_from_stream(stream, start: 0, resolve_links: true)
           # Commands::Streams::ReadAll.new.call(stream_name, options: options)
           count = per_page
-          start = 0
+          start ||= 0
           events = []
 
           loop do
-            entries = read(stream, options: options.merge(start: start))
+            entries = read(
+              stream,
+              options: {
+                start: start, direction: direction, count: count, resolve_links: resolve_links
+              }
+            )
             break if entries.empty?
             events += entries
             start += count
@@ -61,6 +71,15 @@ module EventStoreClient
 
         def join_streams(name, streams)
           Commands::Projections::Create.new.call(name, streams)
+          Commands::Projections::Update.new.call(name, streams)
+        end
+
+        def subscribe_to_stream(stream_name, subscription_name, stats: true, start_from: 0, retries: 5)
+          Commands::PersistentSubscriptions::Create.new.call(
+            stream_name,
+            subscription_name,
+            options: {}
+          )
         end
 
         private

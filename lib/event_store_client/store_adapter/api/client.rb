@@ -29,12 +29,19 @@ module EventStoreClient
           make_request(:delete, "/streams/#{stream_name}", body: {}, headers: headers)
         end
 
-        def read(stream, direction: 'forward', start: 0, resolve_links: true, count: nil)
-          count ||= per_page
-          response =
-            read_from_stream(
-              stream, start: start, direction: direction, count: count, resolve_links: resolve_links
-            )
+        def read(stream_name, direction: 'forwards', start: 0, count: per_page, resolve_links: true)
+          direction = 'forward' if direction == 'forwards'
+          direction = 'backward' if direction == 'backwards'
+          headers = {
+            'ES-ResolveLinkTos' => resolve_links.to_s,
+            'Accept' => 'application/vnd.eventstore.atom+json'
+          }
+
+          response = make_request(
+            :get,
+            "/streams/#{stream_name}/#{start}/#{direction}/#{count}",
+            headers: headers
+          )
           return [] if response.body.nil? || response.body.empty?
           JSON.parse(response.body)['entries'].map do |entry|
             deserialize_event(entry)
@@ -119,7 +126,7 @@ module EventStoreClient
             headers: headers
           )
 
-          return { events: [] } if response.body || response.body.empty?
+          return { events: [] } if response.body.nil? || response.body.empty?
 
           body = JSON.parse(response.body)
 

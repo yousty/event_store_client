@@ -22,7 +22,6 @@ module EventStoreClient
           rescue NameError
             EventStoreClient::DeserializedEvent
           end
-
         event_class.new(
           id: event.id,
           type: event.type,
