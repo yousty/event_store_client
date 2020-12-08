@@ -4,7 +4,7 @@ module EventStoreClient
   class Broker
     def call(subscriptions)
       subscriptions.each do |subscription|
-        res = connection.consume_feed(subscription.stream, subscription.name) || []
+        res = connection.consume_feed(subscription.stream, subscription.name) || { events: [] }
         next if res[:events].none?
         res[:events].each { |event| subscription.subscriber.call(event) }
         connection.ack(res[:ack_uri])
