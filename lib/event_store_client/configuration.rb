@@ -5,7 +5,7 @@ require 'dry-configurable'
 module EventStoreClient
   extend Dry::Configurable
 
-  # Supported adapters: %i[api in_memory]
+  # Supported adapters: %i[api in_memory grpc]
   #
   setting :adapter, :api
 
@@ -28,22 +28,28 @@ module EventStoreClient
 
   def self.configure
     yield(config) if block_given?
-  end
 
-  def self.adapter
-    case config.adapter
-    when :api
-      StoreAdapter::Api::Client.new(
-        config.eventstore_url,
-        per_page: config.per_page,
-        mapper: config.mapper,
-        connection_options: {}
-      )
-    else
-      StoreAdapter::InMemory.new(
-        mapper: config.mapper, per_page: config.per_page
-      )
-    end
+    config.adapter =
+      case config.adapter
+      when :api
+        StoreAdapter::Api::Client.new(
+          config.eventstore_url,
+          per_page: config.per_page,
+          mapper: config.mapper,
+          connection_options: {}
+        )
+      when :grpc
+        StoreAdapter::GRPC::Client.new(
+          config.eventstore_url,
+          per_page: config.per_page,
+          mapper: config.mapper,
+          connection_options: {}
+        )
+      else
+        StoreAdapter::InMemory.new(
+          mapper: config.mapper, per_page: config.per_page
+        )
+      end
   end
 
   # Configuration module to be included in classes required configured variables
