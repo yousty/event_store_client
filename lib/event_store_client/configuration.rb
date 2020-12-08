@@ -7,7 +7,7 @@ module EventStoreClient
 
   # Supported adapters: %i[api in_memory grpc]
   #
-  setting :adapter, :api
+  setting :adapter, :grpc
 
   setting :error_handler
   setting :eventstore_url, 'http://localhost:2113' do |value|
