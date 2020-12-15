@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'grpc'
+
+require 'event_store_client'
+require 'securerandom'
+require 'irb'
+
+EventStoreClient.configure do |config|
+  config.eventstore_url = 'http://localhost:2113'
+  # config.adapter = :api
+end
+
+class DummyHandler
+  def self.call(event)
+    puts "Handled #{event.class.name}"
+  end
+end
+
+class SomethingHappened < EventStoreClient::DeserializedEvent
+  def schema
+    Dry::Schema.Params do
+      required(:user_id).value(:string)
+      required(:title).value(:string)
+    end
+  end
+end
+stream = 'newstream'
+client = EventStoreClient::Client.new
+
+puts 'PUBLISHING events'
+
+100.times do
+  event = SomethingHappened.new(
+    data: { user_id: SecureRandom.uuid, title: "Something happened" },
+  )
+  client.publish(stream: stream, events: [event])
+end
+
+puts "READ all from #{stream}"
+count = EventStoreClient.config.per_page
+start = 0
+events = []
+
+loop do
+  entries = client.read(stream, start: start)
+  break if entries.empty?
+  events += entries
+  start += count
+end
+
+pp events.length
+
+# res = client.read(stream)
+# pp res
+# pp res.length
+
+puts 'CREATING subscription'
+pp client.subscribe(DummyHandler, to: [SomethingHappened])
+
+# EventStoreClient.configure do |config|
+#   config.adapter = :api
+# end
+# client.poll
+# client = EventStoreClient::Client.new
+
+# res = client.method(:connection).call()
+# puts 'CREATING subscription'
+
+puts 'CREATING subscription again'
+pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call(stream, 'default')
+
+puts 'Updating subscription'
+pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Update.new.call(stream, 'default')
+
+# puts 'Updating nonexistent subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Update.new.call(stream, 'notfound')
+
+# puts 'DELETING subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Delete.new.call(stream, 'default')
+
+# puts 'DELETING subscription again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Delete.new.call(stream, 'default')
+
+# puts 'Creating subscription to multiple event types'
+# # pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Create.new.call('on-sth-happened', [stream])
+# client.subscribe(DummyHandler, to: [SomethingHappened], polling: false)
+
+# puts 'Creating projection again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Create.new.call('on-sth-happened', [stream, 'test'])
+
+# puts 'Updating projection'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Update.new.call('on-sth-happened', [stream])
+
+# puts 'CREATING subscription again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('on-sth-happened', 'default')
+
+# puts 'DELETING subscription again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Delete.new.call('default-DummyHandler', 'default')
+
+# puts 'Deleting projection'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Delete.new.call('default-DummyHandler')
+
+# puts 'Deleting projection again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Delete.new.call('on-sth-happened')
+
+# puts 'Deleting stream'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Streams::Delete.new.call(stream)
+
+# puts 'Deleting nonexistent stream'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Streams::Delete.new.call('default-DummyHandler')
+
+# puts 'Tombstoning stream'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Streams::Delete.new.call(stream)
+
+# puts 'Tombstoning nonexistent stream'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Streams::Tombstone.new.call('default-DummyHandler')

@@ -28,7 +28,8 @@ module EventStoreClient
     def subscribe(subscriber, to: [], polling: true)
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to)
-      poll if polling
+      # poll if polling
+      broker.call(subscriptions)
     end
 
     def poll(interval: 5)

@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'securerandom'
+require 'grpc'
+
+require 'event_store_client'
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easier. You can also use a different console, if you like.
+
+# (If you use this, don't forget to add pry to your Gemfile!)
+# require "pry"
+# Pry.start
+
+require 'irb'
+
+EventStoreClient.configure do |config|
+  config.eventstore_url = 'localhost:2113'
+end
+
+
+require 'securerandom'
+
+class SomethingHappened < EventStoreClient::DeserializedEvent
+  def schema
+    Dry::Schema.Params do
+      required(:user_id).value(:string)
+      required(:title).value(:string)
+    end
+  end
+end
+
+
+# stream = 'default-DummyHandler'
+# puts "READ all from #{stream}"
+# count = EventStoreClient.config.per_page
+# start = 0
+# events = []
+
+# loop do
+#   entries = client.read(stream, start: start)
+#   break if entries.empty?
+#   events += entries
+#   start += count
+# end
+
+# pp events.length
+
+
+# puts 'CREATING subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('grpc', 'default')
+# puts 'CREATING another subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('test', 'default')
+
+# puts 'CREATING subscription again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('grpc', 'default')
+
+# puts 'Updating subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Update.new.call('grpc', 'default')
+
+# puts 'Updating nonexistent subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Update.new.call('grpc', 'notfound')
+
+# puts 'Creating projection'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Create.new.call('on-sth-happened', ['grpc', 'test'])
+
+# puts 'Creating projection again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Create.new.call('on-sth-happened', ['grpc', 'test'])
+
+# puts 'CREATING subscription on-sth-happened'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('on-sth-happened', 'default')
+
+puts 'CONSUMING FEEDS'
+responses = EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Read.new.call('grpc', 'default')
+
+puts 'DONE'
+
+# puts 'Updating projection'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Update.new.call('on-sth-happened', ['grpc'])
+
+# puts 'Deleting projection'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Delete.new.call('on-sth-happened')
+
+# puts 'Deleting projection again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::Projections::Delete.new.call('on-sth-happened')
+
+
+# puts 'DELETING subscription'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Delete.new.call('grpc', 'default')
+
+# puts 'DELETING subscription again'
+# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Delete.new.call('grpc', 'default')

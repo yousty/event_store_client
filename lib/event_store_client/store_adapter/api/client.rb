@@ -112,7 +112,7 @@ module EventStoreClient
         def consume_feed(
           stream_name,
           subscription_name,
-          count: 1,
+          count: 10,
           long_poll: 0,
           resolve_links: true,
           per_page: 20

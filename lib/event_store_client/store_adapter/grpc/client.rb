@@ -9,6 +9,7 @@ require 'event_store_client/store_adapter/grpc/generated/streams_services_pb.rb'
 require 'event_store_client/store_adapter/grpc/commands/streams/append'
 require 'event_store_client/store_adapter/grpc/commands/streams/delete'
 require 'event_store_client/store_adapter/grpc/commands/streams/read'
+require 'event_store_client/store_adapter/grpc/commands/streams/read_all'
 require 'event_store_client/store_adapter/grpc/commands/streams/tombstone'
 
 require 'event_store_client/store_adapter/grpc/generated/persistent_pb.rb'
@@ -17,6 +18,7 @@ require 'event_store_client/store_adapter/grpc/generated/persistent_services_pb.
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/create'
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/update'
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/delete'
+require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/read'
 
 require 'event_store_client/store_adapter/grpc/commands/projections/create'
 require 'event_store_client/store_adapter/grpc/commands/projections/update'
