@@ -23,13 +23,14 @@ module EventStoreClient
             #   Refer to SettingsSchema for detailed attributes allowed
             # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure]
             #
-            def call(stream, group, options: {})
+            def call(stream, group, bufferSize = 10, options: {})
               opts =
                 {
                   stream_identifier: {
                     streamName: stream
                   },
                   group_name: group,
+                  buffer_size: bufferSize,
                   uuid_option: {
                     structured: {}
                   }

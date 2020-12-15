@@ -49,7 +49,9 @@ end
 
 
 # puts 'CREATING subscription'
-# pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('grpc', 'default')
+
+stream = 'newstream'
+pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call(stream, 'default')
 # puts 'CREATING another subscription'
 # pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('test', 'default')
 
@@ -72,7 +74,7 @@ end
 # pp EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Create.new.call('on-sth-happened', 'default')
 
 puts 'CONSUMING FEEDS'
-responses = EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Read.new.call('grpc', 'default')
+responses = EventStoreClient::StoreAdapter::GRPC::Commands::PersistentSubscriptions::Read.new.call(stream, 'default')
 
 puts 'DONE'
 

@@ -9,7 +9,7 @@ require 'securerandom'
 require 'irb'
 
 EventStoreClient.configure do |config|
-  config.eventstore_url = 'http://localhost:2113'
+  config.eventstore_url = 'localhost:2113'
   # config.adapter = :api
 end
 
@@ -32,7 +32,7 @@ client = EventStoreClient::Client.new
 
 puts 'PUBLISHING events'
 
-100.times do
+2.times do
   event = SomethingHappened.new(
     data: { user_id: SecureRandom.uuid, title: "Something happened" },
   )
