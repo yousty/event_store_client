@@ -94,7 +94,7 @@ module EventStoreClient
 
     def initialize
       @threads = []
-      @connection ||= config.adapter
+      @connection ||= EventStoreClient.adapter
       @error_handler ||= config.error_handler
       @service_name ||= 'default'
       @broker ||= Broker.new(connection: connection)
