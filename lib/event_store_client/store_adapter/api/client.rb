@@ -44,7 +44,7 @@ module EventStoreClient
           end.reverse
         end
 
-        def read_all_from_stream(stream, start: 0, resolve_links: true)
+        def read_all_from_stream(stream, direction: 'forward', start: 0, resolve_links: true)
           count = per_page
           events = []
           failed_requests_count = 0
@@ -52,7 +52,7 @@ module EventStoreClient
           while failed_requests_count < 3
             begin
               response =
-                read(stream, start: start, direction: 'forward', resolve_links: resolve_links)
+                read(stream, start: start, direction: direction, resolve_links: resolve_links)
               failed_requests_count += 1 && next unless response.success? || response.status == 404
             rescue Faraday::ConnectionFailed
               failed_requests_count += 1
