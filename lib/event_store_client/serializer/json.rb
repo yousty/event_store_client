@@ -3,6 +3,8 @@
 module Serializer
   module Json
     def self.deserialize(data)
+      return data if data.is_a?(Hash)
+
       JSON.parse(data)
     end
 
