@@ -13,7 +13,6 @@ module EventStoreClient
 
       def append_to_stream(stream_name, events, expected_version: nil) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
         event_store[stream_name] = [] unless event_store.key?(stream_name)
-
         [events].flatten.each do |event|
           event_store[stream_name].unshift(
             'eventId' => event.id,
@@ -145,11 +144,12 @@ module EventStoreClient
       private
 
       def deserialize_event(entry)
+        data = (entry['data'].is_a?(Hash) ? entry['data'].to_json.presence : entry['data']) || '{}'
         event = EventStoreClient::Event.new(
           id: entry['eventId'],
           title: entry['title'],
           type: entry['eventType'],
-          data: entry['data'] || '{}',
+          data: data,
           metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
         )
 
