@@ -123,7 +123,7 @@ module EventStoreClient
             headers: headers
           )
 
-          return [] if response.body || response.body.empty?
+          return { events: [] } if response.body || response.body.empty?
 
           body = JSON.parse(response.body)
 
