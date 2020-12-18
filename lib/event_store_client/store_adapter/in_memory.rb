@@ -24,7 +24,7 @@ module EventStoreClient
         end
       end
 
-      def read(stream_name, direction: 'forward', start: 0, resolve_links: nil)
+      def read(stream_name, direction: 'forward', count: 20, start: 0, resolve_links: true)
         response =
           if direction == 'forward'
             read_stream_forward(stream_name, start: start)
@@ -40,19 +40,8 @@ module EventStoreClient
         end.reverse
       end
 
-      def read_all_from_stream(stream_name, direction: 'forward', start: 0, resolve_links: true)
-        response =
-          if direction == 'forward'
-            read_stream_forward(stream_name, start: start)
-          else
-            read_stream_backward(stream_name, start: start)
-          end
-        res = Response.new(response.to_json, 200)
-
-        return [] if res.body.nil? || res.body.empty?
-          JSON.parse(res.body)['entries'].map do |entry|
-            deserialize_event(entry)
-          end.reverse
+      def read_all_from_stream(stream_name, start: 0, resolve_links: true)
+        read(stream_name, direction: 'forward', start: 0, resolve_links: nil)
       end
 
       def subscribe_to_stream(stream_name, subscription_name, **)
@@ -73,7 +62,7 @@ module EventStoreClient
 
       def link_to(stream_name, events, **)
         append_to_stream(stream_name, events)
-        events
+        true
       end
 
       def ack(url)
@@ -141,20 +130,18 @@ module EventStoreClient
         end
       end
 
-      private
-
       def deserialize_event(entry)
-        data = (entry['data'].is_a?(Hash) ? entry['data'].to_json.presence : entry['data']) || '{}'
         event = EventStoreClient::Event.new(
           id: entry['eventId'],
           title: entry['title'],
           type: entry['eventType'],
-          data: data,
+          data: entry['data'] || '{}',
           metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
         )
 
         mapper.deserialize(event)
       end
+
     end
   end
 end

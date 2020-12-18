@@ -31,7 +31,7 @@ module EventStoreClient
   end
 
   def self.adapter
-    case config.adapter
+    @adapter ||= case config.adapter
     when :api
       StoreAdapter::Api::Client.new(
         config.eventstore_url,

@@ -6,10 +6,18 @@ require 'event_store_client/store_adapter/in_memory'
 require 'webmock/rspec'
 require_relative 'event_store_client/event_store_helpers.rb'
 
+EventStoreClient.configure do |config|
+  config.adapter = :in_memory
+end
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+  end
+
+  config.before do
+    EventStoreClient.adapter.instance_variable_set(:@event_store, {})
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
