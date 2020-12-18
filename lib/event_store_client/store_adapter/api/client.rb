@@ -60,7 +60,7 @@ module EventStoreClient
             end
             failed_requests_count = 0
             break if entries.empty?
-            events += entries.map { |entry| deserialize_event(entry) }.reverse
+            events += entries.reverse
             start += count
           end
           events
