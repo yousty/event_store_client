@@ -47,20 +47,18 @@ module EventStoreClient
         def read_all_from_stream(stream, direction: 'forward', start: 0, resolve_links: true)
           count = per_page
           events = []
+          entries = []
           failed_requests_count = 0
 
           while failed_requests_count < 3
             begin
-              response =
+              entries =
                 read(stream, start: start, direction: direction, resolve_links: resolve_links)
-              failed_requests_count += 1 && next unless response.success? || response.status == 404
             rescue Faraday::ConnectionFailed
               failed_requests_count += 1
               next
             end
             failed_requests_count = 0
-            break if response.body.nil? || response.body.empty?
-            entries = JSON.parse(response.body)['entries']
             break if entries.empty?
             events += entries.map { |entry| deserialize_event(entry) }.reverse
             start += count
