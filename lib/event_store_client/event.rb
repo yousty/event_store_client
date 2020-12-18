@@ -9,8 +9,8 @@ module EventStoreClient
     attribute :id, Types::Strict::String.optional.default(nil)
     attribute :type, Types::Strict::String
     attribute :title, Types::Strict::String.optional.default(nil)
-    attribute :data, Types::Coercible::String.default('{}')
-    attribute :metadata, Types::Coercible::String.default('{}')
+    attribute :data, Types::Strict::String.default('{}')
+    attribute :metadata, Types::Strict::String.default('{}')
 
     private
 

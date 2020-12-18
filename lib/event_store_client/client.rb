@@ -16,7 +16,7 @@ module EventStoreClient
     def read(stream, direction: 'forward', start: 0, all: false, resolve_links: true)
       if all
         connection.read_all_from_stream(
-          stream, start: start, direction: direction, resolve_links: resolve_links
+          stream, start: start, resolve_links: resolve_links
         )
       else
         connection.read(
@@ -25,6 +25,7 @@ module EventStoreClient
       end
     end
 
+    # TODO
     def subscribe(subscriber, to: [], polling: true)
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to)
@@ -77,6 +78,7 @@ module EventStoreClient
       raise ArgumentError if !stream || stream == ''
       raise ArgumentError if events.nil? || (events.is_a?(Array) && events.empty?)
       connection.link_to(stream, events, expected_version: expected_version)
+      true
     rescue StoreAdapter::Api::Client::WrongExpectedEventVersion => e
       raise WrongExpectedEventVersion.new(e.message)
     end

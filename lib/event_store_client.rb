@@ -10,9 +10,9 @@ require 'event_store_client/serializer/json'
 
 require 'event_store_client/mapper'
 
-require 'event_store_client/configuration'
-
 require 'event_store_client/store_adapter'
+
+require 'event_store_client/configuration'
 
 require 'event_store_client/subscription'
 require 'event_store_client/subscriptions'

@@ -10,18 +10,19 @@ module EventStoreClient::StoreAdapter::Api
 
     describe '#append_to_stream' do
       let(:event_1) do
-        EventStoreClient::Event.new(type: 'SomethingHappened', data: { foo: 'bar' }.to_json)
+        EventStoreClient::SomethingHappened.new(id: SecureRandom.uuid, data: { foo: 'bar' })
       end
       let(:event_2) do
-        EventStoreClient::Event.new(type: 'SomethingElseHappened', data: { foo: 'bar' }.to_json)
+        EventStoreClient::SomethingHappened.new(id: SecureRandom.uuid, data: { foo: 'bar' })
       end
       let(:body) do
         events.map do |event|
+          e = EventStoreClient::Mapper::Default.new.serialize(event)
           {
-            eventId: event.id,
-            eventType: event.type,
-            data: event.data,
-            metadata: event.metadata
+            eventId: e.id,
+            eventType: e.type,
+            data: e.data,
+            metadata: e.metadata
           }
         end
       end
@@ -43,7 +44,7 @@ module EventStoreClient::StoreAdapter::Api
         expect(stub).to have_been_requested
       end
 
-      it 'raises exception when passed a wrong expected wersion' do
+      it 'raises exception when passed a wrong expected version' do
         expect { api_client.append_to_stream(stream_name, events, expected_version: 10) }.
           to raise_error(
             EventStoreClient::StoreAdapter::Api::Client::WrongExpectedEventVersion,
@@ -167,3 +168,50 @@ module EventStoreClient::StoreAdapter::Api
     end
   end
 end
+
+# stub_request(:post, "https://www.example.com:8080/streams/stream_name").
+# with(
+#   #real
+#   [{"eventId"=>"8b1f5cf0-a77a-480e-9dd9-a0801cb82e9d",
+
+
+
+#    {"eventId"=>"efa3116f-04af-475a-a48f-379d8e102f42",
+
+
+
+
+# #expected
+# [{"eventId"=>"0121a295-90af-48cc-9f7d-7fc03834f169",
+
+
+
+#  {"eventId"=>"c491fc66-469d-4a40-a776-d7bb50d05cd7",
+
+
+
+
+#   headers: {
+#  'Accept'=>'*/*',
+#  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+#  'Authorization'=>'Basic Og==',
+#  'Content-Type'=>'application/vnd.eventstore.events+json',
+#  'Es-Expectedversion'=>'0',
+#  'User-Agent'=>'Faraday v1.1.0'
+#   }).
+# to_return(status: 200, body: "", headers: {})
+
+# registered request stubs:
+
+# stub_request(:post, "https://www.example.com:8080/streams/stream_name").
+# with(
+
+#   headers: {
+#  'Es-Expectedversion'=>'10'
+#   })
+# stub_request(:post, "https://www.example.com:8080/streams/stream_name").
+# with(
+#   body: "[{\"eventId\":\"0121a295-90af-48cc-9f7d-7fc03834f169\",\"eventType\":\"EventStoreClient::SomethingHappened\",\"data\":\"{\\\"foo\\\":\\\"bar\\\"}\",\"metadata\":\"{\\\"created_at\\\":\\\"2020-12-18 23:17:49 +0100\\\"}\"},{\"eventId\":\"c491fc66-469d-4a40-a776-d7bb50d05cd7\",\"eventType\":\"EventStoreClient::SomethingHappened\",\"data\":\"{\\\"foo\\\":\\\"bar\\\"}\",\"metadata\":\"{\\\"created_at\\\":\\\"2020-12-18 23:17:49 +0100\\\"}\"}]",
+#   headers: {
+#  'Es-Expectedversion'=>'0'
+#   })

@@ -15,7 +15,6 @@ module EventStoreClient
           data = build_events_data(serialized_events)
           response = make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
           validate_response(response, expected_version)
-          response
           serialized_events
         end
 
@@ -27,40 +26,37 @@ module EventStoreClient
           make_request(:delete, "/streams/#{stream_name}", body: {}, headers: headers)
         end
 
-        def read(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: true)
-          headers = {
-            'ES-ResolveLinkTos' => resolve_links.to_s,
-            'Accept' => 'application/vnd.eventstore.atom+json'
-          }
-
-          response = make_request(
-            :get,
-            "/streams/#{stream_name}/#{start}/#{direction}/#{count}",
-            headers: headers
-          )
+        def read(stream, direction: 'forward', start: 0, resolve_links: true, count: nil)
+          count ||= per_page
+          response =
+            read_from_stream(
+              stream, start: start, direction: direction, count: count, resolve_links: resolve_links
+            )
           return [] if response.body.nil? || response.body.empty?
           JSON.parse(response.body)['entries'].map do |entry|
             deserialize_event(entry)
           end.reverse
         end
 
-        def read_all_from_stream(stream, direction: 'forward', start: 0, resolve_links: true)
+        def read_all_from_stream(stream, start: 0, resolve_links: true)
           count = per_page
           events = []
-          entries = []
           failed_requests_count = 0
 
           while failed_requests_count < 3
             begin
-              entries =
-                read(stream, start: start, direction: direction, resolve_links: resolve_links)
+              response =
+                read_from_stream(stream, start: start, direction: 'forward', resolve_links: resolve_links)
+              failed_requests_count += 1 && next unless response.success? || response.status == 404
             rescue Faraday::ConnectionFailed
               failed_requests_count += 1
               next
             end
             failed_requests_count = 0
+            break if response.body.nil? || response.body.empty?
+            entries = JSON.parse(response.body)['entries']
             break if entries.empty?
-            events += entries.reverse
+            events += entries.map { |entry| deserialize_event(entry) }.reverse
             start += count
           end
           events
@@ -107,8 +103,7 @@ module EventStoreClient
           subscription_name,
           count: 1,
           long_poll: 0,
-          resolve_links: true,
-          per_page: 20
+          resolve_links: true
         )
           headers = long_poll.positive? ? { 'ES-LongPoll' => long_poll.to_s } : {}
           headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
@@ -147,7 +142,7 @@ module EventStoreClient
             headers: headers
           )
           validate_response(response, expected_version)
-          true
+          response
         end
 
         def ack(url)
@@ -204,6 +199,19 @@ module EventStoreClient
           raise WrongExpectedEventVersion.new(
             "current version: #{resp.headers.fetch('es-currentversion')} | "\
             "expected: #{expected_version}"
+          )
+        end
+
+        def read_from_stream(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: true)
+          headers = {
+            'ES-ResolveLinkTos' => resolve_links.to_s,
+            'Accept' => 'application/vnd.eventstore.atom+json'
+          }
+
+          make_request(
+            :get,
+            "/streams/#{stream_name}/#{start}/#{direction}/#{count}",
+            headers: headers
           )
         end
 
