@@ -3,6 +3,8 @@
 
 # EventStoreClient
 
+### Broken version. Please use version 0.2.3 until the next release happen. Fixes will be applied in 0.3.0
+
 An easy-to use API client for connecting ruby applications with https://eventstore.org/
 
 ## Installation
