@@ -13,12 +13,12 @@ module EventStoreClient
       module Commands
         module Streams
           class Read < Command
+            include Configuration
+
             use_request EventStore::Client::Streams::ReadReq
             use_service EventStore::Client::Streams::Streams::Stub
 
             StreamNotFound = Class.new(StandardError)
-
-            include Configuration
 
             def call(name, options: {})
               opts = {

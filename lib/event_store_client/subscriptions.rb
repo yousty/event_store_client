@@ -10,6 +10,7 @@ module EventStoreClient
       end
 
       subscriptions << subscription
+      subscription
     end
 
     def each

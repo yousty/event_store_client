@@ -4,6 +4,8 @@ require 'dry-struct'
 
 module EventStoreClient
   class Client
+    include Configuration
+
     NoCallMethodOnSubscriber = Class.new(StandardError)
     WrongExpectedEventVersion = Class.new(StandardError)
 
@@ -26,10 +28,19 @@ module EventStoreClient
     end
 
     # TODO
-    def subscribe(subscriber, to: [], polling: true)
+    def subscribe(subscriber, to: [])
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
-      @subscriptions.create(subscriber, to)
-      poll if polling
+      subscription = @subscriptions.create(subscriber, to)
+      case config.adapter
+      when :api
+        poll
+      when :grpc
+        listen
+      end
+    end
+
+    def listen
+      broker.call(@subscriptions)
     end
 
     def poll(interval: 5)
@@ -89,10 +100,6 @@ module EventStoreClient
     private
 
     attr_reader :subscriptions, :broker, :error_handler
-
-    def config
-      EventStoreClient.config
-    end
 
     def initialize
       @threads = []

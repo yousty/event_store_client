@@ -17,6 +17,7 @@ require 'event_store_client/store_adapter/grpc/generated/persistent_services_pb.
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/create'
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/update'
 require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/delete'
+require 'event_store_client/store_adapter/grpc/commands/persistent_subscriptions/read'
 
 require 'event_store_client/store_adapter/grpc/commands/projections/create'
 require 'event_store_client/store_adapter/grpc/commands/projections/update'
@@ -80,6 +81,20 @@ module EventStoreClient
             subscription_name,
             options: {}
           )
+        end
+
+        def consume_feed(
+          subscription,
+          count: 10,
+          long_poll: 0,
+          resolve_links: true,
+          per_page: 20
+        )
+          Commands::PersistentSubscriptions::Read.new.call(
+            subscription.stream, subscription.name
+          ) do |event|
+            subscription.subscriber.call(event)
+          end
         end
 
         private

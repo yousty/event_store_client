@@ -6,6 +6,8 @@ module EventStoreClient
   module StoreAdapter
     module Api
       class Connection
+        include Configuration
+
         def call
           Faraday.new(
             {
@@ -19,10 +21,6 @@ module EventStoreClient
         end
 
         private
-
-        def config
-          EventStoreClient.config
-        end
 
         def initialize(uri, options = {})
           @uri = uri

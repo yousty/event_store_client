@@ -15,12 +15,10 @@ module EventStoreClient
             use_request EventStore::Client::Streams::AppendReq
             use_service EventStore::Client::Streams::Streams::Stub
 
-            include Configuration
-
             # TODO: This is WIP, not working at the moment.
             #
             def call(stream, events, expected_version)
-              serialized_events = events.map { |event| config.mapper.serialize(event) }
+              serialized_events = events.map { |event| EventStoreClient.config.mapper.serialize(event) }
 
               payload = serialized_events.map do |event|
                 [
