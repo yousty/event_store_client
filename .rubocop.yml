@@ -65,7 +65,7 @@ AllCops:
     - '**/Vagabondfile'
     - '**/Vagrantfile'
   Exclude:
-    - 'lib/event_store_client/store_adapter/grpc/generated/*.rb'
+    - 'lib/event_store_client/adapters/grpc/generated/*.rb'
     - 'spec/dummy/**/*'
     - 'node_modules/**/*'
     - 'vendor/**/*'

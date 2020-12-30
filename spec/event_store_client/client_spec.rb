@@ -61,7 +61,7 @@ module EventStoreClient
       let(:events) { [event_1] }
 
       before do
-        allow_any_instance_of(StoreAdapter::InMemory).to receive(:link_to).with(
+        allow_any_instance_of(InMemory).to receive(:link_to).with(
           stream_name,
           events,
           expected_version: nil
@@ -76,7 +76,7 @@ module EventStoreClient
 
       shared_examples 'correct linking events' do
         it 'invokes link event for the store' do
-          expect_any_instance_of(StoreAdapter::InMemory).to receive(:link_to).with(
+          expect_any_instance_of(InMemory).to receive(:link_to).with(
             stream_name,
             events,
             expected_version: nil

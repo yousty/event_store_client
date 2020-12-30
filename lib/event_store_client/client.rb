@@ -11,7 +11,7 @@ module EventStoreClient
 
     def publish(stream:, events:, expected_version: nil)
       connection.append_to_stream(stream, events, expected_version: expected_version)
-    rescue StoreAdapter::Api::Client::WrongExpectedEventVersion => e
+    rescue HTTP::Client::WrongExpectedEventVersion => e
       raise WrongExpectedEventVersion.new(e.message)
     end
 
@@ -90,7 +90,7 @@ module EventStoreClient
       raise ArgumentError if events.nil? || (events.is_a?(Array) && events.empty?)
       connection.link_to(stream, events, expected_version: expected_version)
       true
-    rescue StoreAdapter::Api::Client::WrongExpectedEventVersion => e
+    rescue HTTP::Client::WrongExpectedEventVersion => e
       raise WrongExpectedEventVersion.new(e.message)
     end
     # rubocop:enable Metrics/CyclomaticComplexity

@@ -10,7 +10,7 @@ An easy-to use API client for connecting ruby applications with https://eventsto
 ## Supported adapters
 
 - GRPC - default
-- [HTTP](https://github.com/yousty/event_store_client/tree/master/lib/event_store_client/store_adapter/api/README.md) - Deprecated
+- [HTTP](https://github.com/yousty/event_store_client/tree/master/lib/event_store_client/adapters/http/README.md) - Deprecated
 - Memory - for testing
 
 ## Installation
@@ -139,7 +139,7 @@ For testing, you can use the InMemory adapter. To do it you should change the co
 
 ```ruby
 EventStoreClient.configure do |config|
-  config.adapter = EventStoreClient::StoreAdapter::InMemory.new(host: 'http://localhost', port: '2113')
+  config.adapter = EventStoreClient::InMemory.new(host: 'http://localhost', port: '2113')
 end
 ```
 
