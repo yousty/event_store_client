@@ -32,7 +32,7 @@ module EventStoreClient
 
     def read_http_subscription(subscription)
       res = connection.consume_feed(subscription.stream, subscription.name) || { events: [] }
-      next if res[:events].none?
+      return if res[:events].none?
       res[:events].each { |event| subscription.subscriber.call(event) }
       connection.ack(res[:ack_uri])
     end
