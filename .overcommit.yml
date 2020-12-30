@@ -26,11 +26,7 @@ CommitMsg:
     enabled: true
     description: "Check commit message matches expected pattern"
     pattern: '((v\d{1,3}\.\d{1,2}\.\d{1,2})|(Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade|Revert|Merge|Release))\s?.*'
-<<<<<<< HEAD
-    expected_pattern_message: "<Commit Message Summary starting with Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade|Release> <in next lines if needed: Detailed Description> <Issue Id>"
-=======
     expected_pattern_message: "<Commit Message Summary starting with Remove|Fix|Refactor|Change|Add|Move|Rename|Upgrade|Downgrade|Release> <in next lines if needed: Detailed Description>"
->>>>>>> Add a way to automatically bump versions
     sample_message: "Change title image alignment"
 #
 #  TrailingWhitespace:
