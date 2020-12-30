@@ -132,7 +132,7 @@ module EventStoreClient
       end
 
       def link_to(stream_name, events, expected_version: nil)
-        data = build_linkig_data(events)
+        data = build_linking_data(events)
         headers = {
           'ES-ExpectedVersion' => expected_version&.to_s
         }.reject { |_key, val| val.nil? || val.empty? }
@@ -173,7 +173,7 @@ module EventStoreClient
         end
       end
 
-      def build_linkig_data(events)
+      def build_linking_data(events)
         [events].flatten.map do |event|
           {
             eventId: event.id,
