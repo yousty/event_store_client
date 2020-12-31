@@ -19,7 +19,28 @@ module EventStoreClient
               headers: headers
             )
             validate_response(response, expected_version)
-            response
+          end
+
+          private
+
+          def validate_response(resp, expected_version)
+            wrong_version = resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
+            return Success() unless wrong_version
+
+            Failure(
+              "current version: #{resp.headers.fetch('es-currentversion')} | "\
+              "expected: #{expected_version}"
+            )
+          end
+
+          def build_linking_data(events)
+            [events].flatten.map do |event|
+              {
+                eventId: event.id,
+                eventType: '$>',
+                data: event.title
+              }
+            end
           end
         end
       end
