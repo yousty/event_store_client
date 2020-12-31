@@ -1,232 +1,156 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/http/request_method'
 require 'event_store_client/adapters/http/connection'
 
 module EventStoreClient
   module HTTP
     class Client
-      WrongExpectedEventVersion = Class.new(StandardError)
-
+      include Configuration
+      # Appends given events to the stream
+      # @param [String] Stream name to append events to
+      # @param [Array](each: EventStoreClient::DeserializedEvent) list of events to publish
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
       def append_to_stream(stream_name, events, expected_version: nil)
-        serialized_events = events.map { |event| mapper.serialize(event) }
-        headers = {
-          'ES-ExpectedVersion' => expected_version&.to_s
-        }.reject { |_key, val| val.nil? || val.empty? }
-
-        data = build_events_data(serialized_events)
-        response = make_request(:post, "/streams/#{stream_name}", body: data, headers: headers)
-        validate_response(response, expected_version)
-        serialized_events
+        Commands::Streams::Append.new(connection).call(
+          stream_name, events, expected_version: expected_version
+        )
       end
 
-      def delete_stream(stream_name, hard_delete: false)
-        headers = {
-          'ES-HardDelete' => hard_delete.to_s
-        }.reject { |_key, val| val.empty? }
-
-        make_request(:delete, "/streams/#{stream_name}", body: {}, headers: headers)
+      # Softly deletes the given stream
+      # @param [String] Stream name to delete
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
+      def delete_stream(stream_name, options: {})
+        Commands::Streams::Delete.new(connection).call(
+          stream_name, options: options
+        )
       end
 
-      def read(stream, direction: 'forward', start: 0, resolve_links: true, count: nil)
-        count ||= per_page
-        response =
-          read_from_stream(
-            stream, start: start, direction: direction, count: count, resolve_links: resolve_links
-          )
-        return [] if response.body.nil? || response.body.empty?
-        JSON.parse(response.body)['entries'].map do |entry|
-          deserialize_event(entry)
-        end.reverse
+      # Completely removes the given stream
+      # @param [String] Stream name to delete
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
+      def tombstone_stream(stream_name, options: {})
+        Commands::Streams::Tombstone.new(connection).call(
+          stream_name, options: options
+        )
       end
 
-      def read_all_from_stream(stream, start: 0, resolve_links: true)
-        count = per_page
+      # Reads a page of events from the given stream
+      # @param [String] Stream name to read events from
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
+      #
+      def read(stream_name, options: {})
+        Commands::Streams::Read.new(connection).call(
+          stream_name, options: options
+        )
+      end
+
+      # Reads all events from the given stream
+      # @param [String] Stream name to read events from
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
+      #
+      def read_all_from_stream(stream, options: {})
+        start ||= options[:start] || 0
+        count ||= options[:count] || 20
         events = []
         failed_requests_count = 0
 
         while failed_requests_count < 3
-          begin
-            response =
-              read_from_stream(stream, start: start, direction: 'forward', resolve_links: resolve_links)
-            failed_requests_count += 1 && next unless response.success? || response.status == 404
-          rescue Faraday::ConnectionFailed
+          res = read(stream_name, options: options.merge(start: start, count: count))
+          if res.failure?
             failed_requests_count += 1
-            next
+          else
+            break if res.value!.empty?
+            events += res.value!
+            failed_requests_count = 0
+            start += count
           end
-          failed_requests_count = 0
-          break if response.body.nil? || response.body.empty?
-          entries = JSON.parse(response.body)['entries']
-          break if entries.empty?
-          events += entries.map { |entry| deserialize_event(entry) }.reverse
-          start += count
         end
-        events
+        return Failure(:connection_failed) if failed_requests_count >= 3
+
+        Success(events)
       end
 
-      def join_streams(name, streams)
-        data = <<~STRING
-          fromStreams(#{streams})
-          .when({
-            $any: function(s,e) {
-              linkTo("#{name}", e)
-            }
-          })
-        STRING
-
-        make_request(
-          :post,
-          "/projections/continuous?name=#{name}&type=js&enabled=true&emit=true%26trackemittedstreams=true", # rubocop:disable Metrics/LineLength
-          body: data,
-          headers: {}
+      # Creates the subscription for the given stream
+      # @param [EventStoreClient::Subscription] subscription to observe
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
+      def subscribe_to_stream(subscription, options: {})
+        join_streams(subscription.name, subscription.observed_streams)
+        Commands::PersistentSubscriptions::Create.new(connection).call(
+          subscription.stream,
+          subscription.name,
+          options: options
         )
       end
 
-      def subscribe_to_stream(
-        stream_name, subscription_name, stats: true, start_from: 0, retries: 5
-      )
-        make_request(
-          :put,
-          "/subscriptions/#{stream_name}/#{subscription_name}",
-          body: {
-            extraStatistics: stats,
-            startFrom: start_from,
-            maxRetryCount: retries,
-            resolveLinkTos: true
-          },
-          headers: {
-            'Content-Type' => 'application/json'
-          }
-        )
-      end
-
-      def consume_feed(
-        stream_name,
-        subscription_name,
-        count: 10,
-        long_poll: 0,
-        resolve_links: true
-      )
-        headers = long_poll.positive? ? { 'ES-LongPoll' => long_poll.to_s } : {}
-        headers['Content-Type'] = 'application/vnd.eventstore.competingatom+json'
-        headers['Accept'] = 'application/vnd.eventstore.competingatom+json'
-        headers['ES-ResolveLinktos'] = resolve_links.to_s
-
-        response = make_request(
-          :get,
-          "/subscriptions/#{stream_name}/#{subscription_name}/#{count}",
-          headers: headers
-        )
-
-        return { events: [] } if response.body.nil? || response.body.empty?
-
-        body = JSON.parse(response.body)
-
-        ack_info = body['links'].find { |link| link['relation'] == 'ackAll' }
-        return unless ack_info
-        ack_uri = ack_info['uri']
-        events = body['entries'].map do |entry|
-          deserialize_event(entry)
-        end
-        { ack_uri: ack_uri, events: events }
-      end
-
+      # Links given events with the given stream
+      # @param [String] Stream name to link events to
+      # @param [Array](each: EventStoreClient::DeserializedEvent) a list of events to link
+      # @param expected_version [Integer] expected number of events in the stream
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
       def link_to(stream_name, events, expected_version: nil)
-        data = build_linking_data(events)
-        headers = {
-          'ES-ExpectedVersion' => expected_version&.to_s
-        }.reject { |_key, val| val.nil? || val.empty? }
-
-        response = make_request(
-          :post,
-          "/streams/#{stream_name}",
-          body: data,
-          headers: headers
+        Commands::Streams::LinkTo.new(connection).call(
+          stream_name, events, expected_version: nil
         )
-        validate_response(response, expected_version)
-        response
       end
 
-      def ack(url)
-        make_request(:post, url)
+      # Runs the persistent subscription indeinitely
+      # @param [EventStoreClient::Subscription] subscription to observe
+      # @param options [Hash] additional options to the request
+      # @return - Nothing, it is a blocking operation, yields the given block with event instead
+      #
+      def listen(subscription, options: {})
+        loop do
+          begin
+            consume_feed(subscription) do |event|
+              yield event if block_given?
+            end
+          rescue StandardError => e
+            config.error_handler&.call(e)
+          end
+          sleep(options[:interval] || 5) # wait for events to be processed
+        end
       end
 
       private
 
-      attr_reader :uri, :per_page, :connection_options, :mapper
+      attr_reader :connection
 
-      def initialize(uri, per_page: 20, mapper:, connection_options: {})
-        @uri = uri
-        @per_page = per_page
-        @mapper = mapper
-        @connection_options = connection_options
+      def initialize
+        @connection = Connection.new(config.eventstore_url)
       end
 
-      def build_events_data(events)
-        [events].flatten.map do |event|
-          {
-            eventId: event.id,
-            eventType: event.type,
-            data: event.data,
-            metadata: event.metadata
-          }
+      # @api private
+      # Joins multiple streams into the new one under the given name
+      # @param [String] Name of the stream containing the ones to join
+      # @param [Array] (each: String) list of streams to join together
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
+      def join_streams(name, streams)
+        Commands::Projections::Create.new(connection).call(name, streams)
+      end
+
+      # @api private
+      # Consumes the new events from the subscription
+      # @param [EventStoreClient::Subscription] subscription to observe
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
+      #
+      def consume_feed(subscription, options: {})
+        res = Commands::PersistentSubscriptions::Read.new(connection).call(
+          subscription.stream, subscription.name, options: options
+        ) do |event|
+          yield event if block_given?
         end
-      end
-
-      def build_linking_data(events)
-        [events].flatten.map do |event|
-          {
-            eventId: event.id,
-            eventType: '$>',
-            data: event.title,
-          }
-        end
-      end
-
-      def make_request(method_name, path, body: {}, headers: {})
-        method = RequestMethod.new(method_name)
-        connection.send(method.to_s, path) do |req|
-          req.headers = req.headers.merge(headers)
-          req.body = body.is_a?(String) ? body : body.to_json
-          req.params['embed'] = 'body' if method == :get
-        end
-      end
-
-      def connection
-        @connection ||= Connection.new(uri, connection_options).call
-      end
-
-      def validate_response(resp, expected_version)
-        return unless resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
-        raise WrongExpectedEventVersion.new(
-          "current version: #{resp.headers.fetch('es-currentversion')} | "\
-          "expected: #{expected_version}"
-        )
-      end
-
-      def read_from_stream(stream_name, direction: 'forward', start: 0, count: per_page, resolve_links: true)
-        headers = {
-          'ES-ResolveLinkTos' => resolve_links.to_s,
-          'Accept' => 'application/vnd.eventstore.atom+json'
-        }
-
-        make_request(
-          :get,
-          "/streams/#{stream_name}/#{start}/#{direction}/#{count}",
-          headers: headers
-        )
-      end
-
-      def deserialize_event(entry)
-        event = EventStoreClient::Event.new(
-          id: entry['eventId'],
-          title: entry['title'],
-          type: entry['eventType'],
-          data: entry['data'] || '{}',
-          metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
-        )
-
-        mapper.deserialize(event)
       end
     end
   end

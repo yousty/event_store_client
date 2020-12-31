@@ -4,8 +4,7 @@ require 'event_store_client/adapters/http'
 
 module EventStoreClient::HTTP
   RSpec.describe Client do
-    let(:mapper) { EventStoreClient::Mapper::Default.new }
-    let(:api_client) { described_class.new(URI('https://www.example.com:8080'), mapper: mapper) }
+    let(:api_client) { described_class.new }
 
     let(:stream_name) { :stream_name }
     let(:events) { [event_1, event_2] }
@@ -62,7 +61,7 @@ module EventStoreClient::HTTP
       end
 
       it 'sends a correct request' do
-        api_client.delete_stream(stream_name, hard_delete: true)
+        api_client.delete_stream(stream_name)
         expect(stub).to have_been_requested
       end
     end

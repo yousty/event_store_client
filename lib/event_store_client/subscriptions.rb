@@ -4,12 +4,12 @@ module EventStoreClient
   class Subscriptions
     def create(subscriber, event_types)
       subscription = Subscription.new(subscriber, event_types: event_types, service: service)
-      connection.join_streams(subscription.name, subscription.observed_streams)
+
       unless @subscriptions.detect { |sub| sub.name == subscription.name }
-        create_subscription(subscription)
+        connection.subscribe_to_stream(subscription.stream, subscription.name)
+        subscriptions << subscription
       end
 
-      subscriptions << subscription
       subscription
     end
 
@@ -24,12 +24,6 @@ module EventStoreClient
     end
 
     private
-
-    def create_subscription(subscription)
-      # store position somewhere.
-      connection.join_streams(subscription.name, subscription.observed_streams)
-      connection.subscribe_to_stream(subscription.stream, subscription.name)
-    end
 
     attr_reader :connection, :subscriptions, :service
 

@@ -33,23 +33,14 @@ module EventStoreClient
   def self.adapter
     @adapter ||=
       case config.adapter
-      when :api
+      when :http
         require 'event_store_client/adapters/http'
-        HTTP::Client.new(
-          config.eventstore_url,
-          per_page: config.per_page,
-          mapper: config.mapper,
-          connection_options: {}
-        )
+        HTTP::Client.new
       when :grpc
         require 'event_store_client/adapters/grpc'
-        GRPC::Client.new(
-          config.eventstore_url,
-          per_page: config.per_page,
-          mapper: config.mapper,
-          connection_options: {}
-        )
+        GRPC::Client.new
       else
+        require 'event_store_client/adapters/in_memory'
         InMemory.new(
           mapper: config.mapper, per_page: config.per_page
         )

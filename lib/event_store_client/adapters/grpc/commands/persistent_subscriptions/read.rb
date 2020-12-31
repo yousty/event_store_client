@@ -24,13 +24,14 @@ module EventStoreClient
           #   Refer to SettingsSchema for detailed attributes allowed
           # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure]
           #
-          def call(stream, group, options: {}, &block)
+          def call(stream, group, options: {})
+            count = options[:count].to_i
             opts =
               {
                 stream_identifier: {
                   streamName: stream
                 },
-                buffer_size: 2,
+                buffer_size: count,
                 group_name: group,
                 uuid_option: {
                   structured: {}
@@ -38,13 +39,10 @@ module EventStoreClient
               }
 
             requests = [request.new(options: opts)] # please notice that it's an array. Should be?
-            count = 0
-            event = event
 
-            ids = []
             service.read(requests).each do |res|
               next if res.subscription_confirmation
-              block.call(deserialize_event(res.event.event)) if block_given?
+              yield deserialize_event(res.event.event) if block_given?
             end
             Success()
           end

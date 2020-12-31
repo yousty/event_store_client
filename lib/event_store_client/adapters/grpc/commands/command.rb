@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'dry-monads'
-require 'event_store_client/configuration'
 require 'event_store_client/adapters/grpc/command_registrar'
 
 module EventStoreClient

@@ -41,11 +41,12 @@ module EventStoreClient
               opts[:stream][:revision] = options[:start]
             end
 
-            service.read(request.new(options: opts)).map do |res|
+            events = service.read(request.new(options: opts)).map do |res|
               raise StreamNotFound if res.stream_not_found
 
               deserialize_event(res.event.event)
             end
+            Success(events)
           rescue StreamNotFound
             Failure(:not_found)
           end
@@ -53,11 +54,13 @@ module EventStoreClient
           private
 
           def deserialize_event(entry)
+            data = (entry.data.nil? || entry.data.empty?) ? "{}" : entry.data
+
             event = EventStoreClient::Event.new(
               id: entry.id.string,
               title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
               type: entry.metadata['type'],
-              data: entry.data || '{}',
+              data: data,
               metadata: (entry.metadata.to_h || {}).to_json
             )
 

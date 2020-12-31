@@ -23,7 +23,15 @@ module EventStoreClient
       end
     end
 
-    def read(stream_name, direction: 'forward', count: 20, start: 0, resolve_links: true)
+    def delete_stream(stream_name, options: {}) # rubocop:disable Lint/UnusedMethodArgument
+      event_store.delete(stream_name)
+    end
+
+    def tombstone_stream(stream_name, options: {}) # rubocop:disable Lint/UnusedMethodArgument
+      event_store.delete(stream_name)
+    end
+
+    def read(stream_name, options: {})
       response =
         if direction == 'forward'
           read_stream_forward(stream_name, start: start)
@@ -39,24 +47,12 @@ module EventStoreClient
       end.reverse
     end
 
-    def read_all_from_stream(stream_name, start: 0, resolve_links: true)
-      read(stream_name, direction: 'forward', start: 0, resolve_links: nil)
+    def read_all_from_stream(stream_name, options)
+      read(stream_name, options: {})
     end
 
     def subscribe_to_stream(stream_name, subscription_name, **)
       # TODO: implement method body
-    end
-
-    def consume_feed(
-      stream_name,
-      subscription_name,
-      **
-    )
-      # TODO: implement method body
-    end
-
-    def delete_stream(stream_name, hard_delete: false) # rubocop:disable Lint/UnusedMethodArgument
-      event_store.delete(stream_name)
     end
 
     def link_to(stream_name, events, **)
@@ -64,11 +60,8 @@ module EventStoreClient
       true
     end
 
-    def ack(url)
-      # TODO: implement method body
+    def listen(subscription, options: {})
     end
-
-    def join_streams(name, streams); end
 
     private
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'grpc'
-require 'event_store_client/adapters/grpc/generated/projections_pb.rb'
-require 'event_store_client/adapters/grpc/generated/projections_services_pb.rb'
+require 'event_store_client/adapters/grpc/generated/streams_pb.rb'
+require 'event_store_client/adapters/grpc/generated/streams_services_pb.rb'
 
 require 'event_store_client/adapters/grpc/commands/command'
 
@@ -11,16 +11,18 @@ module EventStoreClient
     module Commands
       module Streams
         class Append < Command
+          include Configuration
+
           use_request EventStore::Client::Streams::AppendReq
           use_service EventStore::Client::Streams::Streams::Stub
 
-          # TODO: This is WIP, not working at the moment.
+          # @api private
           #
-          def call(stream, events, expected_version)
-            serialized_events = events.map { |event| EventStoreClient.config.mapper.serialize(event) }
+          def call(stream, events, expected_version: nil)
+            serialized_events = events.map { |event| config.mapper.serialize(event) }
 
-            payload = serialized_events.map do |event|
-              [
+            serialized_events.each do |event|
+              payload = [
                 request.new(
                   options: {
                     stream_identifier: {
@@ -35,13 +37,17 @@ module EventStoreClient
                       string: SecureRandom.uuid
                     },
                     data: event.data,
-                    custom_metadata: '{}',
+                    custom_metadata: JSON.generate(
+                      "type": event.type,
+                      "content-type": 'application/vnd.eventstore.events+json',
+                      "created_at": Time.now
+                    ),
                     metadata: JSON.parse(event.metadata)
                   }
                 )
               ]
-            end.flatten
-            service.append(payload)
+              service.append(payload)
+            end
             Success()
           end
         end
