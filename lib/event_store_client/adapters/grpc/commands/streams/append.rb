@@ -17,8 +17,8 @@ module EventStoreClient
           use_service EventStore::Client::Streams::Streams::Stub
 
           # @api private
-          #
-          def call(stream, events, expected_version: nil)
+          # TODO: Add support to verify the expected version
+          def call(stream, events, expected_version: nil) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
             serialized_events = events.map { |event| config.mapper.serialize(event) }
 
             serialized_events.each do |event|

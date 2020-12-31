@@ -30,7 +30,7 @@ module EventStoreClient
                 continuous: {
                   name: name,
                   track_emitted_streams: false
-                },
+                }
               }
 
             service.create(request.new(options: options))

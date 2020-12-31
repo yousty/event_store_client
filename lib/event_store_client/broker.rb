@@ -17,7 +17,7 @@ module EventStoreClient
           end
         end
       end
-      threads.each { |thr| thr.join } if wait
+      threads.each(&:join) if wait
     end
 
     private

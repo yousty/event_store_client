@@ -28,7 +28,7 @@ module EventStoreClient
 
             ack_info = body['links'].find { |link| link['relation'] == 'ackAll' }
             return { events: [] } unless ack_info
-            events = body['entries'].map do |entry|
+            body['entries'].map do |entry|
               yield deserialize_event(entry)
             end
             Ack.new(connection).call(ack_info['uri'])
@@ -47,7 +47,7 @@ module EventStoreClient
             )
 
             config.mapper.deserialize(event)
-          rescue EventStoreClient::DeserializedEvent::InvalidDataError => e
+          rescue EventStoreClient::DeserializedEvent::InvalidDataError
             event
           end
         end

@@ -55,7 +55,7 @@ module EventStoreClient
       # @param options [Hash] additional options to the request
       # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
       #
-      def read_all_from_stream(stream, options: {})
+      def read_all_from_stream(stream_name, options: {})
         start ||= options[:start] || 0
         count ||= options[:count] || 20
         events = []
@@ -97,9 +97,9 @@ module EventStoreClient
       # @param expected_version [Integer] expected number of events in the stream
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
-      def link_to(stream_name, events, expected_version: nil)
+      def link_to(stream_name, events, options: {})
         Commands::Streams::LinkTo.new(connection).call(
-          stream_name, events, expected_version: nil
+          stream_name, events, options: options
         )
       end
 
@@ -146,7 +146,7 @@ module EventStoreClient
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
       def consume_feed(subscription, options: {})
-        res = Commands::PersistentSubscriptions::Read.new(connection).call(
+        Commands::PersistentSubscriptions::Read.new(connection).call(
           subscription.stream, subscription.name, options: options
         ) do |event|
           yield event if block_given?

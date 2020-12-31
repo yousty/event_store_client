@@ -23,7 +23,7 @@ module EventStoreClient
         @connection = set_connection(uri, options)
       end
 
-      attr_reader:options, :connection
+      attr_reader :options, :connection
 
       DEFAULT_HEADERS = {
         'Content-Type' => 'application/vnd.eventstore.events+json'

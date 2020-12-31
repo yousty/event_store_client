@@ -14,7 +14,8 @@ module EventStoreClient
             }.reject { |_key, val| val.nil? || val.empty? }
 
             data = build_events_data(serialized_events)
-            response = connection.call(:post, "/streams/#{stream_name}", body: data, headers: headers)
+            response =
+              connection.call(:post, "/streams/#{stream_name}", body: data, headers: headers)
             validate_response(response, expected_version)
           end
 
@@ -32,7 +33,8 @@ module EventStoreClient
           end
 
           def validate_response(resp, expected_version)
-            return Success() unless resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
+            wrong_version = resp.status == 400 && resp.reason_phrase == 'Wrong expected EventNumber'
+            return Success() unless wrong_version
 
             Failure(
               "current version: #{resp.headers.fetch('es-currentversion')} | "\

@@ -32,6 +32,7 @@ module EventStoreClient
     end
 
     def read(stream_name, options: {})
+      start = options[:start].to_i
       response =
         if direction == 'forward'
           read_stream_forward(stream_name, start: start)
@@ -47,8 +48,8 @@ module EventStoreClient
       end.reverse
     end
 
-    def read_all_from_stream(stream_name, options)
-      read(stream_name, options: {})
+    def read_all_from_stream(stream_name, options: {})
+      read(stream_name, options: options)
     end
 
     def subscribe_to_stream(stream_name, subscription_name, **)
@@ -61,6 +62,7 @@ module EventStoreClient
     end
 
     def listen(subscription, options: {})
+      # TODO: implement method body
     end
 
     private
@@ -133,6 +135,5 @@ module EventStoreClient
 
       mapper.deserialize(event)
     end
-
   end
 end

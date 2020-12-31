@@ -73,8 +73,9 @@ module EventStoreClient
       # @param expected_version [Integer] expected number of events in the stream
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
-      def link_to(stream_name, events, expected_version: nil)
-        # TODO: based on implementation of http adapter, implement the linking events mechanism for GRPC
+      def link_to(stream_name, events, options: {})
+        # TODO: based on implementation of http adapter,
+        # implement the linking events mechanism for GRPC
       end
 
       # Runs the persistent subscription indeinitely

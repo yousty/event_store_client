@@ -30,13 +30,7 @@ module EventStoreClient
     # TODO
     def subscribe(subscriber, to: [])
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
-      subscription = @subscriptions.create(subscriber, to)
-      case config.adapter
-      when :api
-        poll
-      when :grpc
-        listen
-      end
+      @subscriptions.create(subscriber, to)
     end
 
     def listen(wait: false)

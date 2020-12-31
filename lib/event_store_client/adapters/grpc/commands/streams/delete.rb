@@ -14,7 +14,7 @@ module EventStoreClient
           use_request EventStore::Client::Streams::DeleteReq
           use_service EventStore::Client::Streams::Streams::Stub
 
-          def call(name)
+          def call(name, options: {}) # rubocop:disable Lint/UnusedMethodArgument
             opts =
               {
                 stream_identifier: {

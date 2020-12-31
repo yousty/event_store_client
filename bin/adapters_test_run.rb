@@ -23,7 +23,7 @@ class AdaptersTestRun
 
     events = Array.new(count) do
       SomethingHappened.new(
-        data: { user_id: SecureRandom.uuid, title: 'Something happened' },
+        data: { user_id: SecureRandom.uuid, title: 'Something happened' }
       )
     end
     return client.append_to_stream(stream, events) if batch
@@ -40,11 +40,12 @@ class AdaptersTestRun
 
   def read_events_from_stream(all: false)
     puts "\n#{__method__} (all: #{all}\n"
-    res = if all
-      client.read_all_from_stream(stream)
-    else
-      client.read(stream)
-    end
+    res =
+      if all
+        client.read_all_from_stream(stream)
+      else
+        client.read(stream)
+      end
     pp "READ result: Successs:#{res.success?}, length: #{res.value!.length}"
     pp res.value!.first
     puts "\n"

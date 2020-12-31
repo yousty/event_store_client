@@ -6,6 +6,7 @@ module EventStoreClient
       module Streams
         class LinkTo < Command
           def call(stream_name, events, options: {})
+            expected_version = options[:expected_version]
             data = build_linking_data(events)
             headers = {
               'ES-ExpectedVersion' => expected_version&.to_s

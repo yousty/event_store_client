@@ -5,7 +5,7 @@ module EventStoreClient
     module Commands
       module Streams
         class Delete < Command
-          def call(stream_name, options: {})
+          def call(stream_name, options: {}) # rubocop:disable Lint/UnusedMethodArgument
             connection.call(:delete, "/streams/#{stream_name}", body: {})
             Success()
           end

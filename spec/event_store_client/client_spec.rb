@@ -29,8 +29,8 @@ module EventStoreClient
         it 'reads events from a stream' do
           events = client.read('stream')
           expect(events.count).to eq(2)
-          expect(events.map { |event| event.type }).
-            to eq(['SomethingHappened', 'SomethingElseHappened'])
+          expect(events.map(&:type)).
+            to eq(eq(%w[SomethingHappened SomethingElseHappened]))
         end
       end
 
@@ -38,8 +38,8 @@ module EventStoreClient
         it 'reads events from a stream' do
           events = client.read('stream', direction: 'backard', start: 'head')
           expect(events.count).to eq(2)
-          expect(events.map { |event| event.type }).
-            to eq(['SomethingHappened', 'SomethingElseHappened'])
+          expect(events.map(&:type)).
+            to eq(eq(%w[SomethingHappened SomethingElseHappened]))
         end
       end
 
@@ -47,8 +47,8 @@ module EventStoreClient
         it 'reads all events from a stream' do
           events = client.read('stream', all: true)
           expect(events.count).to eq(2)
-          expect(events.map { |event| event.type }).
-            to eq(['SomethingHappened', 'SomethingElseHappened'])
+          expect(events.map(&:type)).
+            to eq(eq(%w[SomethingHappened SomethingElseHappened]))
         end
       end
     end
@@ -70,7 +70,7 @@ module EventStoreClient
 
       shared_examples 'argument error' do
         it 'raises an Argument error' do
-          expect{ subject.call }.to raise_error(ArgumentError)
+          expect { subject.call }.to raise_error(ArgumentError)
         end
       end
 

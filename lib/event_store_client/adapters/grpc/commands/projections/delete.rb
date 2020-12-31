@@ -15,15 +15,14 @@ module EventStoreClient
           use_service EventStore::Client::Projections::Projections::Stub
 
           def call(name, options: {})
-            options =
-              {
-                name: name,
-                delete_emitted_streams: true,
-                delete_state_stream: true,
-                delete_checkpoint_stream: true
-              }
+            opts = {
+              name: name,
+              delete_emitted_streams: true,
+              delete_state_stream: true,
+              delete_checkpoint_stream: true
+            }.merge(options)
 
-            service.delete(request.new(options: options))
+            service.delete(request.new(options: opts))
             Success()
           rescue ::GRPC::Unknown => e
             Failure(:not_found) if e.message.include?('OperationFailed')

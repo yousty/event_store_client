@@ -2,6 +2,8 @@
 
 module EventStoreClient
   class DataDecryptor
+    include Configuration
+
     KeyNotFoundError = Class.new(StandardError)
 
     def call
@@ -26,12 +28,12 @@ module EventStoreClient
       @encryption_metadata = schema&.transform_keys(&:to_s) || {}
     end
 
-    def decrypt_attributes(key:, data:, attributes:)
+    def decrypt_attributes(key:, data:, attributes: {}) # rubocop:disable Lint/UnusedMethodArgument
       decrypted_text = key_repository.decrypt(
         key_id: key.id, text: data['es_encrypted'], cipher: key.cipher, iv: key.iv
       )
       decrypted = JSON.parse(decrypted_text).transform_keys(&:to_s)
-      decrypted.each { |key, value| data[key] = value if data.key?(key) }
+      decrypted.each { |k, value| data[k] = value if data.key?(k) }
       data.delete('es_encrypted')
       data
     end
@@ -47,7 +49,7 @@ module EventStoreClient
         begin
           key_repository.find(identifier)
         rescue StandardError => e
-          nil
+          config.error_handler&.call(e)
         end
       raise KeyNotFoundError unless key
 

@@ -20,13 +20,15 @@ module EventStoreClient
           StreamNotFound = Class.new(StandardError)
 
           def call(name, options: {})
+            direction =
+              EventStoreClient::ReadDirection.new(options[:direction] || 'forwards').to_sym
             opts = {
               stream: {
                 stream_identifier: {
                   streamName: name
                 }
               },
-              read_direction: EventStoreClient::ReadDirection.new(options[:direction] || 'forwards').to_sym,
+              read_direction: direction,
               resolve_links: options[:resolve_links] || true,
               count: options[:count] || config.per_page,
               uuid_option: {
@@ -54,7 +56,7 @@ module EventStoreClient
           private
 
           def deserialize_event(entry)
-            data = (entry.data.nil? || entry.data.empty?) ? "{}" : entry.data
+            data = (entry.data.nil? || entry.data.empty?) ? '{}' : entry.data
 
             event = EventStoreClient::Event.new(
               id: entry.id.string,
