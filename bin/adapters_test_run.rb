@@ -10,6 +10,7 @@ class AdaptersTestRun
     publish_events(count: 10, batch: true)
     read_events_from_stream(all: false)
     read_events_from_stream(all: true)
+    # link_to('linkedstream')
     subscribe(FooHandler, [SomethingHappened])
     subscribe(BarHandler, [SomethingHappened])
     listen(FooHandler, [SomethingHappened])
@@ -46,8 +47,8 @@ class AdaptersTestRun
       else
         client.read(stream)
       end
-    pp "READ result: Successs:#{res.success?}, length: #{res.value!.length}"
-    pp res.value!.first
+    puts "READ result: Successs:#{res.success?}, length: #{res.value!.length}"
+    puts res.value!.first
     puts "\n"
   end
 
@@ -68,6 +69,16 @@ class AdaptersTestRun
       subscription.subscriber.call(event)
     end
   end
+
+  def link_to(stream_name)
+    events = client.read(stream).value!
+
+    puts "\n#{__method__} #{stream_name} #{events.length} events"
+    puts events.map(&:id)
+
+    client.link_to(stream_name, events)
+  end
+
 
   private
 
