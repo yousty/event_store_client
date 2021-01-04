@@ -18,11 +18,11 @@ module EventStoreClient
     def read(stream, direction: 'forwards', start: 0, all: false, resolve_links: true)
       if all
         connection.read_all_from_stream(
-          stream, start: start, resolve_links: resolve_links
+          stream, options: { start: start, resolve_links: resolve_links }
         )
       else
         connection.read(
-          stream, start: start, direction: direction, resolve_links: resolve_links
+          stream, options: { start: start, direction: direction, resolve_links: resolve_links }
         )
       end
     end
@@ -41,10 +41,10 @@ module EventStoreClient
     def link_to(stream:, events:, expected_version: nil)
       raise ArgumentError if !stream || stream == ''
       raise ArgumentError if events.nil? || (events.is_a?(Array) && events.empty?)
-      connection.link_to(stream, events, expected_version: expected_version)
-      true
-    rescue HTTP::Client::WrongExpectedEventVersion => e
-      raise WrongExpectedEventVersion.new(e.message)
+      res = connection.link_to(stream, events, expected_version: expected_version)
+      raise WrongExpectedEventVersion.new(e.message) if res.failure?
+
+      res.success?
     end
     # rubocop:enable Metrics/CyclomaticComplexity
 

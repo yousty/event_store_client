@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'event_store_client/adapters/http'
+require 'support/dummy_handler'
 
 module EventStoreClient::HTTP
   RSpec.describe Client do
@@ -46,18 +47,15 @@ module EventStoreClient::HTTP
       end
 
       it 'raises exception when passed a wrong expected version' do
-        expect { api_client.append_to_stream(stream_name, events, expected_version: 10) }.
-          to raise_error(
-            EventStoreClient::HTTP::Client::WrongExpectedEventVersion,
-            'current version: 0 | expected: 10'
-          )
+        res = api_client.append_to_stream(stream_name, events, expected_version: 10)
+        expect(res).to be_failure
+        expect(res.failure).to eq('current version: 0 | expected: 10')
       end
     end
 
     describe '#delete_stream' do
       let!(:stub) do
-        stub_request(:delete, stream_url(stream_name)).
-          with(headers: { 'ES-HardDelete': 'true' })
+        stub_request(:delete, stream_url(stream_name))
       end
 
       it 'sends a correct request' do
@@ -75,7 +73,7 @@ module EventStoreClient::HTTP
       end
 
       it 'sends a correct request' do
-        api_client.read(stream_name, count: 20)
+        api_client.read(stream_name, options: { count: 20 })
         expect(stub).to have_been_requested
       end
     end
@@ -83,9 +81,13 @@ module EventStoreClient::HTTP
     describe '#subscribe_to_stream' do
       let(:body) { { extraStatistics: true, startFrom: 0, maxRetryCount: 5, resolveLinkTos: true } }
       let!(:stub) do
+        stub_request(:post, "#{store_base_url}/projections/continuous?emit=true&enabled=yes&name=default-DummyHandler&trackemittedstreams=true&type=js"). # rubocop:disable Metrics/LineLength
+          with(
+            body: "fromStreams([])\n.when({\n  $any: function(s,e) {\n    linkTo(\"default-DummyHandler\", e)\n  }\n})\n" # rubocop:disable Metrics/LineLength
+          )
         stub_request(
           :put,
-          "#{store_base_url}/subscriptions/stream_name/subscription_name"
+          "#{store_base_url}/subscriptions/default-DummyHandler/default-DummyHandler"
         ).with(
           headers: { 'Content-Type': 'application/json' },
           body: body.to_json
@@ -93,29 +95,12 @@ module EventStoreClient::HTTP
       end
 
       it 'sends a correct request' do
+        subscription = EventStoreClient::Subscription.new(
+          DummyHandler, event_types: [], service: 'default'
+        )
         api_client.subscribe_to_stream(
-          'stream_name', 'subscription_name', stats: true, start_from: 0, retries: 5
+          subscription, options: { stats: true, start_from: 0, retries: 5 }
         )
-        expect(stub).to have_been_requested
-      end
-    end
-
-    describe '#consume_feed' do
-      let!(:stub) do
-        stub_request(
-          :get,
-          "#{store_base_url}/subscriptions/stream_name/subscription_name/10?embed=body"
-        ).with(
-          headers: {
-            'Content-Type': 'application/vnd.eventstore.competingatom+json',
-            'Accept': 'application/vnd.eventstore.competingatom+json',
-            'ES-LongPoll': '5'
-          }
-        )
-      end
-
-      it 'sends a correct request' do
-        api_client.consume_feed(stream_name, 'subscription_name', count: 10, long_poll: 5)
         expect(stub).to have_been_requested
       end
     end

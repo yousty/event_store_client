@@ -32,9 +32,10 @@ module EventStoreClient
     end
 
     def read(stream_name, options: {})
-      start = options[:start].to_i
+      start = options[:start] == 'head' ? options[:start] : options[:start].to_i
+      direction = options[:direction] || 'forward'
       response =
-        if direction == 'forward'
+        if %w[forward forwards].include?(direction)
           read_stream_forward(stream_name, start: start)
         else
           read_stream_backward(stream_name, start: start)
@@ -58,7 +59,6 @@ module EventStoreClient
 
     def link_to(stream_name, events, **)
       append_to_stream(stream_name, events)
-      true
     end
 
     def listen(subscription, options: {})
@@ -83,7 +83,7 @@ module EventStoreClient
       return response unless event_store.key?(stream_name)
 
       start = start == 'head' ? event_store[stream_name].length - 1 : start
-      last_index = start - per_page
+      last_index = (start - per_page)
       response['entries'] = event_store[stream_name].select do |event|
         event['positionEventNumber'] > last_index &&
           event['positionEventNumber'] <= start

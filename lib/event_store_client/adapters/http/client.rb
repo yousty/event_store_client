@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require 'event_store_client/adapters/http/connection'
+require 'dry/monads/result'
 
 module EventStoreClient
   module HTTP
     class Client
       include Configuration
+      include Dry::Monads[:result]
       # Appends given events to the stream
       # @param [String] Stream name to append events to
       # @param [Array](each: EventStoreClient::DeserializedEvent) list of events to publish

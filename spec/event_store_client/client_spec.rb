@@ -30,7 +30,7 @@ module EventStoreClient
           events = client.read('stream')
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
-            to eq(eq(%w[SomethingHappened SomethingElseHappened]))
+            to eq(%w[SomethingHappened SomethingElseHappened])
         end
       end
 
@@ -39,7 +39,7 @@ module EventStoreClient
           events = client.read('stream', direction: 'backard', start: 'head')
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
-            to eq(eq(%w[SomethingHappened SomethingElseHappened]))
+            to eq(%w[SomethingHappened SomethingElseHappened])
         end
       end
 
@@ -48,7 +48,7 @@ module EventStoreClient
           events = client.read('stream', all: true)
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
-            to eq(eq(%w[SomethingHappened SomethingElseHappened]))
+            to eq(%w[SomethingHappened SomethingElseHappened])
         end
       end
     end
@@ -65,7 +65,7 @@ module EventStoreClient
           stream_name,
           events,
           expected_version: nil
-        ).and_return(events)
+        ).and_return(Success())
       end
 
       shared_examples 'argument error' do
@@ -109,24 +109,6 @@ module EventStoreClient
     end
 
     describe 'subscribe' do
-    end
-
-    describe 'poll' do
-      it 'creates two threads' do
-        threads_count = Thread.list.count
-        client.poll
-        expect(Thread.list.count).to be == (threads_count + 2)
-        client.stop_polling
-      end
-
-      it 'creates a pid file' do
-        client.poll
-        expect(File).to exist('tmp/poll.pid')
-        client.stop_polling
-      end
-    end
-
-    describe '#stop_polling' do
     end
   end
 end

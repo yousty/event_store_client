@@ -19,10 +19,6 @@ module EventStoreClient
       end
     end
 
-    def get_updates(subscription)
-      connection.consume_feed(subscription.stream, subscription.name)
-    end
-
     private
 
     attr_reader :connection, :subscriptions, :service
