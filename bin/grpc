@@ -4,8 +4,6 @@
 require 'bundler/setup'
 require 'event_store_client'
 
-stream = 'newstream'
-
 EventStoreClient.configure do |config|
   config.eventstore_url = 'localhost:2113'
   config.adapter = :grpc
@@ -13,5 +11,6 @@ end
 
 require_relative './adapters_test_run'
 
+stream = 'newstream'
 client = EventStoreClient.adapter
 AdaptersTestRun.new(client, stream: stream).call
