@@ -29,7 +29,7 @@ module EventStoreClient
                 query: data,
                 continuous: {
                   name: name,
-                  track_emitted_streams: false
+                  track_emitted_streams: true
                 }
               }
 

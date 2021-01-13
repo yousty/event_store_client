@@ -99,7 +99,6 @@ module EventStoreClient
       #
       def join_streams(name, streams)
         Commands::Projections::Create.new.call(name, streams)
-        Commands::Projections::Update.new.call(name, streams)
       end
 
       # @api private
