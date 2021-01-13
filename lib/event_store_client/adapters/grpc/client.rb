@@ -74,8 +74,7 @@ module EventStoreClient
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
       def link_to(stream_name, events, options: {})
-        # TODO: based on implementation of http adapter,
-        # implement the linking events mechanism for GRPC
+        Commands::Streams::LinkTo.new.call(stream_name, events, options: options)
       end
 
       # Runs the persistent subscription indeinitely

@@ -4,6 +4,7 @@ require 'event_store_client/value_objects/read_direction.rb'
 
 require 'event_store_client/adapters/grpc/commands/streams/append'
 require 'event_store_client/adapters/grpc/commands/streams/delete'
+require 'event_store_client/adapters/grpc/commands/streams/link_to'
 require 'event_store_client/adapters/grpc/commands/streams/read'
 require 'event_store_client/adapters/grpc/commands/streams/read_all'
 require 'event_store_client/adapters/grpc/commands/streams/tombstone'
