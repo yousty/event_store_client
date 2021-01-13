@@ -6,17 +6,19 @@ require_relative './event_handlers'
 
 class AdaptersTestRun
   def call
-    publish_events(count: 100, batch: false)
-    publish_events(count: 10, batch: true)
+    # publish_events(count: 100, batch: false)
+    publish_events(count: 20, batch: true)
     read_events_from_stream(all: false)
     read_events_from_stream(all: true)
-    # link_to('linkedstream')
+    link_to('linkedstream')
     subscribe(FooHandler, [SomethingHappened])
     subscribe(BarHandler, [SomethingHappened])
-    listen(FooHandler, [SomethingHappened])
-    listen(BarHandler, [SomethingHappened])
-    # delete_stream(stream, hard: false)
-    # delete_stream(stream, hard: true)
+    subscribe(ZooHandler, [SomethingHappened])
+    # listen(FooHandler, [SomethingHappened])
+    # listen(ZooHandler, [SomethingHappened])
+    # listen(BarHandler, [SomethingHappened])
+    delete_stream(stream, hard: false)
+    delete_stream(stream, hard: true)
   end
 
   def publish_events(count: 10, batch: false)
@@ -33,14 +35,14 @@ class AdaptersTestRun
   end
 
   def delete_stream(stream, hard: false)
-    puts "\n#{__method__} #{stream} (hard: #{hard}"
+    puts "\n#{__method__} #{stream} (hard: #{hard})"
     return client.delete_stream(stream) unless hard
 
     client.tombstone_stream(stream)
   end
 
   def read_events_from_stream(all: false)
-    puts "\n#{__method__} (all: #{all}\n"
+    puts "\n#{__method__} (all: #{all})\n"
     res =
       if all
         client.read_all_from_stream(stream)
@@ -48,7 +50,7 @@ class AdaptersTestRun
         client.read(stream)
       end
     puts "READ result: Successs:#{res.success?}, length: #{res.value!.length}"
-    puts res.value!.first
+    puts res.value!.map(&:title).first(100)
     puts "\n"
   end
 
@@ -70,9 +72,8 @@ class AdaptersTestRun
     end
   end
 
-  def link_to(stream_name)
-    events = client.read(stream).value!
-
+  def link_to(stream_name, count: 10)
+    events = client.read(stream, options: { count: count }).value!
     puts "\n#{__method__} #{stream_name} #{events.length} events"
     puts events.map(&:id)
 

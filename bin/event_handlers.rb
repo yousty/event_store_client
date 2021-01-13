@@ -14,3 +14,10 @@ class BarHandler
     puts "Handled #{event.class.name} by BarHandler"
   end
 end
+
+
+class ZooHandler
+  def self.call(event)
+    puts "Handled #{event.class.name} by BarHandler"
+  end
+end
