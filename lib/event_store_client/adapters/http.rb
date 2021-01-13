@@ -10,7 +10,6 @@ require 'event_store_client/adapters/http/commands/projections/create'
 require 'event_store_client/adapters/http/commands/streams/append'
 require 'event_store_client/adapters/http/commands/streams/delete'
 require 'event_store_client/adapters/http/commands/streams/link_to'
-require 'event_store_client/adapters/http/commands/streams/read_all'
 require 'event_store_client/adapters/http/commands/streams/read'
 require 'event_store_client/adapters/http/commands/streams/tombstone'
 

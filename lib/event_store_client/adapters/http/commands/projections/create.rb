@@ -5,7 +5,7 @@ module EventStoreClient
     module Commands
       module Projections
         class Create < Command
-          def call(name, streams)
+          def call(name, streams, options: {})
             data =
               <<~STRING
                 fromStreams(#{streams})

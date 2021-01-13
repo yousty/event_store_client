@@ -7,7 +7,8 @@ module EventStoreClient
         class Append < Command
           include Configuration
 
-          def call(stream_name, events, expected_version:)
+          def call(stream_name, events, options: {})
+            expected_version = options[:expected_version]
             serialized_events = events.map { |event| config.mapper.serialize(event) }
             headers = {
               'ES-ExpectedVersion' => expected_version&.to_s

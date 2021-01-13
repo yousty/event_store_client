@@ -9,9 +9,9 @@ module EventStoreClient
       # @param [Array](each: EventStoreClient::DeserializedEvent) list of events to publish
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
-      def append_to_stream(stream_name, events, expected_version: nil)
+      def append_to_stream(stream_name, events, options: {})
         Commands::Streams::Append.new.call(
-          stream_name, events, expected_version: expected_version
+          stream_name, events, options: {}
         )
       end
 

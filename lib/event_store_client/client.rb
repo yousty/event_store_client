@@ -9,25 +9,20 @@ module EventStoreClient
     NoCallMethodOnSubscriber = Class.new(StandardError)
     WrongExpectedEventVersion = Class.new(StandardError)
 
-    def publish(stream:, events:, expected_version: nil)
-      connection.append_to_stream(stream, events, expected_version: expected_version)
+    def publish(stream:, events:, options: {})
+      connection.append_to_stream(stream, events, options: options)
     rescue HTTP::Client::WrongExpectedEventVersion => e
       raise WrongExpectedEventVersion.new(e.message)
     end
 
-    def read(stream, direction: 'forwards', start: 0, all: false, resolve_links: true)
+    def read(stream, options: {})
       if all
-        connection.read_all_from_stream(
-          stream, options: { start: start, resolve_links: resolve_links }
-        )
+        connection.read_all_from_stream(stream, options: options)
       else
-        connection.read(
-          stream, options: { start: start, direction: direction, resolve_links: resolve_links }
-        )
+        connection.read(stream, options: options)
       end
     end
 
-    # TODO
     def subscribe(subscriber, to: [])
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to)
@@ -38,10 +33,10 @@ module EventStoreClient
     end
 
     # rubocop:disable Metrics/CyclomaticComplexity
-    def link_to(stream:, events:, expected_version: nil)
+    def link_to(stream:, events:, options: {})
       raise ArgumentError if !stream || stream == ''
       raise ArgumentError if events.nil? || (events.is_a?(Array) && events.empty?)
-      res = connection.link_to(stream, events, expected_version: expected_version)
+      res = connection.link_to(stream, events, options: options)
       raise WrongExpectedEventVersion.new(e.message) if res.failure?
 
       res.success?

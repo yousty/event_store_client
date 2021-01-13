@@ -13,9 +13,9 @@ module EventStoreClient
       # @param [Array](each: EventStoreClient::DeserializedEvent) list of events to publish
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
-      def append_to_stream(stream_name, events, expected_version: nil)
+      def append_to_stream(stream_name, events, options: {})
         Commands::Streams::Append.new(connection).call(
-          stream_name, events, expected_version: expected_version
+          stream_name, events, options: options
         )
       end
 
@@ -137,8 +137,8 @@ module EventStoreClient
       # @param [Array] (each: String) list of streams to join together
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
-      def join_streams(name, streams)
-        Commands::Projections::Create.new(connection).call(name, streams)
+      def join_streams(name, streams, options: {})
+        Commands::Projections::Create.new(connection).call(name, streams, options: options)
       end
 
       # @api private
