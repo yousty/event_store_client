@@ -29,9 +29,7 @@ module EventStoreClient
 
     def encrypt_attributes(key:, data:, attributes:)
       text = JSON.generate(data.select { |hash_key, _value| attributes.include?(hash_key.to_s) })
-      encrypted = key_repository.encrypt(
-        key_id: key.id, text: text, cipher: key.cipher, iv: key.iv
-      )
+      encrypted = key_repository.encrypt(key: key, message: text)
       attributes.each { |att| data[att.to_s] = 'es_encrypted' if data.key?(att.to_s) }
       data['es_encrypted'] = encrypted
       data

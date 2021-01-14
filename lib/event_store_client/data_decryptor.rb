@@ -30,9 +30,7 @@ module EventStoreClient
     end
 
     def decrypt_attributes(key:, data:, attributes: {}) # rubocop:disable Lint/UnusedMethodArgument
-      decrypted_text = key_repository.decrypt(
-        key_id: key.id, text: data['es_encrypted'], cipher: key.cipher, iv: key.iv
-      )
+      decrypted_text = key_repository.decrypt(key: key, message: data['es_encrypted'])
       decrypted = JSON.parse(decrypted_text).transform_keys(&:to_s)
       decrypted.each { |k, value| data[k] = value if data.key?(k) }
       data.delete('es_encrypted')
