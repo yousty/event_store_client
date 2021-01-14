@@ -6,6 +6,8 @@ module Serializer
       return data if data.is_a?(Hash)
 
       JSON.parse(data)
+    rescue JSON::ParserError
+      { 'message' => data }
     end
 
     def self.serialize(data)

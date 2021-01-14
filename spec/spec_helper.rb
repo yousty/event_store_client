@@ -2,16 +2,20 @@
 
 require 'irb'
 require 'event_store_client'
-require 'event_store_client/store_adapter/in_memory'
+require 'event_store_client/adapters/in_memory'
 require 'webmock/rspec'
+require 'dry/monads'
+
 require_relative 'event_store_client/event_store_helpers.rb'
 
 EventStoreClient.configure do |config|
   config.adapter = :in_memory
+  config.eventstore_url = 'https://www.example.com:8080'
 end
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
+  config.include Dry::Monads[:result]
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end

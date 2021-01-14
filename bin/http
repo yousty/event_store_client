@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'event_store_client'
+
+EventStoreClient.configure do |config|
+  config.eventstore_url = 'http://localhost:2113'
+  config.adapter = :http
+end
+
+require_relative './adapters_test_run'
+
+stream = 'newstream'
+client = EventStoreClient.adapter
+AdaptersTestRun.new(client, stream: stream).call

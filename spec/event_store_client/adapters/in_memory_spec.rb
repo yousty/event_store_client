@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module EventStoreClient
-  RSpec.describe StoreAdapter::InMemory do
+  RSpec.describe InMemory do
     subject { described_class.new(mapper: Mapper::Default.new) }
     describe '#append_to_stream' do
       it 'adds one event to a stream' do
@@ -120,14 +120,14 @@ module EventStoreClient
       let(:events) { [something_happened] }
 
       before do
-        allow_any_instance_of(StoreAdapter::InMemory).to receive(:append_to_stream).with(
+        allow_any_instance_of(InMemory).to receive(:append_to_stream).with(
           stream_name,
           events
         )
       end
 
       it 'invokes append event to stream' do
-        expect_any_instance_of(StoreAdapter::InMemory).to receive(:append_to_stream).with(stream_name, events)
+        expect_any_instance_of(InMemory).to receive(:append_to_stream).with(stream_name, events)
 
         subject.link_to(stream_name, events)
       end
@@ -160,7 +160,7 @@ module EventStoreClient
     end
 
     it 'implmenetes the same methods as the Client' do
-      client_methods = EventStoreClient::StoreAdapter::Api::Client.instance_methods(false).sort
+      client_methods = EventStoreClient::HTTP::Client.instance_methods(false).sort
       expect(described_class.instance_methods(false).sort - [:event_store]).to eq(client_methods)
     end
   end

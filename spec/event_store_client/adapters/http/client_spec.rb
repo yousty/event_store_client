@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-module EventStoreClient::StoreAdapter::Api
+require 'event_store_client/adapters/http'
+require 'support/dummy_handler'
+
+module EventStoreClient::HTTP
   RSpec.describe Client do
-    let(:mapper) { EventStoreClient::Mapper::Default.new }
-    let(:api_client) { described_class.new(URI('https://www.example.com:8080'), mapper: mapper) }
+    let(:api_client) { described_class.new }
 
     let(:stream_name) { :stream_name }
     let(:events) { [event_1, event_2] }
@@ -45,22 +47,19 @@ module EventStoreClient::StoreAdapter::Api
       end
 
       it 'raises exception when passed a wrong expected version' do
-        expect { api_client.append_to_stream(stream_name, events, expected_version: 10) }.
-          to raise_error(
-            EventStoreClient::StoreAdapter::Api::Client::WrongExpectedEventVersion,
-            'current version: 0 | expected: 10'
-          )
+        res = api_client.append_to_stream(stream_name, events, expected_version: 10)
+        expect(res).to be_failure
+        expect(res.failure).to eq('current version: 0 | expected: 10')
       end
     end
 
     describe '#delete_stream' do
       let!(:stub) do
-        stub_request(:delete, stream_url(stream_name)).
-          with(headers: { 'ES-HardDelete': 'true' })
+        stub_request(:delete, stream_url(stream_name))
       end
 
       it 'sends a correct request' do
-        api_client.delete_stream(stream_name, hard_delete: true)
+        api_client.delete_stream(stream_name)
         expect(stub).to have_been_requested
       end
     end
@@ -74,7 +73,7 @@ module EventStoreClient::StoreAdapter::Api
       end
 
       it 'sends a correct request' do
-        api_client.read(stream_name, count: 20)
+        api_client.read(stream_name, options: { count: 20 })
         expect(stub).to have_been_requested
       end
     end
@@ -82,9 +81,13 @@ module EventStoreClient::StoreAdapter::Api
     describe '#subscribe_to_stream' do
       let(:body) { { extraStatistics: true, startFrom: 0, maxRetryCount: 5, resolveLinkTos: true } }
       let!(:stub) do
+        stub_request(:post, "#{store_base_url}/projections/continuous?emit=true&enabled=yes&name=default-DummyHandler&trackemittedstreams=true&type=js"). # rubocop:disable Metrics/LineLength
+          with(
+            body: "fromStreams([])\n.when({\n  $any: function(s,e) {\n    linkTo(\"default-DummyHandler\", e)\n  }\n})\n" # rubocop:disable Metrics/LineLength
+          )
         stub_request(
           :put,
-          "#{store_base_url}/subscriptions/stream_name/subscription_name"
+          "#{store_base_url}/subscriptions/default-DummyHandler/default-DummyHandler"
         ).with(
           headers: { 'Content-Type': 'application/json' },
           body: body.to_json
@@ -92,29 +95,12 @@ module EventStoreClient::StoreAdapter::Api
       end
 
       it 'sends a correct request' do
+        subscription = EventStoreClient::Subscription.new(
+          DummyHandler, event_types: [], service: 'default'
+        )
         api_client.subscribe_to_stream(
-          'stream_name', 'subscription_name', stats: true, start_from: 0, retries: 5
+          subscription, options: { stats: true, start_from: 0, retries: 5 }
         )
-        expect(stub).to have_been_requested
-      end
-    end
-
-    describe '#consume_feed' do
-      let!(:stub) do
-        stub_request(
-          :get,
-          "#{store_base_url}/subscriptions/stream_name/subscription_name/10?embed=body"
-        ).with(
-          headers: {
-            'Content-Type': 'application/vnd.eventstore.competingatom+json',
-            'Accept': 'application/vnd.eventstore.competingatom+json',
-            'ES-LongPoll': '5'
-          }
-        )
-      end
-
-      it 'sends a correct request' do
-        api_client.consume_feed(stream_name, 'subscription_name', count: 10, long_poll: 5)
         expect(stub).to have_been_requested
       end
     end
@@ -168,50 +154,3 @@ module EventStoreClient::StoreAdapter::Api
     end
   end
 end
-
-# stub_request(:post, "https://www.example.com:8080/streams/stream_name").
-# with(
-#   #real
-#   [{"eventId"=>"8b1f5cf0-a77a-480e-9dd9-a0801cb82e9d",
-
-
-
-#    {"eventId"=>"efa3116f-04af-475a-a48f-379d8e102f42",
-
-
-
-
-# #expected
-# [{"eventId"=>"0121a295-90af-48cc-9f7d-7fc03834f169",
-
-
-
-#  {"eventId"=>"c491fc66-469d-4a40-a776-d7bb50d05cd7",
-
-
-
-
-#   headers: {
-#  'Accept'=>'*/*',
-#  'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-#  'Authorization'=>'Basic Og==',
-#  'Content-Type'=>'application/vnd.eventstore.events+json',
-#  'Es-Expectedversion'=>'0',
-#  'User-Agent'=>'Faraday v1.1.0'
-#   }).
-# to_return(status: 200, body: "", headers: {})
-
-# registered request stubs:
-
-# stub_request(:post, "https://www.example.com:8080/streams/stream_name").
-# with(
-
-#   headers: {
-#  'Es-Expectedversion'=>'10'
-#   })
-# stub_request(:post, "https://www.example.com:8080/streams/stream_name").
-# with(
-#   body: "[{\"eventId\":\"0121a295-90af-48cc-9f7d-7fc03834f169\",\"eventType\":\"EventStoreClient::SomethingHappened\",\"data\":\"{\\\"foo\\\":\\\"bar\\\"}\",\"metadata\":\"{\\\"created_at\\\":\\\"2020-12-18 23:17:49 +0100\\\"}\"},{\"eventId\":\"c491fc66-469d-4a40-a776-d7bb50d05cd7\",\"eventType\":\"EventStoreClient::SomethingHappened\",\"data\":\"{\\\"foo\\\":\\\"bar\\\"}\",\"metadata\":\"{\\\"created_at\\\":\\\"2020-12-18 23:17:49 +0100\\\"}\"}]",
-#   headers: {
-#  'Es-Expectedversion'=>'0'
-#   })

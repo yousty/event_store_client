@@ -2,21 +2,32 @@
 
 module EventStoreClient
   class Broker
-    def call(subscriptions)
+    include Configuration
+
+    # Distributes known subscriptions to multiple threads
+    # @param [EventStoreClient::Subscriptions]
+    # @param wait [Boolean] (Optional) Controls if broker shold block
+    #   main app process (useful for debugging)
+    #
+    def call(subscriptions, wait: false)
       subscriptions.each do |subscription|
-        res = connection.consume_feed(subscription.stream, subscription.name) || { events: [] }
-        next if res[:events].none?
-        res[:events].each { |event| subscription.subscriber.call(event) }
-        connection.ack(res[:ack_uri])
+        threads << Thread.new do
+          connection.listen(subscription) do |event|
+            subscription.subscriber.call(event)
+          end
+        end
       end
+      threads.each(&:join) if wait
     end
 
     private
 
     attr_reader :connection
+    attr_accessor :threads
 
     def initialize(connection:)
       @connection = connection
+      @threads = []
     end
   end
 end

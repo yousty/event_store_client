@@ -5,9 +5,9 @@ require 'dry-configurable'
 module EventStoreClient
   extend Dry::Configurable
 
-  # Supported adapters: %i[api in_memory]
+  # Supported adapters: %i[api in_memory grpc]
   #
-  setting :adapter, :api
+  setting :adapter, :grpc
 
   setting :error_handler
   setting :eventstore_url, 'http://localhost:2113' do |value|
@@ -31,18 +31,31 @@ module EventStoreClient
   end
 
   def self.adapter
-    @adapter ||= case config.adapter
-    when :api
-      StoreAdapter::Api::Client.new(
-        config.eventstore_url,
-        per_page: config.per_page,
-        mapper: config.mapper,
-        connection_options: {}
-      )
-    else
-      StoreAdapter::InMemory.new(
-        mapper: config.mapper, per_page: config.per_page
-      )
+    @adapter ||=
+      case config.adapter
+      when :http
+        require 'event_store_client/adapters/http'
+        HTTP::Client.new
+      when :grpc
+        require 'event_store_client/adapters/grpc'
+        GRPC::Client.new
+      else
+        require 'event_store_client/adapters/in_memory'
+        InMemory.new(
+          mapper: config.mapper, per_page: config.per_page
+        )
+      end
+  end
+
+  # Configuration module to be included in classes required configured variables
+  # Usage: include EventStore::Configuration
+  # config.eventstore_url
+  #
+  module Configuration
+    # An instance of the EventStoreClient's configuration
+    #
+    def config
+      EventStoreClient.config
     end
   end
 end

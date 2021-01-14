@@ -7,6 +7,12 @@
 
 An easy-to use API client for connecting ruby applications with https://eventstore.org/
 
+## Supported adapters
+
+- GRPC - default
+- [HTTP](https://github.com/yousty/event_store_client/tree/master/lib/event_store_client/adapters/http/README.md) - Deprecated
+- Memory - for testing
+
 ## Installation
 Add this line to your application's Gemfile:
 
@@ -26,6 +32,8 @@ $ gem install event_store_client
 
 ## Usage
 
+Before you start, make sure you have a running EventStoreDB instance on your machine
+
 ### EventStore engine setup
 
 1. Download Event Store From https://eventstore.org/downloads/ or docker
@@ -34,33 +42,13 @@ $ gem install event_store_client
 
 2. Run the Event Store server
 
-`docker run --name eventstore -it -p 2113:2113 -p 1113:1113 eventstore/eventstore`
+`docker run --env EVENTSTORE_INSECURE=true --name eventstore -it -p 2113:2113 -p 1113:1113 eventstore/eventstore`
 
-3. Set Basic HTTP auth enviornment variables #below are defaults
-  - export EVENT_STORE_USER=admin
-  - export EVENT_STORE_PASSWORD=changeit
-
-Ref: https://eventstore.org/docs/http-api/security
-
-4. Login to admin panel http://localhost:2113 and enable Projections for Event-Types
-
-### Configure EventStoreClient
-
-Before you start, add this to the `initializer` or to the top of your script:
-
-`EventStoreClient.configure`
-
-For testing, you can use the InMemory adapter. To do it you should change the configuration.
-
-```ruby
-EventStoreClient.configure do |config|
-  config.adapter = EventStoreClient::StoreAdapter::InMemory.new(host: 'http://localhost', port: '2113')
-end
-```
+4. Visit the admin panel http://localhost:2113 and enable Projections for Event-Types
 
 ### Create Dummy event and dummy Handler
 
-To test out the behavior, you'll need a sample event and handler to work with:
+To test out the behavior, you'll need a sample event and event handler to work with:
 
 ```ruby
 
@@ -85,7 +73,7 @@ with an event being passed as an argument.
 
 ```ruby
 class DummyHandler
-  def self.call(event)
+  def call(event)
     puts "Handled #{event.class.name}"
   end
 end
@@ -112,7 +100,7 @@ events = client.read('newstream')
 **Changing reading direction**
 
 ```ruby
-events = client.read('newstream', direction: 'backward') #default 'forward'
+events = client.read('newstream', direction: 'backwards') #default 'forwards'
 ```
 
 **Reading all events from a stream**
@@ -124,12 +112,12 @@ events = client.read('newstream', all: true) #default 'false'
 ### Subscribing to events
 
 ```ruby
-client.subscribe(DummyHandler, to: [SomethingHappened])
+client.subscribe(DummyHandler.new, to: [SomethingHappened])
 
-# now try to publish several events
+# Now In another terminal seesion try to publish several events
 10.times { client.publish(stream: 'newstream', events: [event]) }
 
-You can also publish multiple events at once
+# You can also publish multiple events at once
 
 events = (1..10).map { event }
 client.publish(stream: 'newstream', events: events)
@@ -143,22 +131,24 @@ client.publish(stream: 'newstream', events: events)
 client.stop_polling
 ```
 
-### Linking existing events to the streem
+### Configure EventStoreClient
 
-Event to be linked properly has to coantians original event id.
-Real events could be mixed with linked events in the same stream.
+Before you start, add this to the `initializer` or to the top of your script:
+
+For testing, you can use the InMemory adapter. To do it you should change the configuration.
 
 ```ruby
-exisiting_event1 = client.read('newstream').last
-client.link_to(stream: 'anotherstream', events: [exisiting_event1, ...])
+EventStoreClient.configure do |config|
+  config.adapter = EventStoreClient::InMemory.new(host: 'http://localhost', port: '2113')
+end
 ```
-
-When you read from stream where links are placed. By default Event Store Client always resolve links for you returning the event that points to the link. You can use the ES-ResolveLinkTos: false HTTP header during readin stream to tell Event Store Client to return you the actual link and to not resolve it.
-More info: [ES-ResolveLinkTos](https://eventstore.org/docs/http-api/optional-http-headers/resolve-linkto/index.html?tabs=tabid-1%2Ctabid-3).
 
 ## Event Mappers
 
-We offer two types of mappers - default and encrypted.
+At the moment we offer two types of mappers:
+
+- default
+- encrypted
 
 ### Default Mapper
 

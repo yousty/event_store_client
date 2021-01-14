@@ -29,8 +29,8 @@ module EventStoreClient
         it 'reads events from a stream' do
           events = client.read('stream')
           expect(events.count).to eq(2)
-          expect(events.map { |event| event.type }).
-            to eq(['SomethingHappened', 'SomethingElseHappened'])
+          expect(events.map(&:type)).
+            to eq(%w[SomethingHappened SomethingElseHappened])
         end
       end
 
@@ -38,8 +38,8 @@ module EventStoreClient
         it 'reads events from a stream' do
           events = client.read('stream', direction: 'backard', start: 'head')
           expect(events.count).to eq(2)
-          expect(events.map { |event| event.type }).
-            to eq(['SomethingHappened', 'SomethingElseHappened'])
+          expect(events.map(&:type)).
+            to eq(%w[SomethingHappened SomethingElseHappened])
         end
       end
 
@@ -47,8 +47,8 @@ module EventStoreClient
         it 'reads all events from a stream' do
           events = client.read('stream', all: true)
           expect(events.count).to eq(2)
-          expect(events.map { |event| event.type }).
-            to eq(['SomethingHappened', 'SomethingElseHappened'])
+          expect(events.map(&:type)).
+            to eq(%w[SomethingHappened SomethingElseHappened])
         end
       end
     end
@@ -61,22 +61,22 @@ module EventStoreClient
       let(:events) { [event_1] }
 
       before do
-        allow_any_instance_of(StoreAdapter::InMemory).to receive(:link_to).with(
+        allow_any_instance_of(InMemory).to receive(:link_to).with(
           stream_name,
           events,
           expected_version: nil
-        ).and_return(events)
+        ).and_return(Success())
       end
 
       shared_examples 'argument error' do
         it 'raises an Argument error' do
-          expect{ subject.call }.to raise_error(ArgumentError)
+          expect { subject.call }.to raise_error(ArgumentError)
         end
       end
 
       shared_examples 'correct linking events' do
         it 'invokes link event for the store' do
-          expect_any_instance_of(StoreAdapter::InMemory).to receive(:link_to).with(
+          expect_any_instance_of(InMemory).to receive(:link_to).with(
             stream_name,
             events,
             expected_version: nil
@@ -109,24 +109,6 @@ module EventStoreClient
     end
 
     describe 'subscribe' do
-    end
-
-    describe 'poll' do
-      it 'creates two threads' do
-        threads_count = Thread.list.count
-        client.poll
-        expect(Thread.list.count).to be == (threads_count + 2)
-        client.stop_polling
-      end
-
-      it 'creates a pid file' do
-        client.poll
-        expect(File).to exist('tmp/poll.pid')
-        client.stop_polling
-      end
-    end
-
-    describe '#stop_polling' do
     end
   end
 end
