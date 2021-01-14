@@ -16,7 +16,7 @@ module EventStoreClient
     end
 
     def read(stream, options: {})
-      if all
+      if options[:all]
         connection.read_all_from_stream(stream, options: options)
       else
         connection.read(stream, options: options)

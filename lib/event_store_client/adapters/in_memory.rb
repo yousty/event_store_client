@@ -10,7 +10,7 @@ module EventStoreClient
 
     attr_reader :event_store
 
-    def append_to_stream(stream_name, events, expected_version: nil) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
+    def append_to_stream(stream_name, events, options: {}) # rubocop:disable Lint/UnusedMethodArgument,Metrics/LineLength
       event_store[stream_name] = [] unless event_store.key?(stream_name)
       [events].flatten.each do |event|
         event_store[stream_name].unshift(

@@ -42,12 +42,12 @@ module EventStoreClient::HTTP
       end
 
       it 'sends a correct request' do
-        api_client.append_to_stream(stream_name, events, expected_version: 0)
+        api_client.append_to_stream(stream_name, events, options: { expected_version: 0 })
         expect(stub).to have_been_requested
       end
 
       it 'raises exception when passed a wrong expected version' do
-        res = api_client.append_to_stream(stream_name, events, expected_version: 10)
+        res = api_client.append_to_stream(stream_name, events, options: { expected_version: 10 })
         expect(res).to be_failure
         expect(res.failure).to eq('current version: 0 | expected: 10')
       end
