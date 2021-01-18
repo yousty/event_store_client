@@ -53,7 +53,7 @@ module EventStoreClient
       read(stream_name, options: options)
     end
 
-    def subscribe_to_stream(stream_name, subscription_name, **)
+    def subscribe_to_stream(subscription, **)
       # TODO: implement method body
     end
 
