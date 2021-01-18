@@ -129,7 +129,7 @@ module EventStoreClient
         id: entry['eventId'],
         title: entry['title'],
         type: entry['eventType'],
-        data: entry['data'] || '{}',
+        data: entry['data'].to_json || '{}',
         metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
       )
 
