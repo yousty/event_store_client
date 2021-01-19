@@ -1,6 +1,13 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+# USAGE:
+# docker build -t yousty/esc:test
+# gem install docker-sync
+# docker-sync start && docker-compose up -d
+# docker-compose exec specs bash
+# bin/console
+#
 require 'bundler/setup'
 require 'event_store_client'
 require 'event_store_client/adapters/grpc'
