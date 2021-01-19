@@ -17,10 +17,9 @@ module EventStoreClient
           options[:credentials] ||
             Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
 
-        stub_klass.new(
+        service = EventStore::Client::Streams::Streams::Stub.new(
           config.eventstore_url.to_s,
-          :this_channel_is_insecure,
-          channel_args: { 'authorization' => "Basic #{credentials}"   }
+          :this_channel_is_insecure
         )
       end
     end
