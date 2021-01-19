@@ -8,6 +8,7 @@ module EventStoreClient
   # Supported adapters: %i[api in_memory grpc]
   #
   setting :adapter, :grpc
+  setting :verify_ssl, true
 
   setting :error_handler
   setting :eventstore_url, 'http://localhost:2113' do |value|
@@ -31,7 +32,7 @@ module EventStoreClient
   end
 
   def self.adapter
-    @adapter ||=
+    @adapter =
       case config.adapter
       when :http
         require 'event_store_client/adapters/http'
