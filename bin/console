@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'event_store_client'
+require 'event_store_client/adapters/grpc'
+
+EventStoreClient.configure do |config|
+  config.eventstore_url = 'eventstore.db:2113'
+  config.adapter = :grpc
+  config.eventstore_user = 'admin'
+  config.eventstore_password = 'changeit'
+end
+config = EventStoreClient.config
+
+credentials = Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
+metadata = { 'authorization' => "Basic #{credentials.gsub("\n", '')}" }
+
+service = EventStore::Client::Streams::Streams::Stub.new(
+  config.eventstore_url.to_s,
+  :this_channel_is_insecure
+)
+
+opts = {
+  stream: { stream_identifier: { streamName: 'nestream' }, start: {} },
+  read_direction: :Forwards,
+  resolve_links: true,
+  count: 20,
+  uuid_option: { string: {} },
+  no_filter: {}
+}
+
+puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts)).inspect
