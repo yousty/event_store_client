@@ -5,7 +5,7 @@ module EventStoreClient
     let(:client) { described_class.new }
     let(:event) { SomethingHappened.new(data: { foo: 'bar' }, metadata: {}) }
 
-    let(:store_adapter) { EventStoreClient.adapter }
+    let(:store_adapter) { client.connection }
 
     describe '#publish' do
       it 'publishes events to the store' do
