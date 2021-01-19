@@ -1,20 +1,39 @@
-FROM ruby:2.7.2
+FROM ruby:2.7.2-slim
 
-RUN gem update --system && \
-  gem install bundler
+ENV BUNDLER_VERSION '2.1.4'
 
-RUN gem list
+RUN apt-get update -qq && \
+  apt-get install --no-install-recommends -y --force-yes \
+  apt-transport-https \
+  build-essential \
+  curl \
+  g++ \
+  gcc \
+  git \
+  libfontconfig \
+  # libgconf2-4 \
+  libgtk-3-dev \
+  libpq-dev \
+  libxt6 \
+  qt5-default \
+  unzip \
+  wget \
+  xvfb \
+  && apt-get clean autoclean \
+  && apt-get autoremove -y \
+  && rm -rf \
+    /var/lib/apt \
+    /var/lib/dpkg/* \
+    /var/lib/cache \
+    /var/lib/log \
+  && gem update --system \
+  && gem install bundler -v 2.1.4
 
 WORKDIR /usr/src/app
 
 COPY lib/event_store_client/version.rb lib/event_store_client/version.rb
 COPY event_store_client.gemspec Gemfile Gemfile.lock ./
 
-ARG GEM_FURY_TOKEN
-RUN bundle config gem.fury.io $GEM_FURY_TOKEN
-
 RUN bundle install
-
-EXPOSE 3000
 
 COPY . .

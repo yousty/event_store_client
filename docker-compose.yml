@@ -2,7 +2,7 @@ version: '3.7'
 
 volumes:
   postgres-data:
-  ecs-sync:
+  esc-sync:
     external: true
   eventstore-volume-data:
   eventstore-volume-logs:
@@ -30,3 +30,14 @@ services:
       - type: volume
         source: eventstore-volume-logs
         target: /var/log/eventstore
+  specs:
+    image: yousty/esc:test
+    command: tail -f /dev/null
+    volumes:
+      - /usr/src/app/tmp
+      - esc-sync:/usr/src/app:nocopy
+      - /dev/shm:/dev/shm
+    depends_on:
+      - eventstore.db
+    env_file:
+      - .env_test

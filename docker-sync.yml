@@ -23,7 +23,7 @@ options:
   project_root: 'pwd'
 
 syncs:
-  ecs-sync:
+  esc-sync:
     src: '.'
 
     #host_disk_mount_mode: 'cached' # see https://docs.docker.com/docker-for-mac/osxfs-caching/#cached
