@@ -37,4 +37,4 @@ opts = {
   no_filter: {}
 }
 
-puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts)).inspect
+puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts), metadata: metadata).inspect
