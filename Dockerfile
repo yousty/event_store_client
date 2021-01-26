@@ -37,3 +37,7 @@ COPY event_store_client.gemspec Gemfile Gemfile.lock ./
 RUN bundle install
 
 COPY . .
+
+# Copy and install generated CA certificate
+COPY ./certs/ca/ca.crt /usr/local/share/ca-certificates/eventstoredb_ca.crt
+RUN chmod 644 /usr/local/share/ca-certificates/eventstoredb_ca.crt && update-ca-certificates
