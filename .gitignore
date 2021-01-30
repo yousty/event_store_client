@@ -1,4 +1,5 @@
 .bundle/
+certs/
 log/*.log
 pkg/
 spec/examples.txt
