@@ -13,7 +13,8 @@ require 'event_store_client'
 require 'event_store_client/adapters/grpc'
 
 EventStoreClient.configure do |config|
-  config.eventstore_url = 'eventstore.db:2113'
+  ## url needs to match the DNS name in certificate
+  config.eventstore_url = 'eventstoredb:2113'
   config.adapter = :grpc
   config.eventstore_user = 'admin'
   config.eventstore_password = 'changeit'
@@ -23,9 +24,13 @@ config = EventStoreClient.config
 credentials = Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
 metadata = { 'authorization' => "Basic #{credentials.gsub("\n", '')}" }
 
+# OD: .NET Client is able to load by default certs, but I didn't manage to make autoload work, so I'm loading it manually
+# as I found in https://docs.servicestack.net/grpc-ruby
+channelCredentials = GRPC::Core::ChannelCredentials.new(File.read('/usr/local/share/ca-certificates/eventstoredb_ca.crt'))
+
 service = EventStore::Client::Streams::Streams::Stub.new(
   config.eventstore_url.to_s,
-  :this_channel_is_insecure
+  channelCredentials
 )
 
 opts = {
