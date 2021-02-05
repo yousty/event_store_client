@@ -40,7 +40,7 @@ module EventStoreClient
       end
 
       def channel_credentials
-        GRPC::Core::ChannelCredentials.new(cert.to_s)
+        ::GRPC::Core::ChannelCredentials.new(cert.to_s)
       end
 
       def verify_ssl
