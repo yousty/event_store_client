@@ -35,7 +35,7 @@ module EventStoreClient
                 group_name: group,
                 settings: schema.to_h
               }
-            service.update(request.new(options: opts))
+            service.update(request.new(options: opts), metadata: metadata)
             Success()
           rescue ::GRPC::Unknown => e
             return Failure(:not_found) if e.message.include?('DoesNotExist')

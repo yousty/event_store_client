@@ -23,7 +23,7 @@ module EventStoreClient
                 any: {}
               }
 
-            service.tombstone(request.new(options: opts))
+            service.tombstone(request.new(options: opts), metadata: metadata)
             Success()
           rescue ::GRPC::FailedPrecondition
             Failure(:not_found)

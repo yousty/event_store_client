@@ -22,7 +22,7 @@ module EventStoreClient
                 },
                 group_name: group
               }
-            service.delete(request.new(options: opts))
+            service.delete(request.new(options: opts), metadata: metadata)
             Success()
           rescue ::GRPC::NotFound
             Failure(:not_found)

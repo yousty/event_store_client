@@ -22,7 +22,7 @@ module EventStoreClient
               delete_checkpoint_stream: true
             }.merge(options)
 
-            service.delete(request.new(options: opts))
+            service.delete(request.new(options: opts), metadata: metadata)
             Success()
           rescue ::GRPC::Unknown => e
             Failure(:not_found) if e.message.include?('OperationFailed')

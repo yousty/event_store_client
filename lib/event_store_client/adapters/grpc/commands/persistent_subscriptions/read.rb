@@ -12,8 +12,6 @@ module EventStoreClient
     module Commands
       module PersistentSubscriptions
         class Read < Command
-          include Configuration
-
           use_request EventStore::Client::PersistentSubscriptions::ReadReq
           use_service EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub
 
@@ -40,7 +38,7 @@ module EventStoreClient
 
             requests = [request.new(options: opts)] # please notice that it's an array. Should be?
 
-            service.read(requests).each do |res|
+            service.read(requests, metadata: metadata).each do |res|
               next if res.subscription_confirmation
               yield deserialize_event(res.event.event) if block_given?
             end

@@ -25,7 +25,6 @@ module EventStoreClient
           def call(stream, group, options: {})
             schema = SettingsSchema.call(options)
             return Failure(schema.errors) if schema.failure?
-
             opts =
               {
                 stream_identifier: {
@@ -35,7 +34,7 @@ module EventStoreClient
                 settings: schema.to_h
               }
 
-            service.create(request.new(options: opts))
+            service.create(request.new(options: opts), metadata: metadata)
             Success()
           rescue ::GRPC::AlreadyExists
             Failure(:conflict)

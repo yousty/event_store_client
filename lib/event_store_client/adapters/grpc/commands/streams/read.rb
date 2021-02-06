@@ -43,7 +43,7 @@ module EventStoreClient
               opts[:stream][:revision] = options[:start]
             end
 
-            events = service.read(request.new(options: opts)).map do |res|
+            events = service.read(request.new(options: opts), metadata: metadata).map do |res|
               raise StreamNotFound if res.stream_not_found
 
               deserialize_event(res.event.event)

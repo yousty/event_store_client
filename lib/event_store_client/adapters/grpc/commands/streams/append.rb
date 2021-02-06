@@ -11,8 +11,6 @@ module EventStoreClient
     module Commands
       module Streams
         class Append < Command
-          include Configuration
-
           use_request EventStore::Client::Streams::AppendReq
           use_service EventStore::Client::Streams::Streams::Stub
 
@@ -46,7 +44,7 @@ module EventStoreClient
                   }
                 )
               ]
-              service.append(payload)
+              service.append(payload, metadata: metadata)
             end
             Success()
           end

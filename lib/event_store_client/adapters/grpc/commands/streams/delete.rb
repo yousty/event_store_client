@@ -23,7 +23,7 @@ module EventStoreClient
                 any: {}
               }
 
-            service.delete(request.new(options: opts))
+            service.delete(request.new(options: opts), metadata: metadata)
             Success()
           rescue ::GRPC::FailedPrecondition
             Failure(:not_found)

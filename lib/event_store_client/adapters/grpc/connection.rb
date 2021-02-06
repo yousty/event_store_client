@@ -17,9 +17,8 @@ module EventStoreClient
         credentials =
           options[:credentials] ||
           Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-
         stub_klass.new(
-          config.eventstore_url.to_s,
+          "#{config.eventstore_url.host}:#{config.eventstore_url.port}",
           channel_credentials,
           channel_args: { 'authorization' => "Basic #{credentials.delete("\n")}" }
         )
