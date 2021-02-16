@@ -20,6 +20,7 @@ module EventStoreClient
             serialized_events = events.map { |event| config.mapper.serialize(event) }
 
             serialized_events.each do |event|
+              event_metadata = JSON.parse(event.metadata)
               payload = [
                 request.new(
                   options: {
@@ -38,9 +39,10 @@ module EventStoreClient
                     custom_metadata: JSON.generate(
                       "type": event.type,
                       "content-type": 'application/vnd.eventstore.events+json',
-                      "created_at": Time.now
+                      "created_at": Time.now,
+                      'encryption': event_metadata['encryption']
                     ),
-                    metadata: JSON.parse(event.metadata)
+                    metadata: event_metadata.select { |k| ['type', 'content-type', 'created_at'].include?(k) }
                   }
                 )
               ]

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'event_store_client/configuration'
+
 module EventStoreClient
   class DataDecryptor
     include Configuration
@@ -30,8 +31,11 @@ module EventStoreClient
     end
 
     def decrypt_attributes(key:, data:, attributes: {}) # rubocop:disable Lint/UnusedMethodArgument
-      decrypted_text = key_repository.decrypt(key: key, message: data['es_encrypted'])
-      decrypted = JSON.parse(decrypted_text).transform_keys(&:to_s)
+      res = key_repository.decrypt(key: key, message: data['es_encrypted'])
+      return data if res.failure?
+
+      decrypted_text = res.value!
+      decrypted = JSON.parse(decrypted_text.attributes[:message]).transform_keys(&:to_s)
       decrypted.each { |k, value| data[k] = value if data.key?(k) }
       data.delete('es_encrypted')
       data
@@ -46,7 +50,7 @@ module EventStoreClient
     def find_key(identifier)
       key =
         begin
-          key_repository.find(identifier)
+          key_repository.find(identifier).value!
         rescue StandardError => e
           config.error_handler&.call(e)
         end

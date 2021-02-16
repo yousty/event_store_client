@@ -7,7 +7,7 @@ PATH
       dry-schema (~> 1)
       dry-struct (~> 1)
       faraday (~> 1.0)
-      grpc
+      grpc (~> 1.0)
       rss (>= 0.2.8)
 
 GEM

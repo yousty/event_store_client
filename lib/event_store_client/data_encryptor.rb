@@ -6,8 +6,11 @@ module EventStoreClient
       return encrypted_data if encryption_metadata.empty?
 
       key_id = encryption_metadata[:key]
-      key = key_repository.find(key_id) || key_repository.create(key_id)
-      encryption_metadata[:iv] = key.iv
+      res = key_repository.find(key_id)
+      res = res.failure? ? key_repository.create(key_id) : res
+      key = res.value!
+
+      encryption_metadata[:iv] = key.attributes[:iv]
       encrypt_attributes(
         key: key,
         data: encrypted_data,
@@ -29,9 +32,9 @@ module EventStoreClient
 
     def encrypt_attributes(key:, data:, attributes:)
       text = JSON.generate(data.select { |hash_key, _value| attributes.include?(hash_key.to_s) })
-      encrypted = key_repository.encrypt(key: key, message: text)
+      encrypted = key_repository.encrypt(key: key, message: text).value!
       attributes.each { |att| data[att.to_s] = 'es_encrypted' if data.key?(att.to_s) }
-      data['es_encrypted'] = encrypted
+      data['es_encrypted'] = encrypted.attributes[:message]
       data
     end
 

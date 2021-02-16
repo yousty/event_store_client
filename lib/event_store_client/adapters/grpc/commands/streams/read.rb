@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'grpc'
-require 'event_store_client/adapters/grpc/generated/projections_pb.rb'
-require 'event_store_client/adapters/grpc/generated/projections_services_pb.rb'
+require 'event_store_client/adapters/grpc/generated/streams_pb.rb'
+require 'event_store_client/adapters/grpc/generated/streams_services_pb.rb'
 
 require 'event_store_client/configuration'
 require 'event_store_client/adapters/grpc/commands/command'
@@ -58,12 +58,17 @@ module EventStoreClient
           def deserialize_event(entry)
             data = (entry.data.nil? || entry.data.empty?) ? '{}' : entry.data
 
+            metadata =
+              JSON.parse(entry.custom_metadata || '{}').merge(
+                entry.metadata.to_h || {}
+              ).to_json
+
             event = EventStoreClient::Event.new(
               id: entry.id.string,
               title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
               type: entry.metadata['type'],
               data: data,
-              metadata: (entry.metadata.to_h || {}).to_json
+              metadata: metadata
             )
 
             config.mapper.deserialize(event)
