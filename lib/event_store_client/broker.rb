@@ -12,7 +12,7 @@ module EventStoreClient
     def call(subscriptions, wait: false)
       subscriptions.each do |subscription|
         threads << Thread.new do
-          connection.listen(subscription) do |event|
+          connection.listen(subscription, options: { interval: 1, count: 10 }) do |event|
             subscription.subscriber.call(event)
           end
         end
