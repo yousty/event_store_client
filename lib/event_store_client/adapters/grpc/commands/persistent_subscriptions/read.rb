@@ -48,7 +48,6 @@ module EventStoreClient
           private
 
           def deserialize_event(entry)
-            binding.irb if event.data.include?('00735ff8-2d12-4bc7-8db2-af432baacdf1')
             event = EventStoreClient::Event.new(
               id: entry.id.string,
               title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
