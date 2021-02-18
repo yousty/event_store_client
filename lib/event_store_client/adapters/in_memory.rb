@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'dry/monads'
 module EventStoreClient
   class InMemory
     Response = Struct.new(:body, :status) do
@@ -21,6 +22,7 @@ module EventStoreClient
           'positionEventNumber' => event_store[stream_name].length
         )
       end
+      Dry::Monads::Success()
     end
 
     def delete_stream(stream_name, options: {}) # rubocop:disable Lint/UnusedMethodArgument
@@ -44,9 +46,10 @@ module EventStoreClient
       res = Response.new(response.to_json, 200)
 
       return [] if res.body.nil? || res.body.empty?
-      JSON.parse(res.body)['entries'].map do |entry|
+      events = JSON.parse(res.body)['entries'].map do |entry|
         deserialize_event(entry)
       end.reverse
+      Dry::Monads::Success(events)
     end
 
     def read_all_from_stream(stream_name, options: {})
