@@ -48,15 +48,15 @@ module EventStoreClient
           private
 
           def deserialize_event(entry)
-            event = EventStoreClient::Event.new(
-              id: entry.id.string,
-              title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
-              type: entry.metadata['type'],
-              data: entry.data || '{}',
-              metadata: (entry.metadata.to_h || {}).to_json
+            config.mapper.deserialize(
+              EventStoreClient::Event.new(
+                id: entry.id.string,
+                title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
+                type: entry.metadata['type'],
+                data: entry.data || '{}',
+                metadata: (entry.metadata.to_h || {}).to_json
+              )
             )
-
-            config.mapper.deserialize(event)
           end
         end
       end
