@@ -26,7 +26,7 @@ module EventStoreClient
 
               event_metadata = event.metadata.tap do |h|
                 h['type'] = '$>'
-                h['content-type'] = 'application/octet-stream'
+                h['content-type'] = 'application/json'
                 h.delete('encryption')
               end
 

@@ -32,7 +32,7 @@ module EventStoreClient
     end
 
     def content_type
-      return 'application/octet-stream' if EventStoreClient.config.adapter == :grpc
+      return 'application/json' if EventStoreClient.config.adapter == :grpc
 
       'application/vnd.eventstore.events+json'
     end
