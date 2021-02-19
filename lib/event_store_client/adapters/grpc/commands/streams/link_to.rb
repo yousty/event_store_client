@@ -17,7 +17,19 @@ module EventStoreClient
           use_service EventStore::Client::Streams::Streams::Stub
 
           def call(stream_name, events, options: {})
-            events.each do |event|
+            events.each_with_index do |event, index|
+              custom_metadata = JSON.generate(
+                "type": '$>',
+                "created_at": Time.now,
+                "encryption": event.metadata['encryption'] || ''
+              )
+
+              event_metadata = event.metadata.tap do |h|
+                h['type'] = '$>'
+                h['content-type'] = 'application/octet-stream'
+                h.delete('encryption')
+              end
+
               payload = [
                 request.new(
                   options: {
@@ -33,12 +45,8 @@ module EventStoreClient
                       string: event.id
                     },
                     data: event.title,
-                    custom_metadata: JSON.generate(
-                      "type": '$>',
-                      "content-type": 'application/vnd.eventstore.events+json',
-                      "created_at": Time.now
-                    ),
-                    metadata: event.metadata.tap { |h| h['type'] = '$>' }
+                    custom_metadata: custom_metadata,
+                    metadata: event_metadata
                   }
                 )
               ]

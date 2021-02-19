@@ -24,11 +24,17 @@ module EventStoreClient
       @data = args.fetch(:data) { {} }
       @metadata = args.fetch(:metadata) { {} }.merge(
         'type' => self.class.name,
-        'content-type' => 'application/vnd.eventstore.events+json'
+        'content-type' => content_type
       )
       @type = args[:type] || self.class.name
       @title = args[:title]
       @id = args[:id]
+    end
+
+    def content_type
+      return 'application/octet-stream' if EventStoreClient.config.adapter == :grpc
+
+      'application/vnd.eventstore.events+json'
     end
   end
 end

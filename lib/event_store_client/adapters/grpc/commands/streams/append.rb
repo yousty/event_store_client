@@ -21,6 +21,15 @@ module EventStoreClient
 
             serialized_events.each do |event|
               event_metadata = JSON.parse(event.metadata)
+              custom_metadata = {
+                "type": event.type,
+                "created_at": Time.now,
+                'content-type': event_metadata['content-type']
+              }
+              custom_metadata['encryption'] = event_metadata['encryption'] unless event_metadata['encryption'].nil?
+              event_metadata = event_metadata.select { |k| ['type', 'content-type', 'created_at'].include?(k) }
+
+
               payload = [
                 request.new(
                   options: {
@@ -36,13 +45,8 @@ module EventStoreClient
                       string: SecureRandom.uuid
                     },
                     data: event.data,
-                    custom_metadata: JSON.generate(
-                      "type": event.type,
-                      "content-type": 'application/vnd.eventstore.events+json',
-                      "created_at": Time.now,
-                      'encryption': event_metadata['encryption']
-                    ),
-                    metadata: event_metadata.select { |k| ['type', 'content-type', 'created_at'].include?(k) }
+                    custom_metadata:   JSON.generate(custom_metadata),
+                    metadata: event_metadata
                   }
                 )
               ]
