@@ -43,7 +43,7 @@ module EventStoreClient
     end
     # rubocop:enable Metrics/CyclomaticComplexity
 
-    attr_accessor :connection, :service_name
+    attr_accessor :connection
 
     private
 
@@ -53,7 +53,6 @@ module EventStoreClient
       @threads = []
       @connection ||= EventStoreClient.adapter
       @error_handler ||= config.error_handler
-      @service_name ||= 'default'
       @broker ||= Broker.new(connection: connection)
       @subscriptions ||= Subscriptions.new(connection: connection, service: config.service_name)
     end
