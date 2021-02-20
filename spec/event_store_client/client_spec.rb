@@ -27,7 +27,7 @@ module EventStoreClient
 
       context 'forward' do
         it 'reads events from a stream' do
-          events = client.read('stream')
+          events = client.read('stream').value!
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
             to eq(%w[SomethingHappened SomethingElseHappened])
@@ -36,7 +36,7 @@ module EventStoreClient
 
       context 'backward' do
         it 'reads events from a stream' do
-          events = client.read('stream', options: { direction: 'backard', start: 'head' })
+          events = client.read('stream', options: { direction: 'backard', start: 'head' }).value!
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
             to eq(%w[SomethingHappened SomethingElseHappened])
@@ -45,7 +45,7 @@ module EventStoreClient
 
       context 'all' do
         it 'reads all events from a stream' do
-          events = client.read('stream', options: { all: true })
+          events = client.read('stream', options: { all: true }).value!
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
             to eq(%w[SomethingHappened SomethingElseHappened])
