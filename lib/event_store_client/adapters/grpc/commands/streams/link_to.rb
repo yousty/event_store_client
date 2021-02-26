@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'securerandom'
 require 'grpc'
 require 'event_store_client/adapters/grpc/generated/streams_pb.rb'
 require 'event_store_client/adapters/grpc/generated/streams_services_pb.rb'
@@ -30,6 +31,9 @@ module EventStoreClient
                 h.delete('encryption')
               end
 
+              event_id = event.id
+              event_id = SecureRandom.uuid if event.id.nil? || event.id.empty?
+
               payload = [
                 request.new(
                   options: {
@@ -42,7 +46,7 @@ module EventStoreClient
                 request.new(
                   proposed_message: {
                     id: {
-                      string: event.id
+                      string: event_id
                     },
                     data: event.title,
                     custom_metadata: custom_metadata,
