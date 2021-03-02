@@ -48,9 +48,11 @@ module EventStoreClient
           private
 
           def deserialize_event(entry)
+            id = entry.id.string
+            id = SecureRandom.uuid if id.nil? || id.empty?
             config.mapper.deserialize(
               EventStoreClient::Event.new(
-                id: entry.id.string,
+                id: id,
                 title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
                 type: entry.metadata['type'],
                 data: entry.data || '{}',
