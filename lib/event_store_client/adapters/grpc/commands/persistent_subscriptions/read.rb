@@ -50,13 +50,21 @@ module EventStoreClient
           def deserialize_event(entry)
             id = entry.id.string
             id = SecureRandom.uuid if id.nil? || id.empty?
+
+            data = (entry.data.nil? || entry.data.empty?) ? '{}' : entry.data
+
+            metadata =
+              JSON.parse(entry.custom_metadata || '{}').merge(
+                entry.metadata.to_h || {}
+              ).to_json
+
             config.mapper.deserialize(
               EventStoreClient::Event.new(
                 id: id,
                 title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
                 type: entry.metadata['type'],
-                data: entry.data || '{}',
-                metadata: (entry.metadata.to_h || {}).to_json
+                data: data,
+                metadata: metadata
               )
             )
           end
