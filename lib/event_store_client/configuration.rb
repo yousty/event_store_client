@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'dry-configurable'
-
+require 'event_store_client/error_handler'
 module EventStoreClient
   extend Dry::Configurable
 
@@ -10,7 +10,7 @@ module EventStoreClient
   setting :adapter, :grpc
   setting :verify_ssl, true
 
-  setting :error_handler
+  setting :error_handler, ErrorHandler.new
   setting :eventstore_url, 'http://localhost:2113' do |value|
     value.is_a?(URI) ? value : URI(value)
   end
