@@ -11,10 +11,8 @@ module EventStoreClient
             count = options[:count] || config.per_page
             start = options[:start].to_i
             direction = options[:direction] || 'forward'
-            headers = {
-              'ES-ResolveLinkTos' => options[:resolve_links].to_s,
-              'Accept' => 'application/vnd.eventstore.atom+json'
-            }
+            headers = { 'Accept' => 'application/vnd.eventstore.atom+json' }
+            headers['ES-ResolveLinkTos'] = true if options.key?(:resolve_links)
 
             response =
               connection.call(

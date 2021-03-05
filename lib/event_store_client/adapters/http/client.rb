@@ -47,9 +47,7 @@ module EventStoreClient
       # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
       #
       def read(stream_name, options: {})
-        Commands::Streams::Read.new(connection).call(
-          stream_name, options: options
-        )
+        Commands::Streams::Read.new(connection).call(stream_name, options: options)
       end
 
       # Reads all events from the given stream
