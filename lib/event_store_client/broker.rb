@@ -14,8 +14,6 @@ module EventStoreClient
         threads << Thread.new do
           connection.listen(subscription, options: { interval: 1, count: 10 }) do |event|
             subscription.subscriber.call(event)
-          rescue StandardError => e
-            config.error_handler.call(e)
           end
         end
       end
