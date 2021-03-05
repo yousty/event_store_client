@@ -3,19 +3,19 @@
 
 # EventStoreClient
 
-An easy-to use API client for connecting ruby applications with https://eventstore.org/
+An easy-to use API client for connecting ruby applications with [EventStoreDB](https://eventstore.com/)
 
 ## Supported adapters
 
-- GRPC - default
+- [GRPC](https://github.com/yousty/event_store_client/tree/master/lib/event_store_client/adapters/grpc/README.md) - default
 - [HTTP](https://github.com/yousty/event_store_client/tree/master/lib/event_store_client/adapters/http/README.md) - Deprecated
-- Memory - for testing
+- InMemory - for testing
 
 ## Installation
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'event_store_client'
+gem 'event_store_client', '~> 1.0'
 ```
 
 And then execute:
@@ -30,19 +30,8 @@ $ gem install event_store_client
 
 ## Usage
 
-Before you start, make sure you have a running EventStoreDB instance on your machine
-
-### EventStore engine setup
-
-1. Download Event Store From https://eventstore.org/downloads/ or docker
-
-` docker pull eventstore/eventstore`
-
-2. Run the Event Store server
-
-`docker run --env EVENTSTORE_INSECURE=true --name eventstore -it -p 2113:2113 -p 1113:1113 eventstore/eventstore`
-
-4. Visit the admin panel http://localhost:2113 and enable Projections for Event-Types
+Before you start, make sure you are connecting to a running EventStoreDB instance. For a detailed guide see:
+[EventStoreServerSetup](https://github.com/yousty/event_store_client/blob/master/docs/eventstore_server_setup.md)
 
 ### Create Dummy event and dummy Handler
 
@@ -76,70 +65,98 @@ class DummyHandler
   end
 end
 ```
-## Usage
+
 
 ```ruby
-# initialize the client
-client = EventStoreClient::Client.new
+
+require 'event_store_client'
+require "event_store_client/adapters/grpc"
+
+EventStoreClient.configure do |config|
+  config.eventstore_url = ENV['EVENTSTORE_URL']
+  config.eventstore_user = ENV['EVENTSTORE_USER']
+  config.eventstore_password = ENV['EVENTSTORE_PASSWORD']
+  config.verify_ssl = false # remove this line if your server does have the host verified
+end
+
+event_store = EventStoreClient::Client.new
+
+event_store.subscribe(
+  DummyHandler.new,
+  to: [SomethingHappened]
+)
+
+event_store.listen
 ```
 
-### Publishing events
+## Features
+
+## Basic Usage
+
+The main interface allows for actions listed below which is enough for basic useage.
+The actual adapter allows for more actions. Contributions as always welcome!
 
 ```ruby
-client.publish(stream: 'newstream', events: [event])
-```
+# Publishing to a stream
+event_store.publish(stream: 'newstream', events: [event])
 
-### Reading from a stream
+# Reading from a stream
+events = event_store.read('newstream').value!
 
-```ruby
-events = client.read('newstream')
-```
+# Reading all events from a stream
+events = event_store.read('newstream', options: { all: true }).value! #default 'false'
 
-**Changing reading direction**
+# Linking existing events to a new stream
+event_store.link_to(stream_name, events)
 
-```ruby
-events = client.read('newstream', direction: 'backwards') #default 'forwards'
-```
+# Subscribing to events
+event_store.subscribe(DummyHandler.new, to: [SomethingHappened])
 
-**Reading all events from a stream**
+# Listening to new events for all registered subscriptions
+event_store.listen
 
-```ruby
-events = client.read('newstream', all: true) #default 'false'
-```
-
-### Subscribing to events
-
-```ruby
-client.subscribe(DummyHandler.new, to: [SomethingHappened])
-
-# Now In another terminal seesion try to publish several events
-10.times { client.publish(stream: 'newstream', events: [event]) }
-
-# You can also publish multiple events at once
-
+# In the new terminal session publish some events
 events = (1..10).map { event }
-client.publish(stream: 'newstream', events: events)
-
+event_store.publish(stream: 'newstream', events: events)
 # .... wait a little bit ... Your handler should be called for every single event you publish
 ```
 
-### Stop polling for new events
+### Extended usage
 
-```ruby
-client.stop_polling
+You can get access to more features by calling the adapter directly, for example:
+
+```
+event_store.connection.delete_stream(stream)
+event_store.connection.tombstone_stream(stream)
 ```
 
-### Configure EventStoreClient
+See the adapters method list for the possible usage.
 
-Before you start, add this to the `initializer` or to the top of your script:
+- [HTTP](https://github.com/yousty/event_store_client/blob/master/lib/event_store_client/adapters/http/client.rb)
+- [GRPC](https://github.com/yousty/event_store_client/blob/master/lib/event_store_client/adapters/grpc/client.rb)
 
-For testing, you can use the InMemory adapter. To do it you should change the configuration.
+### Configuration
+
+There are several configuration options you can pass to customize your client's instance.
+All the config options can be passed the same way:
 
 ```ruby
 EventStoreClient.configure do |config|
-  config.adapter = EventStoreClient::InMemory.new(host: 'http://localhost', port: '2113')
+  config.adapter = :grpc
 end
 ```
+
+| name        | value           | default   | description |
+|:-------------:|:-------------:|:-----:|:-------------:|
+| adapter      | `:grpc`, `:http` or `:in_memory` | `:grpc` | different ways to connect with an event_store_db. The in_memory is a mock server useful for testing |
+| verify_ssl   | Boolean      | true | Useful for self-signed certificates (Kubernetes, local development) |
+| error_handler | Any callable ruby object | EvenStoreClient::ErrorHandler | You can pass a custom error handler for reacting on event_handler errors.|
+| eventstore_url| String| 'http://localhost:2113'| An url for the server instance|
+| user| String| 'admin' | a user used to connect the application with the server|
+| password| String| 'changeit'| a password used to connect the application with the server|
+| per_page| Integer| 20 | a batch size for events subscriptions |
+| service_name| String| 'default' | a prefix (namespace) added to the subscriptions names|
+| mapper| `Mapper::Default` or `Mapper::Encrypted`| `Mapper::Default.new` | an engine used to parse events.
 
 ## Event Mappers
 
@@ -156,86 +173,7 @@ Event parsable by event_store and the other way around.
 ### Encrypted Mapper
 
 This is implemented to match GDPR requirements. It allows you to encrypt any event using your
-encryption_key repository.
-
-```ruby
-mapper = EventStoreClient::Mapper::Encrypted.new(key_repository)
-EventStoreClient.configure do |config|
-  config.mapper = mapper
-end
-```
-
-The Encrypted mapper uses the encryption key repository to encrypt data in your events according to the event definition.
-
-Here is the minimal repository interface for this to work.
-
-```ruby
-class DummyRepository
-  class Key
-    attr_accessor :iv, :cipher, :id
-    def initialize(id:, **)
-      @id = id
-    end
-  end
-
-  def find(user_id)
-    Key.new(id: user_id)
-  end
-
-  def encrypt(*)
-    'darthvader'
-  end
-
-  def decrypt(*)
-    { first_name: 'Anakin', last_name: 'Skylwalker'}
-  end
-end
-```
-
-Now, having that, you only need to define the event encryption schema:
-
-```ruby
-class EncryptedEvent < EventStoreClient::DeserializedEvent
-  def schema
-    Dry::Schema.Params do
-      required(:user_id).value(:string)
-      required(:first_name).value(:string)
-      required(:last_name).value(:string)
-      required(:profession).value(:string)
-    end
-  end
-
-  def self.encryption_schema
-    {
-      key: ->(data) { data['user_id'] },
-      attributes: %i[first_name last_name email]
-    }
-  end
-end
-
-event = EncryptedEvent.new(
-  user_id: SecureRandom.uuid,
-  first_name: 'Anakin',
-  last_name: 'Skylwalker',
-  profession: 'Jedi'
-)
-```
-
-When you'll publish this event, in the store will be saved:
-
-```ruby
-{
-  'data' => {
-    'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-    'first_name' => 'encrypted',
-    'last_name' => 'encrypted',
-    'profession' => 'Jedi',
-    'encrypted' => '2345l423lj1#$!lkj24f1'
-  },
-  type: 'EncryptedEvent'
-  metadata: { ... }
-}
-```
+encryption_key repository. For the detailed guide see the: [Encrypting Events](https://github.com/yousty/event_store_client/blob/master/docs/encrypting_events.md).
 
 ## Contributing
 
@@ -244,6 +182,8 @@ Do you want to contribute? Welcome!
 1. Fork repository
 2. Create Issue
 3. Create PR ;)
+
+For running the client in the dev mode, see: [Development Guide](https://github.com/yousty/event_store_client/blob/master/docs/eventstore_server_setup.md)
 
 ### Publishing new version
 
