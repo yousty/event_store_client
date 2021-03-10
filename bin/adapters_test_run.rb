@@ -7,18 +7,18 @@ require_relative './event_handlers'
 class AdaptersTestRun
   def call
     # publish_events(count: 100, batch: false)
-    publish_events(count: 20, batch: true)
+    publish_events(count: 2, batch: true)
     read_events_from_stream(all: false)
     read_events_from_stream(all: true)
-    link_to('linkedstream')
     subscribe(FooHandler, [SomethingHappened])
-    subscribe(BarHandler, [SomethingHappened])
-    subscribe(ZooHandler, [SomethingHappened])
+    # link_to('linkedstream')
+    # subscribe(BarHandler, [SomethingHappened])
+    # subscribe(ZooHandler, [SomethingHappened])
     # listen(FooHandler, [SomethingHappened])
     # listen(ZooHandler, [SomethingHappened])
     # listen(BarHandler, [SomethingHappened])
-    delete_stream(stream, hard: false)
-    delete_stream(stream, hard: true)
+    # delete_stream(stream, hard: false)
+    # delete_stream(stream, hard: true)
   end
 
   def publish_events(count: 10, batch: false)
@@ -56,17 +56,11 @@ class AdaptersTestRun
 
   def subscribe(handler, event_types)
     puts "\n#{__method__} #{handler} to:  #{event_types}\n"
-
-    subscription = EventStoreClient::Subscription.new(
-      handler, event_types: event_types, service: 'test-service'
-    )
-    client.subscribe_to_stream(subscription)
+    store.subscribe(handler, to: event_types)
   end
 
   def listen(handler, event_types)
-    subscription = EventStoreClient::Subscription.new(
-      handler, event_types: event_types, service: 'test-service'
-    )
+    subscription = store.send(:subscriptions).send(:subscriptions).first
     client.listen(subscription, options: { interval: 1, count: 10 }) do |event|
       subscription.subscriber.call(event)
     end
@@ -74,19 +68,17 @@ class AdaptersTestRun
 
   def link_to(stream_name, count: 10)
     events = client.read(stream, options: { count: count }).value!
-    puts "\n#{__method__} #{stream_name} #{events.length} events"
-    puts events.map(&:id)
-
     client.link_to(stream_name, events)
   end
 
 
   private
 
-  attr_reader :client, :stream
+  attr_reader :client, :stream, :store
 
-  def initialize(client, stream: 'defaultstream')
-    @client = client
+  def initialize(store, stream: 'defaultstream')
+    @store = store
+    @client = store.connection
     @stream = stream
   end
 end
