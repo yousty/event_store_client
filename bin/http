@@ -5,12 +5,15 @@ require 'bundler/setup'
 require 'event_store_client'
 
 EventStoreClient.configure do |config|
-  config.eventstore_url = 'http://localhost:2113'
   config.adapter = :http
+  config.eventstore_url = ENV['EVENTSTORE_URL']
+  config.eventstore_user = ENV['EVENTSTORE_USER']
+  config.eventstore_password = ENV['EVENTSTORE_PASSWORD']
+  config.verify_ssl = false
+  config.service_name = 'dev-http'
 end
 
 require_relative './adapters_test_run'
 
 stream = 'newstream'
-client = EventStoreClient.adapter
-AdaptersTestRun.new(client, stream: stream).call
+AdaptersTestRun.new(EventStoreClient::Client.new, stream: stream).call

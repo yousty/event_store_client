@@ -42,7 +42,7 @@ services:
         target: /var/log/eventstore
     restart: unless-stopped
 
-  specs:
+  dev:
     image: yousty/esc:test
     command: tail -f /dev/null
     networks:
@@ -54,7 +54,7 @@ services:
     depends_on:
       - eventstore.db
     env_file:
-      - .env_test
+      - .env
 
 networks:
   esdb_network:

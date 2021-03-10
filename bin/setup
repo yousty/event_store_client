@@ -1,13 +1,38 @@
-#!/usr/bin/env bash
-set -euo pipefail
-IFS=$'\n\t'
-set -vx
-
-gem install docker-sync
-gem install docker-compose
-
-sh ./create-certs.sh
-docker-sync start
-docker-compose run specs bundle install
+# !/usr/bin/env bash
 
 # Do any other automated setup that you need to do here
+
+if ! [ -x "$(command -v docker)" ]; then
+  echo "Please install docker first\n"
+  exit -1
+fi
+
+if ! [ -x "$(command -v docker-sync)" ]; then
+  echo "---------------------- Installing docker-sync ----------------------"
+  gem install docker-sync
+fi
+
+if ! [ -x "$(command -v docker-compose)" ]; then
+  echo "---------------------- Installing docker-sync ----------------------"
+  gem install docker-compose
+fi
+
+if ! [ -f ".env" ]; then
+  echo "---------------------- Copying the .env file ----------------------"
+  cp .env.example .env
+fi
+
+echo "\n---------------------- Generating Certs for EventStoreDB ----------------------"
+if ! [ -d "certs" ]; then
+  echo "certs does not exist"
+  sh ./create-certs.sh
+else
+  echo "WARNING: 'certs' folder already exists. To refresh certificates, remove the folder first."
+fi
+
+echo "\n---------------------- Rebuilding the image and running server ----------------------"
+
+docker build -t yousty/esc:test .
+docker-sync start
+docker-compose run dev bundle install
+docker-compose up -d

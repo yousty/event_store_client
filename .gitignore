@@ -5,6 +5,6 @@ pkg/
 spec/examples.txt
 spec/dummy
 tmp
-.env*
+.env
 
 .docker-sync

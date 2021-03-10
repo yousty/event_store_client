@@ -8,10 +8,10 @@ anyone wanting to quickly run the working setup.
 - Docker
 - ruby version 2.7.2
 
-# Docker
-
+### Running the environment
 
 ```shell
+# first time
 bin/setup
 ```
 
@@ -20,3 +20,17 @@ This will:
 - install the `docker-sync` and `docker-compose` gems
 - run the eventstore server being accessible at localhost:2113
 - run the container for the client's ruby environment
+
+### Working with the configured project
+
+```shell
+# start network
+docker-sync start && docker-compose up -d
+
+# Login to the image shell
+docker-compose exec dev bash
+
+# play around with the testing scripts:
+bin/grpc
+bin/http
+```
