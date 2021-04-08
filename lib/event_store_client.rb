@@ -4,13 +4,14 @@ module EventStoreClient
 end
 
 require 'event_store_client/types'
-require 'event_store_client/event'
-require 'event_store_client/deserialized_event'
+
 require 'event_store_client/serializer/json'
 
 require 'event_store_client/mapper'
 
 require 'event_store_client/configuration'
+require 'event_store_client/event'
+require 'event_store_client/deserialized_event'
 
 require 'event_store_client/subscription'
 require 'event_store_client/subscriptions'
