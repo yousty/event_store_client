@@ -137,7 +137,10 @@ module EventStoreClient
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
       def join_streams(name, streams, options: {})
-        Commands::Projections::Create.new(connection).call(name, streams, options: options)
+        res = Commands::Projections::Create.new(connection).call(name, streams, options: options)
+        return res if res.success?
+
+        Commands::Projections::Update.new(connection).call(name, streams, options: options)
       end
 
       # @api private

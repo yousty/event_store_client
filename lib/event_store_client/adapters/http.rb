@@ -6,6 +6,7 @@ require 'event_store_client/adapters/http/commands/persistent_subscriptions/crea
 require 'event_store_client/adapters/http/commands/persistent_subscriptions/read'
 
 require 'event_store_client/adapters/http/commands/projections/create'
+require 'event_store_client/adapters/http/commands/projections/update'
 
 require 'event_store_client/adapters/http/commands/streams/append'
 require 'event_store_client/adapters/http/commands/streams/delete'

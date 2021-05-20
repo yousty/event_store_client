@@ -4,7 +4,7 @@ module EventStoreClient
   module HTTP
     module Commands
       module Projections
-        class Create < Command
+        class Update < Command
           def call(name, streams, options: {})
             data =
               <<~STRING
@@ -15,11 +15,9 @@ module EventStoreClient
                   }
                 })
               STRING
-
-
             res = connection.call(
-              :post,
-              "/projections/continuous?name=#{name}&type=js&enabled=yes&emit=true&trackemittedstreams=true", # rubocop:disable Metrics/LineLength
+              :put,
+              "/projection/#{name}/query?type=js&enabled=yes&emit=true&trackemittedstreams=true", # rubocop:disable Metrics/LineLength
               body: data,
               headers: {}
             )

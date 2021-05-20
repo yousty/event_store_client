@@ -33,8 +33,11 @@ module EventStoreClient
                 }
               }
 
-            service.create(request.new(options: options), metadata: metadata)
-            Success()
+            res = Try do
+              service.create(request.new(options: options), metadata: metadata)
+            end
+
+            res.error? ? res.to_result : Success()
           rescue ::GRPC::Unknown => e
             Failure(:conflict) if e.message.include?('Conflict')
           end
