@@ -44,8 +44,8 @@ module EventStoreClient
                     id: {
                       string: SecureRandom.uuid
                     },
-                    data: event.data,
-                    custom_metadata:   JSON.generate(custom_metadata),
+                    data: event.data.b,
+                    custom_metadata: JSON.generate(custom_metadata),
                     metadata: event_metadata
                   }
                 )
