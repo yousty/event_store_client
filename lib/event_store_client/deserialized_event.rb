@@ -19,7 +19,9 @@ module EventStoreClient
 
     def initialize(**args)
       validation = schema.call(args[:data] || {})
-      raise InvalidDataError.new(message: validation.errors.to_h) if validation.errors.any?
+      if validation.errors.any?
+        raise InvalidDataError.new(message: "#{schema.class.name} #{validation.errors.to_h}")
+      end
 
       @data = args.fetch(:data) { {} }
       @metadata = args.fetch(:metadata) { {} }.merge(
