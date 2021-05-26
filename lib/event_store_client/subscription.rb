@@ -13,7 +13,8 @@ module EventStoreClient
         else
           subscriber.class.name
         end
-      @name = "#{service}-#{subscriber_class}"
+      @name = subscriber_class.to_s
+      @name = "#{service}-" + @name if service != ''
       @subscriber = subscriber
       @stream = name
       @observed_streams = event_types.reduce([]) { |r, type| r << "$et-#{type}" }
