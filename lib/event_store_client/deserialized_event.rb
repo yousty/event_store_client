@@ -4,8 +4,6 @@ require 'dry/schema'
 
 module EventStoreClient
   class DeserializedEvent
-    InvalidDataError = Class.new(StandardError)
-
     attr_reader :id
     attr_reader :type
     attr_reader :title
@@ -19,15 +17,12 @@ module EventStoreClient
 
     def initialize(**args)
       validation = schema.call(args[:data] || {})
-      if validation.errors.any?
-        raise InvalidDataError.new(message: "#{schema.class.name} #{validation.errors.to_h}")
-      end
-
       @data = args.fetch(:data) { {} }
       @metadata = args.fetch(:metadata) { {} }.merge(
         'type' => self.class.name,
         'content-type' => content_type
       )
+      @metadata.merge!('validation_errors' => validation.errors.to_h) if validation.errors.any?
       @type = args[:type] || self.class.name
       @title = args[:title]
       @id = args[:id]
