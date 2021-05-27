@@ -22,7 +22,7 @@ module EventStoreClient
         'type' => self.class.name,
         'content-type' => content_type
       )
-      @metadata.merge!('validation_errors' => validation.errors.to_h) if validation.errors.any?
+      @metadata.merge!('validation-errors' => validation.errors.to_h) if validation.errors.any?
       @type = args[:type] || self.class.name
       @title = args[:title]
       @id = args[:id]
