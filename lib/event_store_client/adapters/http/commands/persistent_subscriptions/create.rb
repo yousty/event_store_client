@@ -9,6 +9,8 @@ module EventStoreClient
             stats = options[:stats] || true
             start = options[:start] || 0
             retries = options[:retries] || 5
+            max_checkpoint_count = options[:max_checkpoint_count] || 0
+            min_checkpoint_count = options[:min_checkpoint_count] || 0
 
             connection.call(
               :put,
@@ -17,6 +19,8 @@ module EventStoreClient
                 extraStatistics: stats,
                 startFrom: start,
                 maxRetryCount: retries,
+                maxCheckPointCount: max_checkpoint_count,
+                minCheckPointCount: min_checkpoint_count,
                 resolveLinkTos: true
               },
               headers: {
