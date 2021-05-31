@@ -79,7 +79,16 @@ module EventStoreClient::HTTP
     end
 
     describe '#subscribe_to_stream' do
-      let(:body) { { extraStatistics: true, startFrom: 0, maxRetryCount: 5, resolveLinkTos: true } }
+      let(:body) do
+        {
+          extraStatistics: true,
+          startFrom: 0,
+          maxRetryCount: 5,
+          maxCheckPointCount: 0,
+          minCheckPointCount: 0,
+          resolveLinkTos: true
+        }
+      end
       let!(:stub) do
         stub_request(:post, "#{store_base_url}/projections/continuous?emit=true&enabled=yes&name=default-DummyHandler&trackemittedstreams=true&type=js"). # rubocop:disable Metrics/LineLength
           with(

@@ -2,11 +2,11 @@
 
 module EventStoreClient
   class Subscriptions
-    def create(subscriber, event_types)
+    def create(subscriber, event_types, options: {})
       subscription = Subscription.new(subscriber, event_types: event_types, service: service)
 
       unless @subscriptions.detect { |sub| sub.name == subscription.name }
-        connection.subscribe_to_stream(subscription)
+        connection.subscribe_to_stream(subscription, options)
         subscriptions << subscription
       end
 
