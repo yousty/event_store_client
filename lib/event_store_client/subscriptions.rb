@@ -6,7 +6,7 @@ module EventStoreClient
       subscription = Subscription.new(subscriber, event_types: event_types, service: service)
 
       unless @subscriptions.detect { |sub| sub.name == subscription.name }
-        connection.subscribe_to_stream(subscription, options)
+        connection.subscribe_to_stream(subscription, options: options)
         subscriptions << subscription
       end
 
