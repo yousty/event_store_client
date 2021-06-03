@@ -11,3 +11,13 @@ class SomethingHappened < EventStoreClient::DeserializedEvent
     end
   end
 end
+
+
+class SomethingElseHappened < EventStoreClient::DeserializedEvent
+  def schema
+    Dry::Schema.Params do
+      required(:user_id).value(:string)
+      required(:title).value(:string)
+    end
+  end
+end

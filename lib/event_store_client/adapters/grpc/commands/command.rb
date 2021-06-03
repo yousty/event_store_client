@@ -12,7 +12,7 @@ module EventStoreClient
         def self.inherited(klass)
           super
           klass.class_eval do
-            include Dry::Monads[:result]
+            include Dry::Monads[:try, :result]
 
             def self.use_request(request_klass)
               CommandRegistrar.register_request(self, request: request_klass)

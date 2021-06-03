@@ -30,7 +30,9 @@ module EventStoreClient
                 name: name,
                 emit_enabled: true
               }
+
             service.update(request.new(options: options), metadata: metadata)
+
             Success()
           rescue ::GRPC::AlreadyExists
             Failure(:conflict)
