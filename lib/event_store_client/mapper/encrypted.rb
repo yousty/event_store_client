@@ -49,14 +49,20 @@ module EventStoreClient
       #   which key should be used as an identifier.
       # *Returns*: Specific event class with all data decrypted
 
-      def deserialize(event)
+      def deserialize(event, skip_decryption: false)
         metadata = serializer.deserialize(event.metadata)
         encryption_schema = serializer.deserialize(event.metadata)['encryption']
-        decrypted_data = EventStoreClient::DataDecryptor.new(
-          data: serializer.deserialize(event.data),
-          schema: encryption_schema,
-          repository: key_repository
-        ).call
+
+        decrypted_data =
+          if skip_decryption
+            serializer.deserialize(event.data)
+          else
+            EventStoreClient::DataDecryptor.new(
+              data: serializer.deserialize(event.data),
+              schema: encryption_schema,
+              repository: key_repository
+            ).call
+          end
 
         event_class =
           begin

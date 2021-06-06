@@ -23,8 +23,9 @@ module EventStoreClient
 
             return Failure(:stream_not_found) unless response.success? || response.status == 404
             return Failure(:connection_failed) if response.body.nil? || response.body.empty?
+            skip_decryption = options[:skip_decryption] || false
             entries = JSON.parse(response.body)['entries'].map do |entry|
-              deserialize_event(entry)
+              deserialize_event(entry, skip_decryption: skip_decryption)
             end.reverse
             Success(entries)
           rescue Faraday::ConnectionFailed
@@ -33,7 +34,7 @@ module EventStoreClient
 
           private
 
-          def deserialize_event(entry)
+          def deserialize_event(entry, skip_decryption: false)
             event = EventStoreClient::Event.new(
               id: entry['eventId'],
               title: entry['title'],
@@ -42,7 +43,7 @@ module EventStoreClient
               metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
             )
 
-            config.mapper.deserialize(event)
+            config.mapper.deserialize(event, skip_decryption: skip_decryption)
           end
         end
       end

@@ -12,7 +12,7 @@ module EventStoreClient
         )
       end
 
-      def deserialize(event)
+      def deserialize(event, **)
         metadata = serializer.deserialize(event.metadata)
         data = serializer.deserialize(event.data)
 
