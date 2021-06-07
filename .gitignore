@@ -8,3 +8,5 @@ tmp
 .env
 
 .docker-sync
+
+.DS_Store
