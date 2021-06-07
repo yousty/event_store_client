@@ -19,6 +19,12 @@ module EventStoreClient
       end
     end
 
+    def listen(subscription)
+      connection.listen(subscription, options: { interval: 1, count: 10 }) do |event|
+        subscription.subscriber.call(event)
+      end
+    end
+
     private
 
     attr_reader :connection, :subscriptions, :service

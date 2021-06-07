@@ -27,6 +27,12 @@ module EventStoreClient
       @subscriptions.create(subscriber, to, options: options)
     end
 
+    def subscribe_to_all(subscriber, filter=nil)
+      raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
+
+      @subscriptions.create_or_load(subscriber, filter: filter)
+    end
+
     def listen(wait: false)
       broker.call(@subscriptions, wait: wait)
     end
@@ -50,9 +56,10 @@ module EventStoreClient
 
     def initialize
       @threads = []
-      @connection ||= EventStoreClient.adapter
-      @error_handler ||= config.error_handler
-      @broker ||= Broker.new(connection: connection)
+      @connection = EventStoreClient.adapter
+      @error_handler = config.error_handler
+      @broker = Broker.new(connection: connection)
+      @subscriptions = config.subscriptions_repo
       @subscriptions ||= Subscriptions.new(connection: connection, service: config.service_name)
     end
   end

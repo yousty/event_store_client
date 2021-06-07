@@ -15,5 +15,7 @@ require 'event_store_client/deserialized_event'
 
 require 'event_store_client/subscription'
 require 'event_store_client/subscriptions'
+require 'event_store_client/catch_up_subscription'
+require 'event_store_client/catch_up_subscriptions'
 require 'event_store_client/broker'
 require 'event_store_client/client'

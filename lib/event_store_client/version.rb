@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module EventStoreClient
-  VERSION = '1.0.17'
+  VERSION = '1.1.1'
 end
