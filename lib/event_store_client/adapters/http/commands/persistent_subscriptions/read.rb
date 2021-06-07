@@ -28,16 +28,19 @@ module EventStoreClient
 
             ack_info = body['links'].find { |link| link['relation'] == 'ackAll' }
             return { events: [] } unless ack_info
+
+            skip_decryption = options[:skip_decryption] || false
             body['entries'].map do |entry|
-              yield deserialize_event(entry)
+              yield deserialize_event(entry, skip_decryption: skip_decryption)
             end
+
             Ack.new(connection).call(ack_info['uri'])
             Success()
           end
 
           private
 
-          def deserialize_event(entry)
+          def deserialize_event(entry, skip_decryption: false)
             event = EventStoreClient::Event.new(
               id: entry['eventId'],
               title: entry['title'],
@@ -46,7 +49,7 @@ module EventStoreClient
               metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
             )
 
-            config.mapper.deserialize(event)
+            config.mapper.deserialize(event, skip_decryption: skip_decryption)
           rescue EventStoreClient::DeserializedEvent::InvalidDataError
             event
           end

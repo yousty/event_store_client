@@ -46,8 +46,9 @@ module EventStoreClient
       res = Response.new(response.to_json, 200)
 
       return [] if res.body.nil? || res.body.empty?
+      skip_decryption = options[:skip_decryption] || false
       events = JSON.parse(res.body)['entries'].map do |entry|
-        deserialize_event(entry)
+        deserialize_event(entry, skip_decryption: skip_decryption)
       end.reverse
       Dry::Monads::Success(events)
     end
@@ -127,7 +128,7 @@ module EventStoreClient
       end
     end
 
-    def deserialize_event(entry)
+    def deserialize_event(entry, skip_decryption: false)
       event = EventStoreClient::Event.new(
         id: entry['eventId'],
         title: entry['title'],
@@ -136,7 +137,7 @@ module EventStoreClient
         metadata: entry['isMetaData'] ? entry['metaData'] : '{}'
       )
 
-      mapper.deserialize(event)
+      mapper.deserialize(event, skip_decryption: skip_decryption)
     end
   end
 end

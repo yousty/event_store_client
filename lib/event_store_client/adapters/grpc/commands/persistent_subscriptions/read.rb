@@ -38,16 +38,17 @@ module EventStoreClient
 
             requests = [request.new(options: opts)] # please notice that it's an array. Should be?
 
+            skip_decryption = options[:skip_decryption] || false
             service.read(requests, metadata: metadata).each do |res|
               next if res.subscription_confirmation
-              yield deserialize_event(res.event.event) if block_given?
+              yield deserialize_event(res.event.event, skip_decryption: skip_decryption) if block_given?
             end
             Success()
           end
 
           private
 
-          def deserialize_event(entry)
+          def deserialize_event(entry, skip_decryption: false)
             id = entry.id.string
             id = SecureRandom.uuid if id.nil? || id.empty?
 
@@ -65,7 +66,8 @@ module EventStoreClient
                 type: entry.metadata['type'],
                 data: data,
                 metadata: metadata
-              )
+              ),
+              skip_decryption: skip_decryption
             )
           end
         end

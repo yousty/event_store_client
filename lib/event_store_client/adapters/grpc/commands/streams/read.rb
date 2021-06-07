@@ -43,10 +43,10 @@ module EventStoreClient
               opts[:stream][:revision] = options[:start]
             end
 
+            skip_decryption = options[:skip_decryption] || false
             events = service.read(request.new(options: opts), metadata: metadata).map do |res|
               raise StreamNotFound if res.stream_not_found
-
-              deserialize_event(res.event.event)
+              deserialize_event(res.event.event, skip_decryption: skip_decryption)
             end
             Success(events)
           rescue StreamNotFound
@@ -55,7 +55,7 @@ module EventStoreClient
 
           private
 
-          def deserialize_event(entry)
+          def deserialize_event(entry, skip_decryption: false)
             data = (entry.data.nil? || entry.data.empty?) ? '{}' : entry.data
 
             metadata =
@@ -71,7 +71,7 @@ module EventStoreClient
               metadata: metadata
             )
 
-            config.mapper.deserialize(event)
+            config.mapper.deserialize(event, skip_decryption: skip_decryption)
           end
         end
       end

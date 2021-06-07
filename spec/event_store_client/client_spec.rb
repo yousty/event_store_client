@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'support/encrypted_event'
 module EventStoreClient
   RSpec.describe Client do
     let(:client) { described_class.new }
@@ -17,11 +18,14 @@ module EventStoreClient
     end
 
     describe '#read' do
-      before do
-        events = [
+      let(:events) do
+        [
           Event.new(type: 'SomethingHappened', data: { foo: 'bar' }.to_json),
           Event.new(type: 'SomethingElseHappened', data: { foo: 'bar' }.to_json)
         ]
+      end
+
+      before do
         store_adapter.append_to_stream('stream', events)
       end
 
@@ -49,6 +53,65 @@ module EventStoreClient
           expect(events.count).to eq(2)
           expect(events.map(&:type)).
             to eq(%w[SomethingHappened SomethingElseHappened])
+        end
+      end
+
+      context 'when encrypted mapper' do
+        let(:encdypted_data) do
+          {
+            data: {
+              user_id: SecureRandom.uuid,
+              first_name: 'es_encrypted',
+              last_name: 'es_encrypted',
+              profession: 'es_encrypted'
+            }
+          }
+        end
+
+        let(:decrypted_data) do
+          {
+
+            user_id: SecureRandom.uuid,
+            first_name: 'John',
+            last_name: 'Done',
+            profession: 'Bos'
+          }
+        end
+
+        let(:events) { [EncryptedEvent.new(encdypted_data)] }
+
+        let(:key_repository) { double }
+        let(:encrypted_mapper) { EventStoreClient::Mapper::Encrypted.new(key_repository) }
+
+        before do
+          allow_any_instance_of(EventStoreClient.adapter.class).to receive(
+            :mapper
+          ).and_return(encrypted_mapper)
+          allow_any_instance_of(EventStoreClient::DataDecryptor).to receive(
+            :call
+          ).and_return(decrypted_data)
+        end
+
+        context 'when skip decryption set to true' do
+          let(:options) { { skip_decryption: true } }
+
+          it 'returns non decrypted events' do
+            expect_any_instance_of(EventStoreClient::DataDecryptor).to_not receive(:call)
+            events = client.read('stream', options: options).value!
+            expect(events.count).to eq(1)
+            expect(events.map(&:type)).to eq(%w[EncryptedEvent])
+          end
+        end
+
+        context 'when skip decryption set to false' do
+          let(:options) { { skip_decryption: false } }
+
+          it 'returns non decrypted events' do
+            expect_any_instance_of(EventStoreClient::DataDecryptor).to receive(:call)
+            events = client.read('stream', options: options).value!
+            expect(events.count).to eq(1)
+            expect(events.map(&:type)).to eq(%w[EncryptedEvent])
+          end
         end
       end
     end
