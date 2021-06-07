@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    event_store_client (1.0.15)
+    event_store_client (1.0.16)
       dry-configurable (>= 0.11)
       dry-monads (~> 1)
       dry-schema (~> 1)
@@ -66,10 +66,10 @@ GEM
     faraday-excon (1.1.0)
     faraday-net_http (1.0.1)
     faraday-net_http_persistent (1.1.0)
-    google-protobuf (3.17.1-universal-darwin)
+    google-protobuf (3.17.1-x86_64-linux)
     googleapis-common-protos-types (1.0.6)
       google-protobuf (~> 3.14)
-    grpc (1.38.0-universal-darwin)
+    grpc (1.38.0-x86_64-linux)
       google-protobuf (~> 3.15)
       googleapis-common-protos-types (~> 1.0)
     hashdiff (1.0.1)

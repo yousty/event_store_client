@@ -7,10 +7,13 @@ require_relative './event_handlers'
 class AdaptersTestRun
   def call
     # publish_events(count: 100, batch: false)
-    publish_events(count: 2, batch: true)
-    read_events_from_stream(all: false)
-    read_events_from_stream(all: true)
-    subscribe(FooHandler, [SomethingHappened])
+    #publish_events(count: 2, batch: true)
+    # publish_other_events(count: 2, batch: true)
+    # subscribe_to_all
+    # store.listen(wait: true)
+    #read_events_from_stream(all: false)
+    # read_events_from_stream(all: true)
+    #subscribe(FooHandler, [SomethingHappened])
     # link_to('linkedstream')
     # subscribe(BarHandler, [SomethingHappened])
     # subscribe(ZooHandler, [SomethingHappened])
@@ -27,6 +30,19 @@ class AdaptersTestRun
     events = Array.new(count) do
       SomethingHappened.new(
         data: { user_id: SecureRandom.uuid, title: 'Something happened' }
+      )
+    end
+    return client.append_to_stream(stream, events) if batch
+
+    events.map { |event| client.append_to_stream(stream, [event]) }
+  end
+
+  def publish_other_events(count: 10, batch: false)
+    puts "\n#{__method__} #{count} events (batch: #{batch}"
+
+    events = Array.new(count) do
+      AnotherThingHappened.new(
+        data: { user_id: SecureRandom.uuid, title: 'Another Thing happened' }
       )
     end
     return client.append_to_stream(stream, events) if batch
@@ -52,6 +68,23 @@ class AdaptersTestRun
     puts "READ result: Successs:#{res.success?}, length: #{res.value!.length}"
     puts res.value!.map(&:title).first(100)
     puts "\n"
+  end
+
+  def subscribe_to_all
+    subscriber = lambda do |event|
+      puts '###############'
+      puts event.inspect
+    end
+
+    store.subscribe_to_all(
+      subscriber,
+      id: SecureRandom.uuid,
+      filter: {
+        event_type: { regex: '^AnotherThing.*' },
+        max: 32,
+        checkpointIntervalMultiplier: 1000
+      }
+    )
   end
 
   def subscribe(handler, event_types)

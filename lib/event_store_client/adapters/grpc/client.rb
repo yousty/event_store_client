@@ -90,6 +90,18 @@ module EventStoreClient
         config.error_handler&.call(e)
       end
 
+      # Subscribe to a stream
+      # @param options [Hash] additional options to the request
+      # @return - Nothing, it is a blocking operation, yields the given block with event instead
+      #
+      def subscribe(options = {})
+        Commands::Streams::Subscribe.new.call(options) do |event|
+          yield event if block_given?
+        end
+      rescue StandardError => e
+        config.error_handler&.call(e)
+      end
+
       private
 
       # Joins multiple streams into the new one under the given name

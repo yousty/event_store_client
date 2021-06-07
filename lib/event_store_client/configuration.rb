@@ -2,6 +2,7 @@
 
 require 'dry-configurable'
 require 'event_store_client/error_handler'
+
 module EventStoreClient
   extend Dry::Configurable
 
@@ -26,6 +27,8 @@ module EventStoreClient
   setting :service_name, 'default'
 
   setting :mapper, Mapper::Default.new
+
+  setting :subscriptions_repo
 
   def self.configure
     yield(config) if block_given?
