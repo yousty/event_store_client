@@ -45,6 +45,10 @@ module EventStoreClient
       subscription_store.clean_unused(subscriptions.map(&:name))
     end
 
+    def reset
+      subscription_store.reset(subscriptions)
+    end
+
     private
 
     attr_reader :connection, :subscriptions, :subscription_store

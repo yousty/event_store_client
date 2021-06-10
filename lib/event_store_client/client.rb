@@ -33,6 +33,12 @@ module EventStoreClient
       @subscriptions.create_or_load(subscriber, filter: filter)
     end
 
+    def reset_subscriptions
+      return unless @subscriptions.respond_to?(:reset)
+
+      @subscriptions.reset
+    end
+
     def listen(wait: false)
       broker.call(@subscriptions, wait: wait)
     end
