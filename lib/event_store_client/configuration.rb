@@ -30,6 +30,8 @@ module EventStoreClient
 
   setting :subscriptions_repo
 
+  setting :logger
+
   def self.configure
     yield(config) if block_given?
   end

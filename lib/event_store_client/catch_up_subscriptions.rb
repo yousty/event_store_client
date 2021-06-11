@@ -34,6 +34,8 @@ module EventStoreClient
         next unless event
 
         subscription.subscriber.call(event)
+
+        break if Thread.current.thread_variable_get(:terminate)
       rescue StandardError
         subscription.position = old_position
         subscription_store.update_position(subscription)

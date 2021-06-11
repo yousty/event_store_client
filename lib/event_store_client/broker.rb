@@ -10,6 +10,14 @@ module EventStoreClient
     #   main app process (useful for debugging)
     #
     def call(subscriptions, wait: false)
+      Signal.trap('TERM') do
+        logger&.info('Broker: TERM Signal has been received')
+        threads.each do |thread|
+          thread.thread_variable_set(:terminate, true)
+        end
+        logger&.info('Broker: Terminate variable for subscription threads set')
+      end
+
       subscriptions.each do |subscription|
         threads << Thread.new do
           subscriptions.listen(subscription)
@@ -20,12 +28,13 @@ module EventStoreClient
 
     private
 
-    attr_reader :connection
+    attr_reader :connection, :logger
     attr_accessor :threads
 
     def initialize(connection:)
       @connection = connection
       @threads = []
+      @logger = EventStoreClient.config.logger
     end
   end
 end
