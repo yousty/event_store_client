@@ -11,11 +11,11 @@ module EventStoreClient
     #
     def call(subscriptions, wait: false)
       Signal.trap('TERM') do
-        logger&.info('Broker: TERM Signal has been received')
+        Thread.new { logger&.info('Broker: TERM Signal has been received') }
         threads.each do |thread|
           thread.thread_variable_set(:terminate, true)
         end
-        logger&.info('Broker: Terminate variable for subscription threads set')
+        Thread.new { logger&.info('Broker: Terminate variable for subscription threads set') }
       end
 
       subscriptions.each do |subscription|

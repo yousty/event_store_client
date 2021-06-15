@@ -35,7 +35,12 @@ module EventStoreClient
 
         subscription.subscriber.call(event)
 
-        break if Thread.current.thread_variable_get(:terminate)
+        if Thread.current.thread_variable_get(:terminate)
+          msg =
+            "CatchUpSubscriptions: Terminating subscription listener for #{subscription.subscriber}"
+          logger&.info(msg)
+          break
+        end
       rescue StandardError
         subscription.position = old_position
         subscription_store.update_position(subscription)
@@ -53,12 +58,13 @@ module EventStoreClient
 
     private
 
-    attr_reader :connection, :subscriptions, :subscription_store
+    attr_reader :connection, :subscriptions, :subscription_store, :logger
 
     def initialize(connection:, subscription_store:)
       @connection = connection
       @subscription_store = subscription_store
       @subscriptions = []
+      @logger = EventStoreClient.config.logger
     end
 
     def confirmation?(event_data)
