@@ -32,6 +32,12 @@ module EventStoreClient
 
   setting :logger
 
+  setting :socket_error_retry_sleep, 0.5
+  setting :socket_error_retry_count, 3
+
+  setting :grpc_unavailable_retry_sleep, 0.5
+  setting :grpc_unavailable_retry_count, 3
+
   def self.configure
     yield(config) if block_given?
   end

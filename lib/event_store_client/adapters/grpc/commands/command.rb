@@ -9,6 +9,8 @@ module EventStoreClient
       class Command
         include Configuration
 
+        class GRPCUnavailableRetryFailed < StandardError; end
+
         def self.inherited(klass)
           super
           klass.class_eval do

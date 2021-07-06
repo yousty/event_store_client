@@ -9,6 +9,8 @@ module EventStoreClient
     class Connection
       include Configuration
 
+      class SocketErrorRetryFailed < StandardError; end
+
       # Initializes the proper stub with the necessary credentials
       # to create working gRPC connection - Refer to generated grpc files
       # @return [Stub] Instance of a given `Stub` klass
@@ -29,6 +31,7 @@ module EventStoreClient
       attr_reader :cert
 
       def initialize
+        retries ||= 0
         @cert =
           Net::HTTP.start(
             config.eventstore_url.host, config.eventstore_url.port,
@@ -36,6 +39,10 @@ module EventStoreClient
             verify_mode: verify_ssl,
             &:peer_cert
           )
+      rescue SocketError
+        sleep config.socket_error_retry_sleep
+        retry if (retries += 1) <= config.socket_error_retry_count
+        raise SocketErrorRetryFailed
       end
 
       def channel_credentials
