@@ -58,7 +58,7 @@ module EventStoreClient
               raise StreamNotFound if res.stream_not_found
               deserialize_event(res.event.event, skip_decryption: skip_decryption)
             end
-          rescue GRPC::Unavailable
+          rescue ::GRPC::Unavailable
             sleep config.grpc_unavailable_retry_sleep
             retry if (retries += 1) <= config.grpc_unavailable_retry_count
             raise GRPCUnavailableRetryFailed
