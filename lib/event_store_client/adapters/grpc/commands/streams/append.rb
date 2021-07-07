@@ -27,8 +27,8 @@ module EventStoreClient
                 'content-type': event_metadata['content-type']
               }
               custom_metadata['encryption'] = event_metadata['encryption'] unless event_metadata['encryption'].nil?
+              custom_metadata['transaction'] = event_metadata['transaction'] unless event_metadata['transaction'].nil?
               event_metadata = event_metadata.select { |k| ['type', 'content-type', 'created_at'].include?(k) }
-
 
               payload = [
                 request.new(
