@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'dry/monads'
+
 module EventStoreClient
   class InMemory
     Response = Struct.new(:body, :status) do
@@ -22,7 +23,7 @@ module EventStoreClient
           'positionEventNumber' => event_store[stream_name].length
         )
       end
-      Dry::Monads::Success()
+      Dry::Monads::Success(events)
     end
 
     def delete_stream(stream_name, options: {}) # rubocop:disable Lint/UnusedMethodArgument

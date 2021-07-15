@@ -52,7 +52,7 @@ module EventStoreClient
               ]
               service.append(payload, metadata: metadata)
             end
-            Success()
+            Success(events)
           end
         end
       end

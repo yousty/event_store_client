@@ -12,6 +12,7 @@ module EventStoreClient
     def publish(stream:, events:, options: {})
       res = connection.append_to_stream(stream, events, options: options)
       raise WrongExpectedEventVersion.new(e.message) if res.failure?
+      res
     end
 
     def read(stream, options: {})
