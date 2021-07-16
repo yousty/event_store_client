@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    event_store_client (1.2.0)
+    event_store_client (1.2.1)
       dry-configurable (>= 0.11)
       dry-monads (~> 1)
       dry-schema (~> 1)
@@ -105,7 +105,7 @@ GEM
     rspec-support (3.10.0)
     rss (0.2.9)
       rexml
-    ruby2_keywords (0.0.4)
+    ruby2_keywords (0.0.5)
     webmock (3.10.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
