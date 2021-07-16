@@ -5,6 +5,8 @@ module EventStoreClient
     FILTER_DEFAULT_MAX = 32
     FILTER_DEFAULT_CHECKPOINT_INTERVAL_MULTIPLIER = 10000
 
+    include Configuration
+
     def create_or_load(subscriber, filter: {})
       filter_options = prepare_filter_options(filter)
       position = subscription_store.load_all_position(CatchUpSubscription.name(subscriber))
@@ -41,10 +43,10 @@ module EventStoreClient
           logger&.info(msg)
           break
         end
-      rescue StandardError
+      rescue StandardError => e
         subscription.position = old_position
         subscription_store.update_position(subscription)
-        raise
+        config.error_handler&.call(e)
       end
     end
 
