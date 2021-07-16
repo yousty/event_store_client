@@ -84,10 +84,12 @@ module EventStoreClient
       #
       def listen(subscription, options: {})
         consume_feed(subscription, options: options) do |event|
-          yield event if block_given?
+          begin
+            yield event if block_given?
+          rescue StandardError => e
+            config.error_handler&.call(e)
+          end
         end
-      rescue StandardError => e
-        config.error_handler&.call(e)
       end
 
       # Subscribe to a stream
