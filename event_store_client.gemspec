@@ -7,6 +7,7 @@ require 'event_store_client/version'
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |spec|
+  spec.platform    = Gem::Platform::RUBY
   spec.name        = 'event_store_client'
   spec.version     = EventStoreClient::VERSION
   spec.authors     = ['Sebastian Wilgosz']
