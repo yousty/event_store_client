@@ -11,7 +11,7 @@ module EventStoreClient
 
     def publish(stream:, events:, options: {})
       res = connection.append_to_stream(stream, events, options: options)
-      raise WrongExpectedEventVersion.new(e.message) if res.failure?
+      raise WrongExpectedEventVersion.new(res.failure) if res.failure?
       res
     end
 
