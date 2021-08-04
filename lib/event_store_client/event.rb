@@ -14,7 +14,7 @@ module EventStoreClient
 
     private
 
-    def initialize(**args)
+    def initialize(args = {})
       args[:id] = SecureRandom.uuid if args[:id].nil?
       hash_meta = JSON.parse(args[:metadata] || '{}')
       hash_meta['created_at'] ||= Time.now
