@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'grpc'
+require 'fast_jsonparser'
 require 'event_store_client/adapters/grpc/generated/streams_pb.rb'
 require 'event_store_client/adapters/grpc/generated/streams_services_pb.rb'
 
@@ -85,7 +86,7 @@ module EventStoreClient
             data = (entry.data.nil? || entry.data.empty?) ? '{}' : entry.data
 
             metadata =
-              JSON.parse(entry.custom_metadata || '{}').merge(
+              FastJsonparser.parse(entry.custom_metadata || '{}').merge(
                 entry.metadata.to_h || {}
               ).to_json
 
