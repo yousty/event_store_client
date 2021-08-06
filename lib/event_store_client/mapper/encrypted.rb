@@ -51,7 +51,7 @@ module EventStoreClient
 
       def deserialize(event, skip_decryption: false)
         metadata = serializer.deserialize(event.metadata)
-        encryption_schema = serializer.deserialize(event.metadata)['encryption']
+        encryption_schema = metadata['encryption']
 
         decrypted_data =
           if skip_decryption

@@ -15,7 +15,7 @@ module EventStoreClient
       end
     end
 
-    def initialize(**args)
+    def initialize(args = {})
       validation = schema.call(args[:data] || {})
       @data = args.fetch(:data) { {} }
       @metadata = args.fetch(:metadata) { {} }.merge(
