@@ -44,7 +44,12 @@ module EventStoreClient
             end
 
             skip_decryption = options[:skip_decryption] || false
-            events = read_stream(opts, skip_decryption)
+            events =
+              if options[:skip_deserialization]
+                read_stream_raw(opts)
+              else
+                read_stream(opts, skip_decryption)
+              end
             Success(events)
           rescue StreamNotFound
             Failure(:not_found)
@@ -57,6 +62,18 @@ module EventStoreClient
             service.read(request.new(options: options), metadata: metadata).map do |res|
               raise StreamNotFound if res.stream_not_found
               deserialize_event(res.event.event, skip_decryption: skip_decryption)
+            end
+          rescue ::GRPC::Unavailable
+            sleep config.grpc_unavailable_retry_sleep
+            retry if (retries += 1) <= config.grpc_unavailable_retry_count
+            raise GRPCUnavailableRetryFailed
+          end
+
+          def read_stream_raw(options)
+            retries ||= 0
+            service.read(request.new(options: options), metadata: metadata).map do |res|
+              raise StreamNotFound if res.stream_not_found
+              res.event.event
             end
           rescue ::GRPC::Unavailable
             sleep config.grpc_unavailable_retry_sleep
