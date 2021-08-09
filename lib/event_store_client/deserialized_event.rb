@@ -16,13 +16,15 @@ module EventStoreClient
     end
 
     def initialize(args = {})
-      validation = schema.call(args[:data] || {})
+      validation = schema.call(args[:data] || {}) unless args[:skip_validation]
       @data = args.fetch(:data) { {} }
       @metadata = args.fetch(:metadata) { {} }.merge(
         'type' => self.class.name,
         'content-type' => content_type
       )
-      @metadata.merge!('validation-errors' => validation.errors.to_h) if validation.errors.any?
+      if !args[:skip_validation] && validation.errors.any?
+        @metadata.merge!('validation-errors' => validation.errors.to_h)
+      end
       @type = args[:type] || self.class.name
       @title = args[:title]
       @id = args[:id]

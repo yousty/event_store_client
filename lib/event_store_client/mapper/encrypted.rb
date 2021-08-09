@@ -72,6 +72,7 @@ module EventStoreClient
           end
 
         event_class.new(
+          skip_validation: true,
           id: event.id,
           type: event.type,
           title: event.title,

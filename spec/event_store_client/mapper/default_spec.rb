@@ -33,6 +33,13 @@ module EventStoreClient
           expect(subject.metadata['created_at']).not_to be_nil
           expect(subject.type).to eq('DefaultEvent')
         end
+
+        it 'skips validation' do
+          expect_any_instance_of(DefaultEvent).to(
+            receive(:initialize).with(hash_including(skip_validation: true))
+          )
+          subject
+        end
       end
 
       context 'when the event type const does not exist' do

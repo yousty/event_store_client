@@ -82,6 +82,13 @@ module EventStoreClient
         expect(subject.metadata).to include('created_at')
         expect(subject.data).not_to include('es_encrypted')
       end
+
+      it 'skips validation' do
+        expect_any_instance_of(EncryptedEvent).to(
+          receive(:initialize).with(hash_including(skip_validation: true))
+        )
+        subject
+      end
     end
   end
 end
