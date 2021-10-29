@@ -10,3 +10,6 @@ tmp
 .docker-sync
 
 .DS_Store
+
+#rubocop qa-tools default rules
+.rubocop-https*
