@@ -4,36 +4,53 @@ require 'dry/schema'
 
 module EventStoreClient
   class DeserializedEvent
-    attr_reader :id
-    attr_reader :type
-    attr_reader :title
-    attr_reader :data
-    attr_reader :metadata
+    InvalidDataError = Class.new(StandardError)
+    private_constant :InvalidDataError
 
-    def schema
-      Dry::Schema.Params do
-      end
-    end
+    attr_reader :id, :type, :title, :data, :metadata
 
+    # @args [Hash] opts
+    # @option opts [Boolean] :skip_validation
+    # @option opts [Hash] :data
+    # @option opts [Hash] :metadata
+    # @option opts [String] :type
+    # @option opts [String] :title
+    # @option opts [UUID] :id
+    #
     def initialize(args = {})
-      validation = schema.call(args[:data] || {}) unless args[:skip_validation]
+      validate(args[:data]) unless args[:skip_validation]
+
       @data = args.fetch(:data) { {} }
-      @metadata = args.fetch(:metadata) { {} }.merge(
-        'type' => self.class.name,
-        'content-type' => content_type
-      )
-      if !args[:skip_validation] && validation.errors.any?
-        @metadata.merge!('validation-errors' => validation.errors.to_h)
-      end
+      @metadata =
+        args.fetch(:metadata) { {} }
+            .merge(
+              'type' => self.class.name,
+              'content-type' => payload_content_type
+            )
+
       @type = args[:type] || self.class.name
       @title = args[:title]
       @id = args[:id]
     end
 
-    def content_type
+    # event schema
+    def schema; end
+
+    # content type of the event data
+    def payload_content_type
       return 'application/json' if EventStoreClient.config.adapter == :grpc
 
       'application/vnd.eventstore.events+json'
+    end
+
+    private
+
+    def validate(data)
+      validation = schema.call(data || {})
+
+      retun unless validation.errors.any?
+
+      raise(InvalidDataError.new(message: "#{schema.class.name} #{validation.errors.to_h}"))
     end
   end
 end
