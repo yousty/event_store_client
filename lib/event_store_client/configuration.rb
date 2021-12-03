@@ -8,35 +8,35 @@ module EventStoreClient
 
   # Supported adapters: %i[api in_memory grpc]
   #
-  setting :adapter, :grpc
-  setting :verify_ssl, true
+  setting :adapter, default: :grpc
+  setting :verify_ssl, default: true
 
-  setting :error_handler, ErrorHandler.new
-  setting :eventstore_url, 'http://localhost:2113' do |value|
+  setting :error_handler, default: ErrorHandler.new
+  setting :eventstore_url, default: 'http://localhost:2113' do |value|
     value.is_a?(URI) ? value : URI(value)
   end
 
-  setting :eventstore_user, 'admin'
-  setting :eventstore_password, 'changeit'
+  setting :eventstore_user, default: 'admin'
+  setting :eventstore_password, default: 'changeit'
 
-  setting :db_port, 2113
+  setting :db_port, default: 2113
 
-  setting :per_page, 20
-  setting :pid_path, 'tmp/poll.pid'
+  setting :per_page, default: 20
+  setting :pid_path, default: 'tmp/poll.pid'
 
-  setting :service_name, 'default'
+  setting :service_name, default: 'default'
 
-  setting :mapper, Mapper::Default.new
+  setting :mapper, default: Mapper::Default.new
 
   setting :subscriptions_repo
 
   setting :logger
 
-  setting :socket_error_retry_sleep, 0.5
-  setting :socket_error_retry_count, 3
+  setting :socket_error_retry_sleep, default: 0.5
+  setting :socket_error_retry_count, default: 3
 
-  setting :grpc_unavailable_retry_sleep, 0.5
-  setting :grpc_unavailable_retry_count, 3
+  setting :grpc_unavailable_retry_sleep, default: 0.5
+  setting :grpc_unavailable_retry_count, default: 3
 
   def self.configure
     yield(config) if block_given?

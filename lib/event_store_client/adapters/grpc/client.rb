@@ -11,7 +11,7 @@ module EventStoreClient
       #
       def append_to_stream(stream_name, events, options: {})
         Commands::Streams::Append.new.call(
-          stream_name, events, options: {}
+          stream_name, events, options: options
         )
       end
 
