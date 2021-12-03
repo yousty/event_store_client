@@ -48,7 +48,7 @@ module EventStoreClient
     def validate(data)
       validation = schema.call(data || {})
 
-      retun unless validation.errors.any?
+      return unless validation.errors.any?
 
       raise(InvalidDataError.new(message: "#{schema.class.name} #{validation.errors.to_h}"))
     end
