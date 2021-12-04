@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    event_store_client (1.4.1)
+    event_store_client (1.4.2)
       dry-configurable (>= 0.11)
       dry-monads (~> 1)
       dry-schema (~> 1)
