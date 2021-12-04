@@ -46,6 +46,8 @@ module EventStoreClient
     private
 
     def validate(data)
+      return unless schema
+
       validation = schema.call(data || {})
 
       return unless validation.errors.any?
