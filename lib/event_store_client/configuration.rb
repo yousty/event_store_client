@@ -2,6 +2,7 @@
 
 require 'dry-configurable'
 require 'event_store_client/error_handler'
+require 'event_store_client/deserialized_event'
 
 module EventStoreClient
   extend Dry::Configurable
@@ -28,7 +29,7 @@ module EventStoreClient
 
   setting :mapper, default: Mapper::Default.new
 
-  setting :default_event_class, default: EventStoreClient::DeserializedEvent
+  setting :default_event_class, default: DeserializedEvent
 
   setting :subscriptions_repo
 
