@@ -20,7 +20,7 @@ module EventStoreClient
           begin
             Object.const_get(event.type)
           rescue NameError
-            EventStoreClient::DeserializedEvent
+            EventStoreClient.config.default_event_class
           end
         event_class.new(
           skip_validation: true,

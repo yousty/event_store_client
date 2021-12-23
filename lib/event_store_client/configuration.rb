@@ -28,6 +28,8 @@ module EventStoreClient
 
   setting :mapper, default: Mapper::Default.new
 
+  setting :default_event_class, default: EventStoreClient::DeserializedEvent
+
   setting :subscriptions_repo
 
   setting :logger
