@@ -1,6 +1,30 @@
 # frozen_string_literal: true
 
 require 'irb'
+
+if ENV['TEST_COVERAGE'] == 'true'
+  require 'simplecov'
+  require 'simplecov-formatter-badge'
+
+  SimpleCov.profiles.define 'event-store-client' do
+    add_filter 'spec/'
+    add_filter '/version.rb'
+    track_files 'lib/**/*.rb'
+  end
+
+  SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new(
+    [
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::BadgeFormatter
+    ]
+  )
+
+  # Target
+  # SimpleCov.minimum_coverage 90
+
+  SimpleCov.start 'event-store-client'
+end
+
 require 'event_store_client'
 require 'event_store_client/adapters/in_memory'
 require 'webmock/rspec'
