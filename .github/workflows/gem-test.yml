@@ -24,4 +24,4 @@ jobs:
     - name: Run tests
       run: |
         bundle install
-        bundle exec TEST_COVERAGE=true rspec
+        TEST_COVERAGE=true bundle exec rspec
