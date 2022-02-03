@@ -6,6 +6,7 @@ spec/examples.txt
 spec/dummy
 tmp
 .env
+*.gem
 
 .docker-sync
 
