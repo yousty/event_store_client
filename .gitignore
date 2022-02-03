@@ -13,3 +13,6 @@ tmp
 
 #rubocop qa-tools default rules
 .rubocop-https*
+
+# Ignore coverage report
+/coverage
