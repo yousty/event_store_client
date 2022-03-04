@@ -13,10 +13,9 @@ module EventStoreClient
   setting :verify_ssl, default: true
 
   setting :error_handler, default: ErrorHandler.new
-  setting :eventstore_url, default: 'http://localhost:2113' do |value|
-    value.is_a?(URI) ? value : URI(value)
-  end
-
+  setting :eventstore_url,
+          default: 'http://localhost:2113',
+          constructor: proc { |value| value.is_a?(URI) ? value : URI(value) }
   setting :eventstore_user, default: 'admin'
   setting :eventstore_password, default: 'changeit'
 
