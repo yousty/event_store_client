@@ -7,9 +7,9 @@ require 'event_store_client/deserialized_event'
 module EventStoreClient
   extend Dry::Configurable
 
-  # Supported adapters: %i[api in_memory grpc]
+  # Supported adapter_types: %i[api in_memory grpc]
   #
-  setting :adapter, default: :grpc
+  setting :adapter_type, default: :grpc
   setting :verify_ssl, default: true
 
   setting :error_handler, default: ErrorHandler.new
@@ -46,7 +46,7 @@ module EventStoreClient
 
   def self.adapter
     @adapter =
-      case config.adapter
+      case config.adapter_type
       when :http
         require 'event_store_client/adapters/http'
         HTTP::Client.new

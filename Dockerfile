@@ -1,40 +1,28 @@
-FROM ruby:2.7.2-slim
+FROM ruby:3.2-rc-alpine
 
 ENV BUNDLER_VERSION '2.1.4'
 
-RUN apt-get update -qq && \
-  apt-get install --no-install-recommends -y --force-yes \
-  apt-transport-https \
-  build-essential \
-  curl \
-  g++ \
-  gcc \
-  git \
-  libfontconfig \
-  # libgconf2-4 \
-  libgtk-3-dev \
-  libpq-dev \
-  libxt6 \
-  qt5-default \
-  unzip \
-  wget \
-  xvfb \
-  && apt-get clean autoclean \
-  && apt-get autoremove -y \
-  && rm -rf \
-    /var/lib/apt \
-    /var/lib/dpkg/* \
-    /var/lib/cache \
-    /var/lib/log \
-  && gem update --system \
-  && gem install bundler -v 2.1.4
+RUN apk add curl wget build-base tzdata bash shared-mime-info gcompat && \
+  gem install grpc --platform ruby && \
+  apk del build-base && \
+  find /usr/local/bundle -name "*.o" -delete && \
+  find /usr/local/bundle -name "*.c" -delete  && \
+  rm -rf /usr/local/bundle/cache/*.gem
+
+RUN gem update --system && \
+  gem install bundler
 
 WORKDIR /usr/src/app
 
 COPY lib/event_store_client/version.rb lib/event_store_client/version.rb
-COPY event_store_client.gemspec Gemfile Gemfile.lock ./
+COPY event_store_client.gemspec Gemfile ./
 
-RUN bundle install
+RUN apk add build-base git && \
+  bundle install && \
+  gem uninstall grpc --platform x86_64-linux -x -a -I && \
+  gem uninstall google-protobuf --platform x86_64-linux -x -a -I && \
+  apk del build-base postgresql-dev && \
+  apk add postgresql
 
 COPY . .
 
