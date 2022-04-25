@@ -2,6 +2,7 @@
 
 class DummyRepository
   Message = Struct.new(:attributes)
+
   class Key
     attr_accessor :iv, :cipher, :id
     def initialize(id:, **)
@@ -18,13 +19,13 @@ class DummyRepository
   end
 
   def encrypt(*)
-    message = Message.new(message: 'darthvader')
+    message = Message.new(attributes: { message: 'darthvader' })
     Dry::Monads::Success(message)
   end
 
   def decrypt(*)
     message = Message.new(
-      message: JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker')
+      attributes: { message: JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker') }
     )
     Dry::Monads::Success(message)
   end

@@ -61,8 +61,7 @@ module EventStoreClient
 
     attr_reader :subscriptions, :broker, :error_handler
 
-    def initialize(connecion_string)
-      set_connection_config(connecion_string) if connecion_string
+    def initialize
       @threads = []
       @connection = EventStoreClient.adapter
       @error_handler = config.error_handler
@@ -72,7 +71,7 @@ module EventStoreClient
     end
 
     def set_connection_config(connection_string)
-
+      config.eventstore_url = URI.parse(connection_string)
     end
   end
 end

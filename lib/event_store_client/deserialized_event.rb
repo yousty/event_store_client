@@ -38,7 +38,7 @@ module EventStoreClient
 
     # content type of the event data
     def payload_content_type
-      return 'application/json' if EventStoreClient.config.adapter == :grpc
+      return 'application/json' if EventStoreClient.config.adapter_type == :grpc
 
       'application/vnd.eventstore.events+json'
     end

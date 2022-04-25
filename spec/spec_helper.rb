@@ -33,7 +33,7 @@ require 'dry/monads'
 require_relative 'event_store_client/event_store_helpers.rb'
 
 EventStoreClient.configure do |config|
-  config.adapter = :in_memory
+  config.adapter_type = :in_memory
   config.eventstore_url = 'https://www.example.com:8080'
 end
 

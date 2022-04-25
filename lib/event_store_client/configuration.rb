@@ -7,10 +7,12 @@ require 'event_store_client/deserialized_event'
 module EventStoreClient
   extend Dry::Configurable
 
-  # Supported adapter_types: %i[api in_memory grpc]
+  # Supported adapter_types: %i[http in_memory grpc]
   #
   setting :adapter_type, default: :grpc
-  setting :verify_ssl, default: true
+
+  setting :use_ssl, default: true
+  setting :verify_ssl, default: false
 
   setting :error_handler, default: ErrorHandler.new
   setting :eventstore_url,

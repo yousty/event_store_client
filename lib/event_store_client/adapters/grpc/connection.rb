@@ -36,7 +36,7 @@ module EventStoreClient
           Net::HTTP.start(
             config.eventstore_url.host, config.eventstore_url.port,
             use_ssl: true,
-            verify_mode: verify_ssl,
+            verify_mode: config.verify_ssl || OpenSSL::SSL::VERIFY_NONE,
             &:peer_cert
           )
       rescue SocketError
@@ -47,10 +47,6 @@ module EventStoreClient
 
       def channel_credentials
         ::GRPC::Core::ChannelCredentials.new(cert.to_s)
-      end
-
-      def verify_ssl
-        config.verify_ssl || OpenSSL::SSL::VERIFY_NONE
       end
     end
   end
