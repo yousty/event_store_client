@@ -35,6 +35,7 @@ module EventStoreClient
         subscription_store.update_position(subscription)
         next unless event
 
+        logger&.info("Subscription #{subscription.name} received event #{event_data.inspect}")
         subscription.subscriber.call(event)
 
         if Thread.current.thread_variable_get(:terminate)
