@@ -23,6 +23,10 @@ module EventStoreClient
       end
     end
 
+    def read_all(options: {})
+      connection.read_all(options: options)
+    end
+
     def subscribe(subscriber, to: [], options: {})
       raise NoCallMethodOnSubscriber unless subscriber.respond_to?(:call)
       @subscriptions.create(subscriber, to, options: options)
