@@ -8,6 +8,15 @@ module EventStoreClient
           stream_name, events, options: options
         )
       end
+
+      # Reads a page of events from the given stream
+      # @param [String] Stream name to read events from
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
+      #
+      def read(stream_name, options: {})
+        Commands::Streams::Read.new.call(stream_name, options: options)
+      end
     end
   end
 end

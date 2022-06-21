@@ -33,6 +33,8 @@ services:
       - EVENTSTORE_TRUSTED_ROOT_CERTIFICATES_PATH=/certs/ca
       - EVENTSTORE_CERTIFICATE_FILE=/certs/node1/node.crt
       - EVENTSTORE_CERTIFICATE_PRIVATE_KEY_FILE=/certs/node1/node.key
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+      - EVENTSTORE_INSECURE=true
     healthcheck:
       test:
         [
@@ -67,6 +69,8 @@ services:
       - EVENTSTORE_TRUSTED_ROOT_CERTIFICATES_PATH=/certs/ca
       - EVENTSTORE_CERTIFICATE_FILE=/certs/node2/node.crt
       - EVENTSTORE_CERTIFICATE_PRIVATE_KEY_FILE=/certs/node2/node.key
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+      - EVENTSTORE_INSECURE=true
     healthcheck:
       test:
         [
@@ -94,6 +98,8 @@ services:
       - EVENTSTORE_TRUSTED_ROOT_CERTIFICATES_PATH=/certs/ca
       - EVENTSTORE_CERTIFICATE_FILE=/certs/node3/node.crt
       - EVENTSTORE_CERTIFICATE_PRIVATE_KEY_FILE=/certs/node3/node.key
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+      - EVENTSTORE_INSECURE=true
     healthcheck:
       test:
         [

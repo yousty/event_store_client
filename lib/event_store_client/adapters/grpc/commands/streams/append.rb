@@ -31,7 +31,7 @@ module EventStoreClient
               break if res.failure?
             end
 
-            res.success? ? Success(events) : Failure(res.failure)
+            res
           end
 
           private
@@ -48,7 +48,11 @@ module EventStoreClient
               )
             )
 
-            resp = service.append(payload, metadata: metadata)
+            begin
+              resp = service.append(payload, metadata: metadata)
+            rescue StandardError => e
+              return Failure(e)
+            end
 
             validate_response(resp)
           end
@@ -56,7 +60,7 @@ module EventStoreClient
           def custom_metadata(event_type, event_metadata)
             {
               type: event_type,
-              created_at: Time.current,
+              created_at: Time.now,
               encryption: event_metadata['encryption'],
               'content-type': event_metadata['content-type'],
               transaction: event_metadata['transaction']
@@ -96,7 +100,7 @@ module EventStoreClient
           end
 
           def validate_response(resp)
-            return Success() if resp.success
+            return Success(resp) if resp.success
 
             Failure(
               "current version: #{resp.wrong_expected_version.current_revision} | "\

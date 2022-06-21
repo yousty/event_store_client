@@ -31,10 +31,25 @@ require 'webmock/rspec'
 require 'dry/monads'
 
 require_relative 'event_store_client/event_store_helpers.rb'
+require_relative 'support/dummy_subscription_store.rb'
+
+# EventStoreClient.configure do |config|
+#   config.adapter_type = :in_memory
+#   config.eventstore_url = 'https://www.example.com:8080'
+# end
 
 EventStoreClient.configure do |config|
-  config.adapter_type = :in_memory
-  config.eventstore_url = 'https://www.example.com:8080'
+  config.eventstore_url = ENV['EVENTSTORE_URL']
+  config.adapter_type = :grpc
+  config.eventstore_user = ENV['EVENTSTORE_USER']
+  config.eventstore_password = ENV['EVENTSTORE_PASSWORD']
+  config.verify_ssl = false
+  config.insecure = true
+  config.service_name = ''
+  config.subscriptions_repo = EventStoreClient::CatchUpSubscriptions.new(
+    connection: EventStoreClient.adapter,
+    subscription_store: DummySubscriptionStore.new('dummy-subscription-store')
+  )
 end
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration

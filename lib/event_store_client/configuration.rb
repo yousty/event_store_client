@@ -13,6 +13,7 @@ module EventStoreClient
 
   setting :use_ssl, default: true
   setting :verify_ssl, default: false
+  setting :insecure, default: false
 
   setting :error_handler, default: ErrorHandler.new
   setting :eventstore_url,

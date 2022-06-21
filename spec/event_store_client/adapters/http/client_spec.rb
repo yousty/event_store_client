@@ -155,7 +155,7 @@ module EventStoreClient::HTTP
     private
 
     def store_base_url
-      'https://www.example.com:8080'
+      ENV['EVENTSTORE_URL']
     end
 
     def stream_url(name)

@@ -16,14 +16,9 @@ module EventStoreClient
       # @return [Stub] Instance of a given `Stub` klass
       #
       def call(stub_klass, options: {})
-        credentials =
-          options[:credentials] ||
-          Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-        stub_klass.new(
-          "#{config.eventstore_url.host}:#{config.eventstore_url.port}",
-          channel_credentials,
-          channel_args: { 'authorization' => "Basic #{credentials.delete("\n")}" }
-        )
+        return insecure_stub(stub_klass) if config.insecure
+
+        secure_stub(stub_klass, options[:credentials])
       end
 
       private
@@ -47,6 +42,23 @@ module EventStoreClient
 
       def channel_credentials
         ::GRPC::Core::ChannelCredentials.new(cert.to_s)
+      end
+
+      def secure_stub(stub_klass, credentials)
+        credentials ||=
+          Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
+        stub_klass.new(
+          "#{config.eventstore_url.host}:#{config.eventstore_url.port}",
+          channel_credentials,
+          channel_args: { 'authorization' => "Basic #{credentials.delete("\n")}" }
+        )
+      end
+
+      def insecure_stub(stub_klass)
+        stub_klass.new(
+          "#{config.eventstore_url.host}:#{config.eventstore_url.port}",
+          :this_channel_is_insecure
+        )
       end
     end
   end
