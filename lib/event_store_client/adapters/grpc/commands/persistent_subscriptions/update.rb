@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require 'grpc'
-require 'event_store_client/adapters/grpc/generated/persistent_pb.rb'
-require 'event_store_client/adapters/grpc/generated/persistent_services_pb.rb'
+require 'event_store_client/adapters/grpc/generated/persistent_pb'
+require 'event_store_client/adapters/grpc/generated/persistent_services_pb'
 
 require 'event_store_client/adapters/grpc/commands/command'
 require 'event_store_client/adapters/grpc/commands/persistent_subscriptions/settings_schema'
@@ -16,8 +15,8 @@ module EventStoreClient
           use_service EventStore::Client::PersistentSubscriptions::PersistentSubscriptions::Stub
 
           # Creates persistent subscription in a given group
-          # @param [String] name of the subscription stream to update
-          # @param [String] name of the subscription group
+          # @param stream [String] name of the subscription stream to update
+          # @param group [String] name of the subscription group
           # @param [Hash] options - additional settings to be set on subscription.
           #   Refer to EventStoreClient::GRPC::Commands::SettingsSchema
           #   for detailed attributes schema

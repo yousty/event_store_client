@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require 'grpc'
-require 'event_store_client/adapters/grpc/generated/persistent_pb.rb'
-require 'event_store_client/adapters/grpc/generated/persistent_services_pb.rb'
+require 'event_store_client/adapters/grpc/generated/persistent_pb'
+require 'event_store_client/adapters/grpc/generated/persistent_services_pb'
 
 require 'event_store_client/adapters/grpc/commands/command'
 
@@ -10,7 +9,7 @@ module EventStoreClient
   module GRPC
     module Commands
       module PersistentSubscriptions
-        # Ensures the proper format of the parameters passed to the subscirption request
+        # Ensures the proper format of the parameters passed to the subscription request
         #
         SettingsSchema = Dry::Schema.Params do
           optional(:resolve_links).value(Dry::Types['bool'].default(true))

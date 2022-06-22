@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 require 'securerandom'
-require 'grpc'
-require 'event_store_client/adapters/grpc/generated/streams_pb.rb'
-require 'event_store_client/adapters/grpc/generated/streams_services_pb.rb'
+require 'event_store_client/adapters/grpc/generated/streams_pb'
+require 'event_store_client/adapters/grpc/generated/streams_services_pb'
 
 require 'event_store_client/adapters/grpc/commands/command'
 

@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require 'grpc'
-require 'event_store_client/adapters/grpc/generated/persistent_pb.rb'
-require 'event_store_client/adapters/grpc/generated/persistent_services_pb.rb'
+require 'event_store_client/adapters/grpc/generated/persistent_pb'
+require 'event_store_client/adapters/grpc/generated/persistent_services_pb'
 
 require 'event_store_client/adapters/grpc/commands/command'
 

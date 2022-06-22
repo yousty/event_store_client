@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require 'event_store_client/value_objects/read_direction.rb'
+require 'grpc'
+require 'event_store_client/value_objects/read_direction'
 
 require 'event_store_client/adapters/grpc/commands/streams/append'
 require 'event_store_client/adapters/grpc/commands/streams/delete'

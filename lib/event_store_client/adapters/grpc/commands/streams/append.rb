@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'grpc'
 require 'event_store_client/adapters/grpc/generated/streams_pb'
 require 'event_store_client/adapters/grpc/generated/streams_services_pb'
 
