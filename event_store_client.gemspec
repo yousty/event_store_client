@@ -27,17 +27,18 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
-  spec.add_dependency 'dry-configurable', '>= 0.11'
+  spec.add_dependency 'dry-configurable', '~> 0.13'
   spec.add_dependency 'dry-monads', '~> 1'
   spec.add_dependency 'dry-schema', '~> 1'
   spec.add_dependency 'dry-struct', '~> 1'
   spec.add_dependency 'faraday', '~> 1.0'
   spec.add_dependency 'grpc', '~> 1.0'
-  spec.add_dependency 'rss', '>= 0.2.8'
+  spec.add_dependency 'rss', '~> 0.2.9'
 
   spec.add_development_dependency 'pry', '~> 0.14'
-  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rspec', '~> 3.11'
   spec.add_development_dependency 'simplecov', '~> 0.21'
   spec.add_development_dependency 'simplecov-formatter-badge', '~> 0.1'
-  spec.add_development_dependency 'webmock'
+  spec.add_development_dependency 'webmock', '~> 3.14'
+  spec.add_development_dependency 'rake', '~> 13.0'
 end
