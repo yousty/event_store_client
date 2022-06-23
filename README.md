@@ -185,6 +185,14 @@ Do you want to contribute? Welcome!
 
 For running the client in the dev mode, see: [Development Guide](https://github.com/yousty/event_store_client/blob/master/docs/eventstore_server_setup.md)
 
+### Re-generating GRPC files from Proto
+
+If you need to re-generate GRPC files from [Proto](https://github.com/EventStore/EventStore/tree/master/src/Protos/Grpc) files - there is a tool to do it. Just run next command:
+
+```shell
+bin/rebuild_protos
+```
+
 ### Publishing new version
 
 1. Push commit with updated `version.rb` file to the `release` branch. The new version will be automatically pushed to [rubygems](https://rubygems.org).

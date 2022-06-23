@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'fileutils'
+
+ROOT = File.expand_path('../', __dir__)
+TMP_DIR = File.join(ROOT, 'tmp')
+ES_DB_ARCHIVE_PATH = File.join(TMP_DIR, 'es_db.zip')
+PROTOS_DIR = File.join(TMP_DIR, 'Protos')
+GENERATED_FILES_DIR = File.join(ROOT, 'lib/event_store_client/adapters/grpc/generated')
+
+def download_es
+  # curl -L -o es_db.zip https://github.com/EventStore/EventStore/archive/refs/heads/master.zip
+  command = ['curl']
+  command.push('-L') # follow redirects
+  command.push("-o#{ES_DB_ARCHIVE_PATH}") # define downloaded file name
+  command.push('https://github.com/EventStore/EventStore/archive/refs/heads/master.zip')
+  puts command.join(' ')
+  puts
+  Kernel.system(*command)
+end
+
+def unzip_protos
+  # unzip -j es_db.zip "EventStore-master/src/Protos/Grpc/*" -d Protos
+  command = ['unzip']
+  command.push('-j') # do not preserve paths from archive
+  command.push(ES_DB_ARCHIVE_PATH)
+  command.push('EventStore-master/src/Protos/Grpc/*') # path to protos inside archive
+  command.push("-d#{PROTOS_DIR}") # a directory where to unarchive Protos
+  puts command.join(' ')
+  puts
+  Kernel.system(*command)
+end
+
+# Generates GRPC files from Protos
+def generate_from_protos
+  Dir[File.join(PROTOS_DIR, '*.proto')].each do |proto_file|
+    command = ['grpc_tools_ruby_protoc']
+    command.push("-I#{PROTOS_DIR}")
+    command.push("--ruby_out=#{GENERATED_FILES_DIR}")
+    command.push("--grpc_out=#{GENERATED_FILES_DIR}")
+    command.push("#{proto_file}")
+    puts command.join(' ')
+    puts
+    Kernel.system(*command)
+  end
+end
+
+# grpc_tools_ruby_protoc tool generates files, but it does not respect paths when inserting requires
+# Example
+#   cluster_pb.rb file depends on shared_pb.rb. Instead
+#   ```ruby
+#   require 'relative/path/to/shared_pb'
+#   ```
+#   or
+#   ```ruby
+#   require_relative 'shared_pb'
+#   ```
+#   it puts
+#   ```ruby
+#   require 'shared_pb'
+#   ```
+# Obviously, that won't work. Fix such cases with simple script.
+def adjust_requires
+  generated_files = Dir[File.join(GENERATED_FILES_DIR, '*.rb')]
+  require_names = generated_files.map { |f| File.basename(f).gsub(/\.rb\z/, '') }
+  generated_files.each do |path|
+    content = File.read(path)
+    file = File.open(path, 'w')
+    require_names.each do |name|
+      content.gsub!(%{require '#{name}'}, %{require_relative '#{name}'})
+      content.gsub!(%{require "#{name}"}, %{require_relative '#{name}'})
+    end
+    file.write(content)
+    file.close
+  end
+end
+
+FileUtils.mkdir_p(PROTOS_DIR)
+
+download_es
+unzip_protos
+generate_from_protos
+adjust_requires
