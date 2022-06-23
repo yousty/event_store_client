@@ -8,8 +8,9 @@ module EventStoreClient
     class Client
       include Configuration
       include Dry::Monads[:result]
+
       # Appends given events to the stream
-      # @param [String] Stream name to append events to
+      # @param stream_name [String] Stream name to append events to
       # @param [Array](each: EventStoreClient::DeserializedEvent) list of events to publish
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
@@ -20,7 +21,7 @@ module EventStoreClient
       end
 
       # Softly deletes the given stream
-      # @param [String] Stream name to delete
+      # @param stream_name [String] Stream name to delete
       # @param options [Hash] additional options to the request
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
@@ -31,7 +32,7 @@ module EventStoreClient
       end
 
       # Completely removes the given stream
-      # @param [String] Stream name to delete
+      # @param stream_name [String] Stream name to delete
       # @param options [Hash] additional options to the request
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
@@ -42,7 +43,7 @@ module EventStoreClient
       end
 
       # Reads a page of events from the given stream
-      # @param [String] Stream name to read events from
+      # @param stream_name [String] Stream name to read events from
       # @param options [Hash] additional options to the request
       # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
       #
@@ -51,7 +52,7 @@ module EventStoreClient
       end
 
       # Reads all events from the given stream
-      # @param [String] Stream name to read events from
+      # @param stream_name [String] Stream name to read events from
       # @param options [Hash] additional options to the request
       # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
       #
@@ -92,9 +93,9 @@ module EventStoreClient
       end
 
       # Links given events with the given stream
-      # @param [String] Stream name to link events to
-      # @param [Array](each: EventStoreClient::DeserializedEvent) a list of events to link
-      # @param expected_version [Integer] expected number of events in the stream
+      # @param stream_name [String] Stream name to link events to
+      # @param events [Array](each: EventStoreClient::DeserializedEvent) a list of events to link
+      # @param options [Hash] additional options to the request
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
       def link_to(stream_name, events, options: {})
@@ -132,8 +133,8 @@ module EventStoreClient
 
       # @api private
       # Joins multiple streams into the new one under the given name
-      # @param [String] Name of the stream containing the ones to join
-      # @param [Array] (each: String) list of streams to join together
+      # @param name [String] Name of the stream containing the ones to join
+      # @param streams [Array] (each: String) list of streams to join together
       # @return Dry::Monads::Result::Success or Dry::Monads::Result::Failure
       #
       def join_streams(name, streams, options: {})
