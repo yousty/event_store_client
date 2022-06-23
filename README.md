@@ -193,6 +193,14 @@ If you need to re-generate GRPC files from [Proto](https://github.com/EventStore
 bin/rebuild_protos
 ```
 
+### Running tests
+
+You will have to install Docker first. It is needed to run EventStore DB. You can run EventStore DB with next command:
+
+```shell
+docker-compose -f docker-compose.local.yml up
+```
+
 ### Publishing new version
 
 1. Push commit with updated `version.rb` file to the `release` branch. The new version will be automatically pushed to [rubygems](https://rubygems.org).
