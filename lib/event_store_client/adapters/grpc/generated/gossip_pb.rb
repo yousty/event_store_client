@@ -3,7 +3,8 @@
 
 require 'google/protobuf'
 
-require 'shared_pb'
+require_relative 'shared_pb'
+
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("gossip.proto", :syntax => :proto3) do
     add_message "event_store.client.gossip.ClusterInfo" do
@@ -14,7 +15,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :port, :uint32, 2
     end
     add_message "event_store.client.gossip.MemberInfo" do
-      optional :instance_id, :message, 1, "event_store.client.shared.UUID"
+      optional :instance_id, :message, 1, "event_store.client.UUID"
       optional :time_stamp, :int64, 2
       optional :state, :enum, 3, "event_store.client.gossip.MemberInfo.VNodeState"
       optional :is_alive, :bool, 4

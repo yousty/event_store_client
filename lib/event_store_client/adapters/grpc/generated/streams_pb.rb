@@ -3,12 +3,14 @@
 
 require 'google/protobuf'
 
-require 'event_store_client/adapters/grpc/generated/shared_pb'
+require_relative 'shared_pb'
+require_relative 'status_pb'
+require 'google/protobuf/duration_pb'
+require 'google/protobuf/empty_pb'
+require 'google/protobuf/timestamp_pb'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("streams.proto", :syntax => :proto3) do
-    ### Read Request definition
-    #
     add_message "event_store.client.streams.ReadReq" do
       optional :options, :message, 1, "event_store.client.streams.ReadReq.Options"
     end
@@ -16,6 +18,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :read_direction, :enum, 3, "event_store.client.streams.ReadReq.Options.ReadDirection"
       optional :resolve_links, :bool, 4
       optional :uuid_option, :message, 9, "event_store.client.streams.ReadReq.Options.UUIDOption"
+      optional :control_option, :message, 10, "event_store.client.streams.ReadReq.Options.ControlOption"
       oneof :stream_option do
         optional :stream, :message, 1, "event_store.client.streams.ReadReq.Options.StreamOptions"
         optional :all, :message, 2, "event_store.client.streams.ReadReq.Options.AllOptions"
@@ -26,22 +29,22 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       end
       oneof :filter_option do
         optional :filter, :message, 7, "event_store.client.streams.ReadReq.Options.FilterOptions"
-        optional :no_filter, :message, 8, "event_store.client.shared.Empty"
+        optional :no_filter, :message, 8, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.ReadReq.Options.StreamOptions" do
-      optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
       oneof :revision_option do
         optional :revision, :uint64, 2
-        optional :start, :message, 3, "event_store.client.shared.Empty"
-        optional :end, :message, 4, "event_store.client.shared.Empty"
+        optional :start, :message, 3, "event_store.client.Empty"
+        optional :end, :message, 4, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.ReadReq.Options.AllOptions" do
       oneof :all_option do
         optional :position, :message, 1, "event_store.client.streams.ReadReq.Options.Position"
-        optional :start, :message, 2, "event_store.client.shared.Empty"
-        optional :end, :message, 3, "event_store.client.shared.Empty"
+        optional :start, :message, 2, "event_store.client.Empty"
+        optional :end, :message, 3, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.ReadReq.Options.SubscriptionOptions" do
@@ -58,7 +61,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       end
       oneof :window do
         optional :max, :uint32, 3
-        optional :count, :message, 4, "event_store.client.shared.Empty"
+        optional :count, :message, 4, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.ReadReq.Options.FilterOptions.Expression" do
@@ -67,23 +70,26 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "event_store.client.streams.ReadReq.Options.UUIDOption" do
       oneof :content do
-        optional :structured, :message, 1, "event_store.client.shared.Empty"
-        optional :string, :message, 2, "event_store.client.shared.Empty"
+        optional :structured, :message, 1, "event_store.client.Empty"
+        optional :string, :message, 2, "event_store.client.Empty"
       end
+    end
+    add_message "event_store.client.streams.ReadReq.Options.ControlOption" do
+      optional :compatibility, :uint32, 1
     end
     add_enum "event_store.client.streams.ReadReq.Options.ReadDirection" do
       value :Forwards, 0
       value :Backwards, 1
     end
-
-    # Read Response definition
-    #
     add_message "event_store.client.streams.ReadResp" do
       oneof :content do
         optional :event, :message, 1, "event_store.client.streams.ReadResp.ReadEvent"
         optional :confirmation, :message, 2, "event_store.client.streams.ReadResp.SubscriptionConfirmation"
         optional :checkpoint, :message, 3, "event_store.client.streams.ReadResp.Checkpoint"
         optional :stream_not_found, :message, 4, "event_store.client.streams.ReadResp.StreamNotFound"
+        optional :first_stream_position, :uint64, 5
+        optional :last_stream_position, :uint64, 6
+        optional :last_all_stream_position, :message, 7, "event_store.client.AllStreamPosition"
       end
     end
     add_message "event_store.client.streams.ReadResp.ReadEvent" do
@@ -91,12 +97,12 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :link, :message, 2, "event_store.client.streams.ReadResp.ReadEvent.RecordedEvent"
       oneof :position do
         optional :commit_position, :uint64, 3
-        optional :no_position, :message, 4, "event_store.client.shared.Empty"
+        optional :no_position, :message, 4, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.ReadResp.ReadEvent.RecordedEvent" do
-      optional :id, :message, 1, "event_store.client.shared.UUID"
-      optional :stream_identifier, :message, 2, "event_store.client.shared.StreamIdentifier"
+      optional :id, :message, 1, "event_store.client.UUID"
+      optional :stream_identifier, :message, 2, "event_store.client.StreamIdentifier"
       optional :stream_revision, :uint64, 3
       optional :prepare_position, :uint64, 4
       optional :commit_position, :uint64, 5
@@ -112,38 +118,29 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :prepare_position, :uint64, 2
     end
     add_message "event_store.client.streams.ReadResp.StreamNotFound" do
-      optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
     end
-
-    # Append to stream request
-    #
     add_message "event_store.client.streams.AppendReq" do
       oneof :content do
         optional :options, :message, 1, "event_store.client.streams.AppendReq.Options"
         optional :proposed_message, :message, 2, "event_store.client.streams.AppendReq.ProposedMessage"
       end
     end
-    # first send options message with info to which stream to append
-    # then send the proposed message to the last options request.
-    #
     add_message "event_store.client.streams.AppendReq.Options" do
-      optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
       oneof :expected_stream_revision do
         optional :revision, :uint64, 2
-        optional :no_stream, :message, 3, "event_store.client.shared.Empty"
-        optional :any, :message, 4, "event_store.client.shared.Empty"
-        optional :stream_exists, :message, 5, "event_store.client.shared.Empty"
+        optional :no_stream, :message, 3, "event_store.client.Empty"
+        optional :any, :message, 4, "event_store.client.Empty"
+        optional :stream_exists, :message, 5, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.AppendReq.ProposedMessage" do
-      optional :id, :message, 1, "event_store.client.shared.UUID"
+      optional :id, :message, 1, "event_store.client.UUID"
       map :metadata, :string, :string, 2
       optional :custom_metadata, :bytes, 3
       optional :data, :bytes, 4
     end
-
-    # Append to stream response
-    #
     add_message "event_store.client.streams.AppendResp" do
       oneof :result do
         optional :success, :message, 1, "event_store.client.streams.AppendResp.Success"
@@ -157,84 +154,121 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "event_store.client.streams.AppendResp.Success" do
       oneof :current_revision_option do
         optional :current_revision, :uint64, 1
-        optional :no_stream, :message, 2, "event_store.client.shared.Empty"
+        optional :no_stream, :message, 2, "event_store.client.Empty"
       end
       oneof :position_option do
         optional :position, :message, 3, "event_store.client.streams.AppendResp.Position"
-        optional :no_position, :message, 4, "event_store.client.shared.Empty"
+        optional :no_position, :message, 4, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.AppendResp.WrongExpectedVersion" do
       oneof :current_revision_option_20_6_0 do
         optional :current_revision_20_6_0, :uint64, 1
-        optional :no_stream_20_6_0, :message, 2, "event_store.client.shared.Empty"
+        optional :no_stream_20_6_0, :message, 2, "event_store.client.Empty"
       end
       oneof :expected_revision_option_20_6_0 do
         optional :expected_revision_20_6_0, :uint64, 3
-        optional :any_20_6_0, :message, 4, "event_store.client.shared.Empty"
-        optional :stream_exists_20_6_0, :message, 5, "event_store.client.shared.Empty"
+        optional :any_20_6_0, :message, 4, "event_store.client.Empty"
+        optional :stream_exists_20_6_0, :message, 5, "event_store.client.Empty"
       end
       oneof :current_revision_option do
         optional :current_revision, :uint64, 6
-        optional :current_no_stream, :message, 7, "event_store.client.shared.Empty"
+        optional :current_no_stream, :message, 7, "event_store.client.Empty"
       end
       oneof :expected_revision_option do
         optional :expected_revision, :uint64, 8
-        optional :expected_any, :message, 9, "event_store.client.shared.Empty"
-        optional :expected_stream_exists, :message, 10, "event_store.client.shared.Empty"
-        optional :expected_no_stream, :message, 11, "event_store.client.shared.Empty"
+        optional :expected_any, :message, 9, "event_store.client.Empty"
+        optional :expected_stream_exists, :message, 10, "event_store.client.Empty"
+        optional :expected_no_stream, :message, 11, "event_store.client.Empty"
       end
     end
-
-    # Delete stream request
-    #
+    add_message "event_store.client.streams.BatchAppendReq" do
+      optional :correlation_id, :message, 1, "event_store.client.UUID"
+      optional :options, :message, 2, "event_store.client.streams.BatchAppendReq.Options"
+      repeated :proposed_messages, :message, 3, "event_store.client.streams.BatchAppendReq.ProposedMessage"
+      optional :is_final, :bool, 4
+    end
+    add_message "event_store.client.streams.BatchAppendReq.Options" do
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
+      oneof :expected_stream_position do
+        optional :stream_position, :uint64, 2
+        optional :no_stream, :message, 3, "google.protobuf.Empty"
+        optional :any, :message, 4, "google.protobuf.Empty"
+        optional :stream_exists, :message, 5, "google.protobuf.Empty"
+      end
+      oneof :deadline_option do
+        optional :deadline_21_10_0, :message, 6, "google.protobuf.Timestamp"
+        optional :deadline, :message, 7, "google.protobuf.Duration"
+      end
+    end
+    add_message "event_store.client.streams.BatchAppendReq.ProposedMessage" do
+      optional :id, :message, 1, "event_store.client.UUID"
+      map :metadata, :string, :string, 2
+      optional :custom_metadata, :bytes, 3
+      optional :data, :bytes, 4
+    end
+    add_message "event_store.client.streams.BatchAppendResp" do
+      optional :correlation_id, :message, 1, "event_store.client.UUID"
+      optional :stream_identifier, :message, 4, "event_store.client.StreamIdentifier"
+      oneof :result do
+        optional :error, :message, 2, "google.rpc.Status"
+        optional :success, :message, 3, "event_store.client.streams.BatchAppendResp.Success"
+      end
+      oneof :expected_stream_position do
+        optional :stream_position, :uint64, 5
+        optional :no_stream, :message, 6, "google.protobuf.Empty"
+        optional :any, :message, 7, "google.protobuf.Empty"
+        optional :stream_exists, :message, 8, "google.protobuf.Empty"
+      end
+    end
+    add_message "event_store.client.streams.BatchAppendResp.Success" do
+      oneof :current_revision_option do
+        optional :current_revision, :uint64, 1
+        optional :no_stream, :message, 2, "google.protobuf.Empty"
+      end
+      oneof :position_option do
+        optional :position, :message, 3, "event_store.client.AllStreamPosition"
+        optional :no_position, :message, 4, "google.protobuf.Empty"
+      end
+    end
     add_message "event_store.client.streams.DeleteReq" do
       optional :options, :message, 1, "event_store.client.streams.DeleteReq.Options"
     end
     add_message "event_store.client.streams.DeleteReq.Options" do
-      optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
       oneof :expected_stream_revision do
         optional :revision, :uint64, 2
-        optional :no_stream, :message, 3, "event_store.client.shared.Empty"
-        optional :any, :message, 4, "event_store.client.shared.Empty"
-        optional :stream_exists, :message, 5, "event_store.client.shared.Empty"
+        optional :no_stream, :message, 3, "event_store.client.Empty"
+        optional :any, :message, 4, "event_store.client.Empty"
+        optional :stream_exists, :message, 5, "event_store.client.Empty"
       end
     end
-
-    # Delete stream response
-    #
     add_message "event_store.client.streams.DeleteResp" do
       oneof :position_option do
         optional :position, :message, 1, "event_store.client.streams.DeleteResp.Position"
-        optional :no_position, :message, 2, "event_store.client.shared.Empty"
+        optional :no_position, :message, 2, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.DeleteResp.Position" do
       optional :commit_position, :uint64, 1
       optional :prepare_position, :uint64, 2
     end
-
-    # Tombstone stream request
-    #
     add_message "event_store.client.streams.TombstoneReq" do
       optional :options, :message, 1, "event_store.client.streams.TombstoneReq.Options"
     end
     add_message "event_store.client.streams.TombstoneReq.Options" do
-      optional :stream_identifier, :message, 1, "event_store.client.shared.StreamIdentifier"
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
       oneof :expected_stream_revision do
         optional :revision, :uint64, 2
-        optional :no_stream, :message, 3, "event_store.client.shared.Empty"
-        optional :any, :message, 4, "event_store.client.shared.Empty"
-        optional :stream_exists, :message, 5, "event_store.client.shared.Empty"
+        optional :no_stream, :message, 3, "event_store.client.Empty"
+        optional :any, :message, 4, "event_store.client.Empty"
+        optional :stream_exists, :message, 5, "event_store.client.Empty"
       end
     end
-
-    # Tombstone stream response
-    #
     add_message "event_store.client.streams.TombstoneResp" do
       oneof :position_option do
         optional :position, :message, 1, "event_store.client.streams.TombstoneResp.Position"
-        optional :no_position, :message, 2, "event_store.client.shared.Empty"
+        optional :no_position, :message, 2, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.streams.TombstoneResp.Position" do
@@ -256,6 +290,7 @@ module EventStore
       ReadReq::Options::FilterOptions = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadReq.Options.FilterOptions").msgclass
       ReadReq::Options::FilterOptions::Expression = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadReq.Options.FilterOptions.Expression").msgclass
       ReadReq::Options::UUIDOption = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadReq.Options.UUIDOption").msgclass
+      ReadReq::Options::ControlOption = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadReq.Options.ControlOption").msgclass
       ReadReq::Options::ReadDirection = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadReq.Options.ReadDirection").enummodule
       ReadResp = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadResp").msgclass
       ReadResp::ReadEvent = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.ReadResp.ReadEvent").msgclass
@@ -270,6 +305,11 @@ module EventStore
       AppendResp::Position = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.AppendResp.Position").msgclass
       AppendResp::Success = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.AppendResp.Success").msgclass
       AppendResp::WrongExpectedVersion = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.AppendResp.WrongExpectedVersion").msgclass
+      BatchAppendReq = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.BatchAppendReq").msgclass
+      BatchAppendReq::Options = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.BatchAppendReq.Options").msgclass
+      BatchAppendReq::ProposedMessage = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.BatchAppendReq.ProposedMessage").msgclass
+      BatchAppendResp = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.BatchAppendResp").msgclass
+      BatchAppendResp::Success = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.BatchAppendResp.Success").msgclass
       DeleteReq = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.DeleteReq").msgclass
       DeleteReq::Options = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.DeleteReq.Options").msgclass
       DeleteResp = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.streams.DeleteResp").msgclass

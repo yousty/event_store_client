@@ -2,7 +2,7 @@
 # Source: users.proto for package 'event_store.client.users'
 
 require 'grpc'
-require 'users_pb'
+require_relative 'users_pb'
 
 module EventStore
   module Client
@@ -10,7 +10,7 @@ module EventStore
       module Users
         class Service
 
-          include GRPC::GenericService
+          include ::GRPC::GenericService
 
           self.marshal_class_method = :encode
           self.unmarshal_class_method = :decode

@@ -2,21 +2,21 @@
 # Source: cluster.proto for package 'event_store.cluster'
 
 require 'grpc'
-require 'cluster_pb'
+require_relative 'cluster_pb'
 
 module EventStore
   module Cluster
     module Gossip
       class Service
 
-        include GRPC::GenericService
+        include ::GRPC::GenericService
 
         self.marshal_class_method = :encode
         self.unmarshal_class_method = :decode
         self.service_name = 'event_store.cluster.Gossip'
 
         rpc :Update, ::EventStore::Cluster::GossipRequest, ::EventStore::Cluster::ClusterInfo
-        rpc :Read, ::EventStore::Client::Shared::Empty, ::EventStore::Cluster::ClusterInfo
+        rpc :Read, ::EventStore::Client::Empty, ::EventStore::Cluster::ClusterInfo
       end
 
       Stub = Service.rpc_stub_class
@@ -24,20 +24,20 @@ module EventStore
     module Elections
       class Service
 
-        include GRPC::GenericService
+        include ::GRPC::GenericService
 
         self.marshal_class_method = :encode
         self.unmarshal_class_method = :decode
         self.service_name = 'event_store.cluster.Elections'
 
-        rpc :ViewChange, ::EventStore::Cluster::ViewChangeRequest, ::EventStore::Client::Shared::Empty
-        rpc :ViewChangeProof, ::EventStore::Cluster::ViewChangeProofRequest, ::EventStore::Client::Shared::Empty
-        rpc :Prepare, ::EventStore::Cluster::PrepareRequest, ::EventStore::Client::Shared::Empty
-        rpc :PrepareOk, ::EventStore::Cluster::PrepareOkRequest, ::EventStore::Client::Shared::Empty
-        rpc :Proposal, ::EventStore::Cluster::ProposalRequest, ::EventStore::Client::Shared::Empty
-        rpc :Accept, ::EventStore::Cluster::AcceptRequest, ::EventStore::Client::Shared::Empty
-        rpc :LeaderIsResigning, ::EventStore::Cluster::LeaderIsResigningRequest, ::EventStore::Client::Shared::Empty
-        rpc :LeaderIsResigningOk, ::EventStore::Cluster::LeaderIsResigningOkRequest, ::EventStore::Client::Shared::Empty
+        rpc :ViewChange, ::EventStore::Cluster::ViewChangeRequest, ::EventStore::Client::Empty
+        rpc :ViewChangeProof, ::EventStore::Cluster::ViewChangeProofRequest, ::EventStore::Client::Empty
+        rpc :Prepare, ::EventStore::Cluster::PrepareRequest, ::EventStore::Client::Empty
+        rpc :PrepareOk, ::EventStore::Cluster::PrepareOkRequest, ::EventStore::Client::Empty
+        rpc :Proposal, ::EventStore::Cluster::ProposalRequest, ::EventStore::Client::Empty
+        rpc :Accept, ::EventStore::Cluster::AcceptRequest, ::EventStore::Client::Empty
+        rpc :LeaderIsResigning, ::EventStore::Cluster::LeaderIsResigningRequest, ::EventStore::Client::Empty
+        rpc :LeaderIsResigningOk, ::EventStore::Cluster::LeaderIsResigningOkRequest, ::EventStore::Client::Empty
       end
 
       Stub = Service.rpc_stub_class

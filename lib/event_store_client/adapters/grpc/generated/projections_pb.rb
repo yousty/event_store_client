@@ -4,19 +4,17 @@
 require 'google/protobuf'
 
 require 'google/protobuf/struct_pb'
-require 'event_store_client/adapters/grpc/generated/shared_pb'
+require_relative 'shared_pb'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("projections.proto", :syntax => :proto3) do
-    # Create projection request
-    #
     add_message "event_store.client.projections.CreateReq" do
       optional :options, :message, 1, "event_store.client.projections.CreateReq.Options"
     end
     add_message "event_store.client.projections.CreateReq.Options" do
       optional :query, :string, 4
       oneof :mode do
-        optional :one_time, :message, 1, "event_store.client.shared.Empty"
+        optional :one_time, :message, 1, "event_store.client.Empty"
         optional :transient, :message, 2, "event_store.client.projections.CreateReq.Options.Transient"
         optional :continuous, :message, 3, "event_store.client.projections.CreateReq.Options.Continuous"
       end
@@ -26,16 +24,11 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "event_store.client.projections.CreateReq.Options.Continuous" do
       optional :name, :string, 1
-      optional :track_emitted_streams, :bool, 2
+      optional :emit_enabled, :bool, 2
+      optional :track_emitted_streams, :bool, 3
     end
-
-    # Create projection response
-    #
     add_message "event_store.client.projections.CreateResp" do
     end
-
-    # Update projection request
-    #
     add_message "event_store.client.projections.UpdateReq" do
       optional :options, :message, 1, "event_store.client.projections.UpdateReq.Options"
     end
@@ -44,16 +37,11 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :query, :string, 2
       oneof :emit_option do
         optional :emit_enabled, :bool, 3
-        optional :no_emit_options, :message, 4, "event_store.client.shared.Empty"
+        optional :no_emit_options, :message, 4, "event_store.client.Empty"
       end
     end
-
-    # Update projection response
-    #
     add_message "event_store.client.projections.UpdateResp" do
     end
-
-
     add_message "event_store.client.projections.DeleteReq" do
       optional :options, :message, 1, "event_store.client.projections.DeleteReq.Options"
     end
@@ -63,23 +51,18 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :delete_state_stream, :bool, 3
       optional :delete_checkpoint_stream, :bool, 4
     end
-
-    # Delete projection response
-    #
     add_message "event_store.client.projections.DeleteResp" do
     end
-
-
     add_message "event_store.client.projections.StatisticsReq" do
       optional :options, :message, 1, "event_store.client.projections.StatisticsReq.Options"
     end
     add_message "event_store.client.projections.StatisticsReq.Options" do
       oneof :mode do
         optional :name, :string, 1
-        optional :all, :message, 2, "event_store.client.shared.Empty"
-        optional :transient, :message, 3, "event_store.client.shared.Empty"
-        optional :continuous, :message, 4, "event_store.client.shared.Empty"
-        optional :one_time, :message, 5, "event_store.client.shared.Empty"
+        optional :all, :message, 2, "event_store.client.Empty"
+        optional :transient, :message, 3, "event_store.client.Empty"
+        optional :continuous, :message, 4, "event_store.client.Empty"
+        optional :one_time, :message, 5, "event_store.client.Empty"
       end
     end
     add_message "event_store.client.projections.StatisticsResp" do

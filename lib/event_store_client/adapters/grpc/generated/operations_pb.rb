@@ -3,7 +3,8 @@
 
 require 'google/protobuf'
 
-require 'shared_pb'
+require_relative 'shared_pb'
+
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("operations.proto", :syntax => :proto3) do
     add_message "event_store.client.operations.StartScavengeReq" do

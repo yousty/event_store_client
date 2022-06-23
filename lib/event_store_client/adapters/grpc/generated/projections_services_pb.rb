@@ -2,14 +2,15 @@
 # Source: projections.proto for package 'event_store.client.projections'
 
 require 'grpc'
-require 'event_store_client/adapters/grpc/generated/projections_pb'
+require_relative 'projections_pb'
 
 module EventStore
   module Client
     module Projections
       module Projections
         class Service
-          include GRPC::GenericService
+
+          include ::GRPC::GenericService
 
           self.marshal_class_method = :encode
           self.unmarshal_class_method = :decode
@@ -24,7 +25,7 @@ module EventStore
           rpc :Reset, ::EventStore::Client::Projections::ResetReq, ::EventStore::Client::Projections::ResetResp
           rpc :State, ::EventStore::Client::Projections::StateReq, ::EventStore::Client::Projections::StateResp
           rpc :Result, ::EventStore::Client::Projections::ResultReq, ::EventStore::Client::Projections::ResultResp
-          rpc :RestartSubsystem, ::EventStore::Client::Shared::Empty, ::EventStore::Client::Shared::Empty
+          rpc :RestartSubsystem, ::EventStore::Client::Empty, ::EventStore::Client::Empty
         end
 
         Stub = Service.rpc_stub_class

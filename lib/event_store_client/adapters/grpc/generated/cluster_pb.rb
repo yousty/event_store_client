@@ -3,7 +3,8 @@
 
 require 'google/protobuf'
 
-require 'shared_pb'
+require_relative 'shared_pb'
+
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("cluster.proto", :syntax => :proto3) do
     add_message "event_store.cluster.GossipRequest" do
@@ -11,28 +12,28 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :server, :message, 2, "event_store.cluster.EndPoint"
     end
     add_message "event_store.cluster.ViewChangeRequest" do
-      optional :server_id, :message, 1, "event_store.client.shared.UUID"
+      optional :server_id, :message, 1, "event_store.client.UUID"
       optional :server_http, :message, 2, "event_store.cluster.EndPoint"
       optional :attempted_view, :int32, 3
     end
     add_message "event_store.cluster.ViewChangeProofRequest" do
-      optional :server_id, :message, 1, "event_store.client.shared.UUID"
+      optional :server_id, :message, 1, "event_store.client.UUID"
       optional :server_http, :message, 2, "event_store.cluster.EndPoint"
       optional :installed_view, :int32, 3
     end
     add_message "event_store.cluster.PrepareRequest" do
-      optional :server_id, :message, 1, "event_store.client.shared.UUID"
+      optional :server_id, :message, 1, "event_store.client.UUID"
       optional :server_http, :message, 2, "event_store.cluster.EndPoint"
       optional :view, :int32, 3
     end
     add_message "event_store.cluster.PrepareOkRequest" do
       optional :view, :int32, 1
-      optional :server_id, :message, 2, "event_store.client.shared.UUID"
+      optional :server_id, :message, 2, "event_store.client.UUID"
       optional :server_http, :message, 3, "event_store.cluster.EndPoint"
       optional :epoch_number, :int32, 4
       optional :epoch_position, :int64, 5
-      optional :epoch_id, :message, 6, "event_store.client.shared.UUID"
-      optional :epoch_leader_instance_id, :message, 7, "event_store.client.shared.UUID"
+      optional :epoch_id, :message, 6, "event_store.client.UUID"
+      optional :epoch_leader_instance_id, :message, 7, "event_store.client.UUID"
       optional :last_commit_position, :int64, 8
       optional :writer_checkpoint, :int64, 9
       optional :chaser_checkpoint, :int64, 10
@@ -40,35 +41,35 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :cluster_info, :message, 12, "event_store.cluster.ClusterInfo"
     end
     add_message "event_store.cluster.ProposalRequest" do
-      optional :server_id, :message, 1, "event_store.client.shared.UUID"
+      optional :server_id, :message, 1, "event_store.client.UUID"
       optional :server_http, :message, 2, "event_store.cluster.EndPoint"
-      optional :leader_id, :message, 3, "event_store.client.shared.UUID"
+      optional :leader_id, :message, 3, "event_store.client.UUID"
       optional :leader_http, :message, 4, "event_store.cluster.EndPoint"
       optional :view, :int32, 5
       optional :epoch_number, :int32, 6
       optional :epoch_position, :int64, 7
-      optional :epoch_id, :message, 8, "event_store.client.shared.UUID"
-      optional :epoch_leader_instance_id, :message, 9, "event_store.client.shared.UUID"
+      optional :epoch_id, :message, 8, "event_store.client.UUID"
+      optional :epoch_leader_instance_id, :message, 9, "event_store.client.UUID"
       optional :last_commit_position, :int64, 10
       optional :writer_checkpoint, :int64, 11
       optional :chaser_checkpoint, :int64, 12
       optional :node_priority, :int32, 13
     end
     add_message "event_store.cluster.AcceptRequest" do
-      optional :server_id, :message, 1, "event_store.client.shared.UUID"
+      optional :server_id, :message, 1, "event_store.client.UUID"
       optional :server_http, :message, 2, "event_store.cluster.EndPoint"
-      optional :leader_id, :message, 3, "event_store.client.shared.UUID"
+      optional :leader_id, :message, 3, "event_store.client.UUID"
       optional :leader_http, :message, 4, "event_store.cluster.EndPoint"
       optional :view, :int32, 5
     end
     add_message "event_store.cluster.LeaderIsResigningRequest" do
-      optional :leader_id, :message, 1, "event_store.client.shared.UUID"
+      optional :leader_id, :message, 1, "event_store.client.UUID"
       optional :leader_http, :message, 2, "event_store.cluster.EndPoint"
     end
     add_message "event_store.cluster.LeaderIsResigningOkRequest" do
-      optional :leader_id, :message, 1, "event_store.client.shared.UUID"
+      optional :leader_id, :message, 1, "event_store.client.UUID"
       optional :leader_http, :message, 2, "event_store.cluster.EndPoint"
-      optional :server_id, :message, 3, "event_store.client.shared.UUID"
+      optional :server_id, :message, 3, "event_store.client.UUID"
       optional :server_http, :message, 4, "event_store.cluster.EndPoint"
     end
     add_message "event_store.cluster.ClusterInfo" do
@@ -79,7 +80,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :port, :uint32, 2
     end
     add_message "event_store.cluster.MemberInfo" do
-      optional :instance_id, :message, 1, "event_store.client.shared.UUID"
+      optional :instance_id, :message, 1, "event_store.client.UUID"
       optional :time_stamp, :int64, 2
       optional :state, :enum, 3, "event_store.cluster.MemberInfo.VNodeState"
       optional :is_alive, :bool, 4
@@ -93,7 +94,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :chaser_checkpoint, :int64, 12
       optional :epoch_position, :int64, 13
       optional :epoch_number, :int32, 14
-      optional :epoch_id, :message, 15, "event_store.client.shared.UUID"
+      optional :epoch_id, :message, 15, "event_store.client.UUID"
       optional :node_priority, :int32, 16
       optional :is_read_only_replica, :bool, 17
       optional :advertise_host_to_client_as, :string, 18
@@ -118,6 +119,78 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :ReadOnlyReplica, 14
       value :ResigningLeader, 15
     end
+    add_message "event_store.cluster.ReplicaLogWrite" do
+      optional :log_position, :int64, 1
+      optional :replica_id, :bytes, 2
+    end
+    add_message "event_store.cluster.ReplicatedTo" do
+      optional :log_position, :int64, 1
+    end
+    add_message "event_store.cluster.Epoch" do
+      optional :epoch_position, :int64, 1
+      optional :epoch_number, :int32, 2
+      optional :epoch_id, :bytes, 3
+    end
+    add_message "event_store.cluster.SubscribeReplica" do
+      optional :log_position, :int64, 1
+      optional :chunk_id, :bytes, 2
+      repeated :LastEpochs, :message, 3, "event_store.cluster.Epoch"
+      optional :ip, :bytes, 4
+      optional :port, :int32, 5
+      optional :leader_id, :bytes, 6
+      optional :subscription_id, :bytes, 7
+      optional :is_promotable, :bool, 8
+    end
+    add_message "event_store.cluster.ReplicaSubscriptionRetry" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+    end
+    add_message "event_store.cluster.ReplicaSubscribed" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+      optional :subscription_position, :int64, 3
+    end
+    add_message "event_store.cluster.ReplicaLogPositionAck" do
+      optional :subscription_id, :bytes, 1
+      optional :replication_log_position, :int64, 2
+    end
+    add_message "event_store.cluster.CreateChunk" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+      optional :chunk_header_bytes, :bytes, 3
+      optional :file_size, :int32, 4
+      optional :is_completed_chunk, :bool, 5
+    end
+    add_message "event_store.cluster.RawChunkBulk" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+      optional :chunk_start_number, :int32, 3
+      optional :chunk_end_number, :int32, 4
+      optional :raw_position, :int32, 5
+      optional :raw_bytes, :bytes, 6
+      optional :complete_chunk, :bool, 7
+    end
+    add_message "event_store.cluster.DataChunkBulk" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+      optional :chunk_start_number, :int32, 3
+      optional :chunk_end_number, :int32, 4
+      optional :subscription_position, :int64, 5
+      optional :data_bytes, :bytes, 6
+      optional :complete_chunk, :bool, 7
+    end
+    add_message "event_store.cluster.FollowerAssignment" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+    end
+    add_message "event_store.cluster.CloneAssignment" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+    end
+    add_message "event_store.cluster.DropSubscription" do
+      optional :leader_id, :bytes, 1
+      optional :subscription_id, :bytes, 2
+    end
   end
 end
 
@@ -136,5 +209,18 @@ module EventStore
     EndPoint = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.EndPoint").msgclass
     MemberInfo = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.MemberInfo").msgclass
     MemberInfo::VNodeState = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.MemberInfo.VNodeState").enummodule
+    ReplicaLogWrite = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.ReplicaLogWrite").msgclass
+    ReplicatedTo = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.ReplicatedTo").msgclass
+    Epoch = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.Epoch").msgclass
+    SubscribeReplica = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.SubscribeReplica").msgclass
+    ReplicaSubscriptionRetry = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.ReplicaSubscriptionRetry").msgclass
+    ReplicaSubscribed = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.ReplicaSubscribed").msgclass
+    ReplicaLogPositionAck = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.ReplicaLogPositionAck").msgclass
+    CreateChunk = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.CreateChunk").msgclass
+    RawChunkBulk = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.RawChunkBulk").msgclass
+    DataChunkBulk = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.DataChunkBulk").msgclass
+    FollowerAssignment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.FollowerAssignment").msgclass
+    CloneAssignment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.CloneAssignment").msgclass
+    DropSubscription = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.cluster.DropSubscription").msgclass
   end
 end
