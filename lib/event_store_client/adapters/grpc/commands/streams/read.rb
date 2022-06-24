@@ -24,7 +24,7 @@ module EventStoreClient
             opts = {
               stream: {
                 stream_identifier: {
-                  streamName: name
+                  stream_name: name
                 }
               },
               read_direction: direction,
@@ -90,7 +90,7 @@ module EventStoreClient
 
             event = EventStoreClient::Event.new(
               id: entry.id.string,
-              title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
+              title: "#{entry.stream_revision}@#{entry.stream_identifier.stream_name}",
               type: entry.metadata['type'],
               data: data,
               metadata: metadata

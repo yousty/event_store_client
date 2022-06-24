@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  eventstore:
+    image: eventstore/eventstore:21.10.1-buster-slim
+    ports:
+      - 1113:1113
+      - 2113:2113
+    command: --insecure=true --log-level=Debug --log-http-requests=true --log-console-format=Plain --enable-atom-pub-over-http

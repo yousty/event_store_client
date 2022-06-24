@@ -48,20 +48,19 @@ module EventStoreClient
   end
 
   def self.adapter
-    @adapter =
-      case config.adapter_type
-      when :http
-        require 'event_store_client/adapters/http'
-        HTTP::Client.new
-      when :grpc
-        require 'event_store_client/adapters/grpc'
-        GRPC::Client.new
-      else
-        require 'event_store_client/adapters/in_memory'
-        InMemory.new(
-          mapper: config.mapper, per_page: config.per_page
-        )
-      end
+    case config.adapter_type
+    when :http
+      require 'event_store_client/adapters/http'
+      HTTP::Client.new
+    when :grpc
+      require 'event_store_client/adapters/grpc'
+      GRPC::Client.new
+    else
+      require 'event_store_client/adapters/in_memory'
+      InMemory.new(
+        mapper: config.mapper, per_page: config.per_page
+      )
+    end
   end
 
   # Configuration module to be included in classes required configured variables

@@ -23,23 +23,6 @@ module EventStoreClient
 
       private
 
-      attr_reader :cert
-
-      def initialize
-        retries ||= 0
-        @cert =
-          Net::HTTP.start(
-            config.eventstore_url.host, config.eventstore_url.port,
-            use_ssl: true,
-            verify_mode: config.verify_ssl || OpenSSL::SSL::VERIFY_NONE,
-            &:peer_cert
-          )
-      rescue SocketError
-        sleep config.socket_error_retry_sleep
-        retry if (retries += 1) <= config.socket_error_retry_count
-        raise SocketErrorRetryFailed
-      end
-
       def channel_credentials
         ::GRPC::Core::ChannelCredentials.new(cert.to_s)
       end
@@ -52,6 +35,25 @@ module EventStoreClient
           channel_credentials,
           channel_args: { 'authorization' => "Basic #{credentials.delete("\n")}" }
         )
+      end
+
+      def cert
+        retries = 0
+
+        @cert ||=
+          begin
+            Net::HTTP.start(
+              config.eventstore_url.host, config.eventstore_url.port,
+              use_ssl: true,
+              verify_mode: config.verify_ssl || OpenSSL::SSL::VERIFY_NONE,
+              &:peer_cert
+            )
+          rescue SocketError => e
+            sleep config.socket_error_retry_sleep
+            retries += 1
+            retry if retries <= config.socket_error_retry_count
+            raise SocketErrorRetryFailed
+          end
       end
 
       def insecure_stub(stub_klass)

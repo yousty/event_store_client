@@ -17,7 +17,7 @@ module EventStoreClient
             opts =
               {
                 stream_identifier: {
-                  streamName: name
+                  stream_name: name
                 },
                 any: {}
               }

@@ -10,36 +10,40 @@
 #
 require 'bundler/setup'
 require 'event_store_client'
-require 'event_store_client/adapters/grpc'
+require 'irb'
 
 EventStoreClient.configure do |config|
   ## url needs to match the DNS name in certificate
-  config.eventstore_url = 'eventstoredb:2113'
-  config.adapter = :grpc
-  config.eventstore_user = 'admin'
-  config.eventstore_password = 'changeit'
+  config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'http://localhost:2113' }
+  config.adapter_type = :grpc
+  config.eventstore_user = ENV.fetch('EVENTSTORE_USER') { 'admin' }
+  config.eventstore_password = ENV.fetch('EVENTSTORE_PASSWORD') { 'changeit' }
+  config.verify_ssl = false
+  config.insecure = true
 end
-config = EventStoreClient.config
 
-credentials = Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-metadata = { 'authorization' => "Basic #{credentials.gsub("\n", '')}" }
+def check_stream
+  config = EventStoreClient.config
 
-# OD: .NET Client is able to load by default certs, but I didn't manage to make autoload work, so I'm loading it manually
-# as I found in https://docs.servicestack.net/grpc-ruby
-channelCredentials = GRPC::Core::ChannelCredentials.new(File.read('/usr/local/share/ca-certificates/eventstoredb_ca.crt'))
+  credentials = Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
+  metadata = { 'authorization' => "Basic #{credentials.gsub("\n", '')}" }
 
-service = EventStore::Client::Streams::Streams::Stub.new(
-  config.eventstore_url.to_s,
-  channelCredentials
-)
+  uri = config.eventstore_url
+  service = EventStore::Client::Streams::Streams::Stub.new(
+    "#{uri.host}:#{uri.port}",
+    :this_channel_is_insecure
+  )
 
-opts = {
-  stream: { stream_identifier: { streamName: 'nestream' }, start: {} },
-  read_direction: :Forwards,
-  resolve_links: true,
-  count: 20,
-  uuid_option: { string: {} },
-  no_filter: {}
-}
+  opts = {
+    stream: { stream_identifier: { stream_name: 'nestream' }, start: {} },
+    read_direction: :Forwards,
+    resolve_links: true,
+    count: 20,
+    uuid_option: { string: {} },
+    no_filter: {}
+  }
 
-puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts), metadata: metadata).inspect
+  puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts), metadata: metadata).inspect
+end
+
+IRB.start(__FILE__)

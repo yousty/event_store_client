@@ -80,7 +80,7 @@ module EventStoreClient
           def options(stream, expected_version)
             {
               stream_identifier: {
-                streamName: stream
+                stream_name: stream
               },
               revision: expected_version,
               any: (expected_version ? nil : {})

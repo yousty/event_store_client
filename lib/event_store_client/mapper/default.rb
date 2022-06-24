@@ -3,6 +3,13 @@
 module EventStoreClient
   module Mapper
     class Default
+      attr_reader :serializer
+      private :serializer
+
+      def initialize(serializer: Serializer::Json)
+        @serializer = serializer
+      end
+
       def serialize(event)
         Event.new(
           id: event.respond_to?(:id) ? event.id : nil,
@@ -30,14 +37,6 @@ module EventStoreClient
           data: data,
           metadata: metadata
         )
-      end
-
-      private
-
-      attr_reader :serializer
-
-      def initialize(serializer: Serializer::Json)
-        @serializer = serializer
       end
     end
   end

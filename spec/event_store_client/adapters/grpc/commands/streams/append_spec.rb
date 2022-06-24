@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
 require 'event_store_client/adapters/grpc/commands/streams/append'
 
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   subject { described_class.new.call(stream, events, options: options) }
 
   let(:client) { EventStoreClient::GRPC::Client.new }
-
   let(:data) { { key1: 'value1', key2: 'value2' } }
   let(:metadata1) { { key1: 'value1', key2: 'value2', type: 'TestEvent', 'content-type' => 'test' } }
   let(:metadata2) { { type: 'TestEvent2', 'content-type' => 'test'} }
@@ -23,9 +21,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     subject
     expect(client.read(stream).value!.count).to eq(2)
   end
-
   it 'returns Success' do
-    expect(subject).to eq(Success())
+    expect(subject).to be_a(Dry::Monads::Success)
   end
 
   context 'when expected version does not match' do
@@ -33,7 +30,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     let(:failure_message) { 'current version: 0 | expected: 10' }
 
     it 'returns failure' do
-      expect(subject).to eq(Failure(failure_message))
+      expect(subject).to eq(Dry::Monads::Failure(failure_message))
     end
   end
 
@@ -42,15 +39,11 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     let(:failure_message) { 'failed to connect to eventstore' }
 
     before do
-      EventStoreClient.config.eventstore_url = 'localhost:1234'
-    end
-
-    after do
-      EventStoreClient.config.eventstore_url = ENV['EVENTSTORE_URL']
+      allow(EventStoreClient.config).to receive(:eventstore_url).and_return(URI('localhost:1234'))
     end
 
     it 'returns failure' do
-      expect(subject.failure.class).to be(GRPC::Unavailable)
+      expect(subject.failure).to be_a(GRPC::Unavailable)
     end
   end
 end

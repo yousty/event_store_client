@@ -29,7 +29,7 @@ module EventStoreClient
             opts =
               {
                 stream_identifier: {
-                  streamName: stream
+                  stream_name: stream
                 },
                 group_name: group,
                 settings: schema.to_h

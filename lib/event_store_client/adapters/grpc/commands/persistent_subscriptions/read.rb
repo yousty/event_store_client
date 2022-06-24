@@ -26,7 +26,7 @@ module EventStoreClient
             opts =
               {
                 stream_identifier: {
-                  streamName: stream
+                  stream_name: stream
                 },
                 buffer_size: count,
                 group_name: group,
@@ -61,7 +61,7 @@ module EventStoreClient
             config.mapper.deserialize(
               EventStoreClient::Event.new(
                 id: id,
-                title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
+                title: "#{entry.stream_revision}@#{entry.stream_identifier.stream_name}",
                 type: entry.metadata['type'],
                 data: data,
                 metadata: metadata

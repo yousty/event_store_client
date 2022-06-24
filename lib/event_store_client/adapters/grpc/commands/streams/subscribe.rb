@@ -67,7 +67,7 @@ module EventStoreClient
             if options[:stream]
               opts[:stream] = {
                 stream_identifier: {
-                  streamName: stream
+                  stream_name: stream
                 }
               }
             else
@@ -116,7 +116,7 @@ module EventStoreClient
 
             event = EventStoreClient::Event.new(
               id: entry.id.string,
-              title: "#{entry.stream_revision}@#{entry.stream_identifier.streamName}",
+              title: "#{entry.stream_revision}@#{entry.stream_identifier.stream_name}",
               type: entry.metadata['type'],
               data: data,
               metadata: metadata

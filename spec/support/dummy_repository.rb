@@ -19,13 +19,13 @@ class DummyRepository
   end
 
   def encrypt(*)
-    message = Message.new(attributes: { message: 'darthvader' })
+    message = Message.new(message: 'darthvader')
     Dry::Monads::Success(message)
   end
 
   def decrypt(*)
     message = Message.new(
-      attributes: { message: JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker') }
+      message: JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker')
     )
     Dry::Monads::Success(message)
   end

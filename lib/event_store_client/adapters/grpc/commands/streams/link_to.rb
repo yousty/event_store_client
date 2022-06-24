@@ -37,7 +37,7 @@ module EventStoreClient
                 request.new(
                   options: {
                     stream_identifier: {
-                      streamName: stream_name
+                      stream_name: stream_name
                     },
                     any: {}
                   }

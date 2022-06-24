@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
 require 'event_store_client/adapters/grpc/client'
 require 'event_store_client/adapters/grpc/commands/streams/append'
 
