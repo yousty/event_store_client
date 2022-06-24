@@ -22,7 +22,7 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Run EventStore DB
-      run: docker-compose -f docker-compose.local.yml -d up
+      run: docker-compose -f docker-compose.local.yml up --detach
     - name: Run tests
       run: |
         bundle install
