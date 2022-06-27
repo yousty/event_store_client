@@ -2,3 +2,5 @@
 
 Style/Copyright:
   Enabled: false
+Rails:
+  Enabled: false

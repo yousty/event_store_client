@@ -102,7 +102,7 @@ module EventStoreClient
             return Success(resp) if resp.success
 
             Failure(
-              "current version: #{resp.wrong_expected_version.current_revision} | "\
+              "current version: #{resp.wrong_expected_version.current_revision} | " \
               "expected: #{resp.wrong_expected_version.expected_revision}"
             )
           end
