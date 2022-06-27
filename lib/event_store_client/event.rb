@@ -12,8 +12,6 @@ module EventStoreClient
     attribute :data, Types::Strict::String.default('{}')
     attribute :metadata, Types::Strict::String.default('{}')
 
-    private
-
     def initialize(args = {})
       args[:id] = SecureRandom.uuid if args[:id].nil?
       hash_meta = JSON.parse(args[:metadata] || '{}')

@@ -3,6 +3,12 @@
 module EventStoreClient
   module GRPC
     class Client < EventStoreClient::Client
+      # @param stream_name [String]
+      # @param events [Array<EventStoreClient::DeserializedEvent>]
+      # @param options [Hash]
+      # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure, nil]
+      #   Returns nil if no request was performed. Returns monads' Success/Failure in case whether
+      #   request was performed
       def append_to_stream(stream_name, events, options: {})
         Commands::Streams::Append.new.call(
           stream_name, events, options: options
