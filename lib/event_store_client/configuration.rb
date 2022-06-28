@@ -43,23 +43,25 @@ module EventStoreClient
   setting :grpc_unavailable_retry_sleep, default: 0.5
   setting :grpc_unavailable_retry_count, default: 3
 
-  def self.configure
-    yield(config) if block_given?
-  end
+  class << self
+    def configure
+      yield(config) if block_given?
+    end
 
-  def self.adapter
-    case config.adapter_type
-    when :http
-      require 'event_store_client/adapters/http'
-      HTTP::Client.new
-    when :grpc
-      require 'event_store_client/adapters/grpc'
-      GRPC::Client.new
-    else
-      require 'event_store_client/adapters/in_memory'
-      InMemory.new(
-        mapper: config.mapper, per_page: config.per_page
-      )
+    def client
+      case config.adapter_type
+      when :http
+        require 'event_store_client/adapters/http'
+        HTTP::Client.new
+      when :grpc
+        require 'event_store_client/adapters/grpc'
+        GRPC::Client.new
+      else
+        require 'event_store_client/adapters/in_memory'
+        InMemory.new(
+          mapper: config.mapper, per_page: config.per_page
+        )
+      end
     end
   end
 

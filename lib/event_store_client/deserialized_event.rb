@@ -7,7 +7,7 @@ module EventStoreClient
     InvalidDataError = Class.new(StandardError)
     private_constant :InvalidDataError
 
-    attr_reader :id, :type, :title, :data, :metadata
+    attr_reader :id, :type, :title, :data, :metadata, :stream_name, :stream_revision
 
     # @args [Hash] opts
     # @option opts [Boolean] :skip_validation
@@ -15,20 +15,23 @@ module EventStoreClient
     # @option opts [Hash] :metadata
     # @option opts [String] :type
     # @option opts [String] :title
+    # @option opts [String] :stream_name
+    # @option opts [Integer] :stream_revision
     # @option opts [UUID] :id
     #
     def initialize(args = {})
       validate(args[:data]) unless args[:skip_validation]
 
       @data = args.fetch(:data) { {} }
+      @type = args[:type] || self.class.name
       @metadata =
         args.fetch(:metadata) { {} }
             .merge(
-              'type' => self.class.name,
+              'type' => @type,
               'content-type' => payload_content_type
             )
-
-      @type = args[:type] || self.class.name
+      @stream_name = args[:stream_name]
+      @stream_revision = args[:stream_revision]
       @title = args[:title]
       @id = args[:id]
     end

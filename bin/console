@@ -11,6 +11,7 @@
 require 'bundler/setup'
 require 'event_store_client'
 require 'irb'
+require 'pry'
 
 EventStoreClient.configure do |config|
   ## url needs to match the DNS name in certificate
@@ -20,6 +21,7 @@ EventStoreClient.configure do |config|
   config.eventstore_password = ENV.fetch('EVENTSTORE_PASSWORD') { 'changeit' }
   config.verify_ssl = false
   config.insecure = true
+  config.per_page = 1000
 end
 
 def check_stream

@@ -11,6 +11,8 @@ module EventStoreClient
     attribute :title, Types::Strict::String.optional.default(nil)
     attribute :data, Types::Strict::String.default('{}')
     attribute :metadata, Types::Strict::String.default('{}')
+    attribute :stream_name, Types::Strict::String.optional.default(nil)
+    attribute :stream_revision, Types::Strict::Integer.optional.default(nil)
 
     def initialize(args = {})
       args[:id] = SecureRandom.uuid if args[:id].nil?

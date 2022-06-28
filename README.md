@@ -142,7 +142,7 @@ All the config options can be passed the same way:
 
 ```ruby
 EventStoreClient.configure do |config|
-  config.adapter = :grpc
+  config.adapter_type = :grpc
 end
 ```
 

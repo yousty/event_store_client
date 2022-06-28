@@ -41,6 +41,7 @@ module EventStoreClient
             payload = append_request_payload(
               options(stream, expected_version),
               message(
+                id: event.id,
                 data: event.data.b,
                 event_metadata: event_metadata.select { |k| ALLOWED_EVENT_METADATA.include?(k) },
                 custom_metadata: custom_metadata(event.type, event_metadata)
@@ -87,10 +88,10 @@ module EventStoreClient
             }.compact
           end
 
-          def message(data:, event_metadata:, custom_metadata:)
+          def message(id: nil, data:, event_metadata:, custom_metadata:)
             {
               id: {
-                string: SecureRandom.uuid
+                string: id || SecureRandom.uuid
               },
               data: data,
               custom_metadata: JSON.generate(custom_metadata),

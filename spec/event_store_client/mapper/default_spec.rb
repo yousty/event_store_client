@@ -22,15 +22,9 @@ RSpec.describe EventStoreClient::Mapper::Default do
     end
   end
   let(:serialized_default_event) do
-    Class.new do
-      attr_reader :type, :id, :title
-
+    Class.new(EventStoreClient::Event) do
       def self.to_s
         'SerializedDefaultEvent'
-      end
-
-      def initialize(type:)
-        @type = type
       end
 
       def metadata

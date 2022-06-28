@@ -1,8 +1,46 @@
 # frozen_string_literal: true
 
-require 'securerandom'
-require_relative './dummy_event'
-require_relative './event_handlers'
+require 'bundler/setup'
+require 'event_store_client'
+
+class FooHandler
+  def self.call(event)
+    puts "Handled #{event.class.name} by FooHandler"
+  end
+end
+
+class BarHandler
+  def self.call(event)
+    puts "Handled #{event.class.name} by BarHandler"
+  end
+end
+
+
+class ZooHandler
+  def self.call(event)
+    puts "Handled #{event.class.name} by BarHandler"
+  end
+end
+
+class SomethingHappened < EventStoreClient::DeserializedEvent
+  def schema
+    Dry::Schema.Params do
+      required(:user_id).value(:string)
+      required(:title).value(:string)
+    end
+  end
+end
+
+
+class SomethingElseHappened < EventStoreClient::DeserializedEvent
+  def schema
+    Dry::Schema.Params do
+      required(:user_id).value(:string)
+      required(:title).value(:string)
+    end
+  end
+end
+
 
 class AdaptersTestRun
   def call

@@ -6,7 +6,7 @@ require 'event_store_client'
 
 EventStoreClient.configure do |config|
   config.eventstore_url = ENV['EVENTSTORE_URL']
-  config.adapter = :grpc
+  config.adapter_type = :grpc
   config.eventstore_user = ENV['EVENTSTORE_USER']
   config.eventstore_password = ENV['EVENTSTORE_PASSWORD']
   config.verify_ssl = false

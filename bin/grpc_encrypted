@@ -29,7 +29,7 @@ end
 
 EventStoreClient.configure do |config|
   config.eventstore_url = 'https://eventstoredb:2113'
-  config.adapter = :grpc
+  config.adapter_type = :grpc
   config.verify_ssl = false
 
   config.eventstore_user = 'admin'

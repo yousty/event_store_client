@@ -93,7 +93,9 @@ module EventStoreClient
               title: "#{entry.stream_revision}@#{entry.stream_identifier.stream_name}",
               type: entry.metadata['type'],
               data: data,
-              metadata: metadata
+              metadata: metadata,
+              stream_revision: entry.stream_revision,
+              stream_name: entry.stream_identifier.stream_name
             )
 
             config.mapper.deserialize(event, skip_decryption: skip_decryption)

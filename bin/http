@@ -5,7 +5,7 @@ require 'bundler/setup'
 require 'event_store_client'
 
 EventStoreClient.configure do |config|
-  config.adapter = :http
+  config.adapter_type = :http
   config.eventstore_url = ENV['EVENTSTORE_URL']
   config.eventstore_user = ENV['EVENTSTORE_USER']
   config.eventstore_password = ENV['EVENTSTORE_PASSWORD']

@@ -77,7 +77,9 @@ module EventStoreClient
           type: event.type,
           title: event.title,
           data: decrypted_data,
-          metadata: metadata
+          metadata: metadata,
+          stream_revision: event.stream_revision,
+          stream_name: event.stream_name
         )
       end
 

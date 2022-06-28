@@ -8,9 +8,7 @@ As by default EventStoreClient uses GRPC adapter. No need to configure anything 
 however to set it explicitly, place the snippet below in your initializer or when you boot your application.
 
 ```ruby
-require 'event_store_client/adapters/grpc'
-
 EventStoreClient.configure do |config|
-  config.adapter = :grpc
+  config.adapter_type = :grpc
 end
 ```

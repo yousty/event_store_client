@@ -41,7 +41,7 @@ EventStoreClient.configure do |config|
   config.service_name = ''
   config.error_handler = proc {}
   config.subscriptions_repo = EventStoreClient::CatchUpSubscriptions.new(
-    connection: EventStoreClient.adapter,
+    connection: EventStoreClient.client,
     subscription_store: DummySubscriptionStore.new('dummy-subscription-store')
   )
 end
@@ -53,10 +53,6 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
-  end
-
-  config.before do
-    EventStoreClient.adapter.instance_variable_set(:@event_store, {})
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
