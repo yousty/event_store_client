@@ -6,7 +6,9 @@ module EventStoreClient
       # @param stream_name [String]
       # @param events [Array<EventStoreClient::DeserializedEvent>]
       # @param options [Hash]
-      # @option options [Integer] :expected_version provide your own revision number
+      # @option options [Integer] :expected_revision provide your own revision number
+      # @option options [String] :expected_revision provide one of next values: 'any', 'no_stream'
+      #   or 'stream_exists'
       # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure, nil]
       #   Returns nil if no request was performed. Returns monads' Success/Failure in case whether
       #   request was performed

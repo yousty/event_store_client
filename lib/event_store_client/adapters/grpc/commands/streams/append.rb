@@ -4,6 +4,7 @@ require 'event_store_client/adapters/grpc/generated/streams_pb'
 require 'event_store_client/adapters/grpc/generated/streams_services_pb'
 
 require 'event_store_client/adapters/grpc/commands/command'
+require 'event_store_client/adapters/grpc/options/streams/revision_option'
 
 module EventStoreClient
   module GRPC
@@ -21,12 +22,12 @@ module EventStoreClient
 
             serialized_events = events.map { |event| config.mapper.serialize(event) }
 
-            expected_version = options[:expected_version]
+            revision = Options::Streams::RevisionOption.new(options[:expected_revision])
 
             res = nil
             serialized_events.each_with_index do |event, i|
-              expected_version += i if expected_version
-              res = append(stream, event, expected_version)
+              revision.increment! if revision.number? && i > 0
+              res = append(stream, event, revision)
               break if res.failure?
             end
 
@@ -35,11 +36,15 @@ module EventStoreClient
 
           private
 
-          def append(stream, event, expected_version)
+          # @param stream [String]
+          # @param event [EventStoreClient::Event, EventStoreClient::DeserializedEvent]
+          # @param revision [EventStoreClient::GRPC::Options::Streams::RevisionOption]
+          # @return [Dry::Monads]
+          def append(stream, event, revision)
             event_metadata = JSON.parse(event.metadata)
 
             payload = append_request_payload(
-              options(stream, expected_version),
+              options(stream, revision),
               message(
                 id: event.id,
                 data: event.data.b,
@@ -78,14 +83,18 @@ module EventStoreClient
             ]
           end
 
-          def options(stream, expected_version)
-            {
-              stream_identifier: {
-                stream_name: stream
-              },
-              revision: expected_version,
-              any: (expected_version ? nil : {})
-            }.compact
+          # @param stream [String]
+          # @param revision [EventStoreClient::GRPC::Options::Streams::RevisionOption]
+          # @return [Hash]
+          def options(stream, revision)
+            opts =
+              {
+                stream_identifier: {
+                  stream_name: stream
+                }
+              }
+            opts.merge!(revision.value) if revision.value
+            opts
           end
 
           def message(id: nil, data:, event_metadata:, custom_metadata:)
@@ -102,10 +111,7 @@ module EventStoreClient
           def validate_response(resp)
             return Success(resp) if resp.success
 
-            Failure(
-              "current version: #{resp.wrong_expected_version.current_revision} | " \
-              "expected: #{resp.wrong_expected_version.expected_revision}"
-            )
+            Failure(resp.wrong_expected_version)
           end
         end
       end

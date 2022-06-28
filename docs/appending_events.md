@@ -9,12 +9,10 @@ class SomethingHappened < EventStoreClient::DeserializedEvent
 end
 
 event = SomethingHappened.new(
-  id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" },
+  id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
 )
 
 EventStoreClient.client.append_to_stream('some-stream', [event])
-# Provide your own revision number using :expected_version
-EventStoreClient.client.append_to_stream('some-stream', [event], options: { expected_version: 1 })
 ```
 
 ## Working with EventStoreClient::DeserializedEvent
@@ -55,7 +53,34 @@ EventStoreClient.client.append_to_stream('some-stream', [event])
 
 ##  Handling concurrency
 
-When appending events to a stream you can supply a stream revision. Your client can use this to tell EventStoreDB what version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be thrown.
+When appending events to a stream you can supply a stream state or stream revision. Your client can use this to tell EventStoreDB what state or version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be thrown.
+
+For example if we try and append the same record twice expecting both times that the stream doesn't exist we will get an exception on the second:
+
+```ruby
+class SomethingHappened < EventStoreClient::DeserializedEvent
+end
+
+event1 = SomethingHappened.new(
+  type: 'some-event', data: {},
+)
+
+event2 = SomethingHappened.new(
+  type: 'some-event', data: {},
+)
+
+stream_name = "some-stream$#{SecureRandom.uuid}"
+
+EventStoreClient.client.append_to_stream(stream_name, [event1], options: { expected_revision: 'no_stream' })
+
+EventStoreClient.client.append_to_stream(stream_name, [event2], options: { expected_revision: 'no_stream' })
+```
+
+There are three available stream states:
+
+- `any`
+- `no_stream`
+- `stream_exists`
 
 This check can be used to implement optimistic concurrency. When you retrieve a stream from EventStoreDB, you take note of the current version number, then when you save it back you can determine if somebody else has modified the record in the meantime.
 
@@ -71,8 +96,8 @@ event1 = SomethingHappened.new(
 event2 = SomethingHappened.new(
   type: 'some-event', data: {},
 )
-EventStoreClient.client.append_to_stream('some-stream', [event1], options: { expected_version: revision })
+EventStoreClient.client.append_to_stream('some-stream', [event1], options: { expected_revision: revision })
 
-# Will fail with versions mismatch error
-EventStoreClient.client.append_to_stream('some-stream', [event2], options: { expected_version: revision })
+# Will fail with revisions mismatch error
+EventStoreClient.client.append_to_stream('some-stream', [event2], options: { expected_revision: revision })
 ```

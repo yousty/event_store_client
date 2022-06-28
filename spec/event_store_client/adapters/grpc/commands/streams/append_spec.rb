@@ -25,12 +25,72 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     expect(subject).to be_a(Dry::Monads::Success)
   end
 
-  context 'when expected version does not match' do
-    let(:options) { { expected_version: 10 } }
+  context 'when expected revision does not match' do
+    let(:options) { { expected_revision: 10 } }
     let(:failure_message) { 'current version: 0 | expected: 10' }
 
     it 'returns failure' do
-      expect(subject).to eq(Dry::Monads::Failure(failure_message))
+      expect(subject).to be_a(Dry::Monads::Failure)
+    end
+
+    describe 'failure' do
+      subject { super().failure }
+
+      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
+      it 'has info about current and expected revisions' do
+        aggregate_failures do
+          expect(subject.current_revision).to eq(0)
+          expect(subject.expected_revision).to eq(options[:expected_revision])
+        end
+      end
+    end
+  end
+
+  context 'when revision is "no_stream"' do
+    subject do
+      first_event
+      described_class.new.call(stream, [event2], options: options)
+    end
+
+    let(:first_event) { described_class.new.call(stream, [event1], options: options) }
+    let(:options) { { expected_revision: 'no_stream' } }
+
+    it 'accepts only one event' do
+      subject
+      expect(client.read(stream).value!.count).to eq(1)
+    end
+    it 'returns failure' do
+      expect(subject).to be_a(Dry::Monads::Failure)
+    end
+
+    describe 'failure' do
+      subject { super().failure }
+
+      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
+      it 'has info that the error is due to "no_stream"' do
+        expect(subject.expected_no_stream).to be_a(EventStore::Client::Empty)
+      end
+    end
+  end
+
+  context 'when revision is "stream_exists"' do
+    subject do
+      described_class.new.call(stream, [event1], options: options)
+    end
+
+    let(:options) { { expected_revision: 'stream_exists' } }
+
+    it 'returns failure' do
+      expect(subject).to be_a(Dry::Monads::Failure)
+    end
+
+    describe 'failure' do
+      subject { super().failure }
+
+      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
+      it 'has info that the error is due to "no_stream"' do
+        expect(subject.expected_stream_exists).to be_a(EventStore::Client::Empty)
+      end
     end
   end
 
