@@ -3,8 +3,7 @@
 module EventStoreClient
   class Client
     def append_to_stream(stream_name, event, options = {})
-      raise ArgumentError if stream_name.nil? || stream_name.empty?
-      raise ArgumentError unless event.is_a?(Event)
+      raise AbstractMethodError
     end
 
     def read_stream

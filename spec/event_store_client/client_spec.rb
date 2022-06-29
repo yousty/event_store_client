@@ -2,36 +2,16 @@
 
 RSpec.describe EventStoreClient::Client do
   let(:client) { described_class.new }
-  let(:stream_name) { 'stream_name' }
-  let(:options) { {} }
-
-  shared_examples 'argument error' do
-    it 'raises ArgumentError' do
-      expect { client.append_to_stream(stream_name, event, options) }.to(
-        raise_error(ArgumentError)
-      )
-    end
-  end
 
   describe '#append_to_stream' do
+    subject { client.append_to_stream(stream_name, event, options) }
+
+    let(:stream_name) { 'stream_name' }
+    let(:options) { {} }
     let(:event) { double('Event') }
 
-    context 'when stream_name is nil' do
-      let(:stream_name) { nil }
-
-      it_behaves_like 'argument error'
-    end
-
-    context 'when stream_name is empty' do
-      let(:stream_name) { '' }
-
-      it_behaves_like 'argument error'
-    end
-
-    context 'when event is not of class Event' do
-      let(:event) { 'A String' }
-
-      it_behaves_like 'argument error'
+    it 'raises AbstractMethodError' do
+      expect { subject }.to raise_error(EventStoreClient::AbstractMethodError)
     end
   end
 

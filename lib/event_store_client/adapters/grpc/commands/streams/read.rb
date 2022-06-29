@@ -13,36 +13,22 @@ module EventStoreClient
         class Read < Command
           include Configuration
 
+          ALL_STREAM_NAME = '$all'
+
           use_request EventStore::Client::Streams::ReadReq
           use_service EventStore::Client::Streams::Streams::Stub
 
           StreamNotFound = Class.new(StandardError)
 
           def call(name, options: {})
-            direction =
-              EventStoreClient::ReadDirection.new(options[:direction] || 'forwards').to_sym
-            opts = {
-              stream: {
-                stream_identifier: {
-                  stream_name: name
-                }
-              },
-              read_direction: direction,
-              resolve_links: options[:resolve_links] || true,
-              count: options[:count] || config.per_page,
-              uuid_option: {
-                string: {}
-              },
-              no_filter: {}
-            }
-            options[:start] ||= 0
-            if options[:start].zero?
-              opts[:stream][:start] = {}
-            else
-              opts[:stream][:revision] = options[:start]
-            end
-
+            opts =
+              if name == ALL_STREAM_NAME
+                read_all_stream_options(options)
+              else
+                read_options(name, options)
+              end
             skip_decryption = options[:skip_decryption] || false
+
             events =
               if options[:skip_deserialization]
                 read_stream_raw(opts)
@@ -55,6 +41,57 @@ module EventStoreClient
           end
 
           private
+
+          def read_options(name, options)
+            opts = {
+              stream: {
+                stream_identifier: {
+                  stream_name: name
+                }
+              },
+              read_direction: direction(options[:direction]),
+              resolve_links: options[:resolve_links] || true,
+              count: options[:count] || config.per_page,
+              uuid_option: {
+                string: {}
+              },
+              no_filter: {}
+            }
+
+            if options[:start].nil? || options[:start].zero?
+              opts[:stream][:start] = {}
+            else
+              opts[:stream][:revision] = options[:start]
+            end
+
+            opts
+          end
+
+          def read_all_stream_options(options)
+            opts = {
+              all: { start: {}, end: {} },
+              read_direction: direction(options[:direction]),
+              resolve_links: options[:resolve_links] || true,
+              count: options[:count] || config.per_page,
+              uuid_option: {
+                string: {}
+              },
+              no_filter: {}
+            }
+
+            if options[:commit_position] || options[:prepare_position]
+              opts[:all][:position] = {
+                commit_position: options[:commit_position],
+                prepare_position: options[:prepare_position]
+              }.compact
+            end
+
+            opts
+          end
+
+          def direction(direction)
+            EventStoreClient::ReadDirection.new(direction || 'forwards').to_sym
+          end
 
           def read_stream(options, skip_decryption)
             retries ||= 0
@@ -72,7 +109,8 @@ module EventStoreClient
             retries ||= 0
             service.read(request.new(options: options), metadata: metadata).map do |res|
               raise StreamNotFound if res.stream_not_found
-              res.event.event
+
+              res
             end
           rescue ::GRPC::Unavailable
             sleep config.grpc_unavailable_retry_sleep

@@ -26,10 +26,17 @@ module EventStoreClient
       def read(stream_name, options: {})
         Commands::Streams::Read.new.call(stream_name, options: options)
       end
+
+      # Reads a page of events from the $all stream
+      # @param options [Hash] additional options to the request
+      # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
+      #
+      def read_all(options: {})
+        Commands::Streams::Read.new.call('$all', options: options)
+      end
     end
   end
 end
-
 
 # module EventStoreClient
 #   module GRPC
