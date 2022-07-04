@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/http'
-
 RSpec.describe EventStoreClient::HTTP::Client, webmock: true do
   let(:api_client) { described_class.new }
   let(:stream_name) { "test-stream-#{SecureRandom.hex(6)}" }

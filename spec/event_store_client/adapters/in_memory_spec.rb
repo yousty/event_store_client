@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/in_memory'
-require 'event_store_client/adapters/http'
-
 RSpec.describe EventStoreClient::InMemory do
   subject { instance }
 

@@ -3,9 +3,6 @@
 require 'event_store_client/adapters/grpc/generated/streams_pb'
 require 'event_store_client/adapters/grpc/generated/streams_services_pb'
 
-require 'event_store_client/adapters/grpc/commands/command'
-require 'event_store_client/adapters/grpc/options/streams/revision_option'
-
 module EventStoreClient
   module GRPC
     module Commands
@@ -85,7 +82,7 @@ module EventStoreClient
 
           # @param stream [String]
           # @param revision [EventStoreClient::GRPC::Options::Streams::RevisionOption]
-          # @return [Hash]
+          # @return [EventStore::Client::Streams::AppendReq::Options]
           def options(stream, revision)
             opts =
               {
@@ -93,19 +90,22 @@ module EventStoreClient
                   stream_name: stream
                 }
               }
-            opts.merge!(revision.value) if revision.value
-            opts
+            opts.merge!(revision.request_options) if revision.request_options
+            EventStore::Client::Streams::AppendReq::Options.new(opts)
           end
 
+          # @return [EventStore::Client::Streams::AppendReq::ProposedMessage]
           def message(id: nil, data:, event_metadata:, custom_metadata:)
-            {
-              id: {
-                string: id || SecureRandom.uuid
-              },
-              data: data,
-              custom_metadata: JSON.generate(custom_metadata),
-              metadata: event_metadata
-            }
+            opts =
+              {
+                id: {
+                  string: id || SecureRandom.uuid
+                },
+                data: data,
+                custom_metadata: JSON.generate(custom_metadata),
+                metadata: event_metadata
+              }
+            EventStore::Client::Streams::AppendReq::ProposedMessage.new(opts)
           end
 
           def validate_response(resp)

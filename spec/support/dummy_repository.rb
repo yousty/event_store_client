@@ -25,7 +25,7 @@ class DummyRepository
 
   def decrypt(*)
     message = Message.new(
-      message: JSON.generate(first_name: 'Anakin', last_name: 'Skylwalker')
+      message: JSON.generate(first_name: 'Anakin', last_name: 'Skywalker')
     )
     Dry::Monads::Success(message)
   end

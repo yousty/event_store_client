@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/grpc/client'
-require 'event_store_client/adapters/grpc/commands/streams/append'
-
 RSpec.describe EventStoreClient::GRPC::Client do
   subject { described_class.new.append_to_stream(stream_name, [event], options: options) }
 

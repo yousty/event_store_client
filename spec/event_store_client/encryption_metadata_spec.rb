@@ -6,7 +6,7 @@ RSpec.describe EventStoreClient::EncryptionMetadata do
     {
       user_id: user_id,
       first_name: 'Anakin',
-      last_name: 'Skylwalker',
+      last_name: 'Skywalker',
       profession: 'Jedi'
     }
   end

@@ -24,6 +24,10 @@ module EventStoreClient
             value[:revision] += 1
           end
 
+          # See expected_stream_revision of event_store.client.streams.AppendReq.Options
+          # @return [Hash]
+          alias request_options value
+
           private
 
           # @return [Hash]

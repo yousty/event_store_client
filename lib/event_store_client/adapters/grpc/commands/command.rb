@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'dry-monads'
 require 'event_store_client/adapters/grpc/command_registrar'
 
 module EventStoreClient
@@ -8,8 +7,6 @@ module EventStoreClient
     module Commands
       class Command
         include Configuration
-
-        class GRPCUnavailableRetryFailed < StandardError; end
 
         def self.inherited(klass)
           super
@@ -38,6 +35,20 @@ module EventStoreClient
           credentials =
             Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
           { 'authorization' => "Basic #{credentials.delete("\n")}" }
+        end
+
+        private
+
+        def retry_request
+          retries = 0
+          begin
+            yield
+          rescue ::GRPC::Unavailable => e
+            sleep config.grpc_unavailable_retry_sleep
+            retries += 1
+            retry if retries <= config.grpc_unavailable_retry_count
+            raise
+          end
         end
       end
     end

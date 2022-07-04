@@ -18,21 +18,54 @@ module EventStoreClient
         )
       end
 
-      # Reads a page of events from the given stream
-      # @param stream_name [String] Stream name to read events from
-      # @param options [Hash] additional options to the request
-      # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
-      #
-      def read(stream_name, options: {})
-        Commands::Streams::Read.new.call(stream_name, options: options)
+      # @param stream_name [String]
+      # @param skip_deserialization [Boolean]
+      # @param skip_decryption [Boolean]
+      # @param options [Hash] request options
+      # @option options [String] :direction read direction - 'Forwards' or 'Backwards'
+      # @option options [Integer, Symbol] :from_revision. If number is provided - it is threaded
+      #   as starting revision number. Alternatively you can provide :start or :end value to
+      #   define a stream revision. **Use this option when stream name is a normal stream name**
+      # @option options [Hash, Symbol] :from_position. If hash is provided - you should supply
+      #   it with :commit_position and/or :prepare_position keys. Alternatively you can provide
+      #   :start or :end value to define a stream position. **Use this option when stream name
+      #   is "$all"**
+      # @option options [Integer] :max_count max number of events to return in one response
+      # @option options [Boolean] :resolve_link_tos setting this value to true will tell
+      #   EventStoreDB to return the event as well as the event linking to it
+      # @yield [EventStore::Client::Streams::ReadReq::Options] yields request options right
+      #   before sending the request. You can extend it with your own options, not covered in
+      #   the default implementation.
+      #   Example:
+      #     ```ruby
+      #     read('$all') do |opts|
+      #       opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+      #         { stream_identifier: { prefix: ['as'] } }
+      #       )
+      #     end
+      #   ```
+      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      def read(stream_name, options: {}, skip_deserialization: false, skip_decryption: false, &blk)
+        Commands::Streams::Read.new.call(
+          stream_name,
+          options: options,
+          skip_deserialization: skip_deserialization,
+          skip_decryption: skip_decryption,
+          &blk
+        )
       end
 
-      # Reads a page of events from the $all stream
-      # @param options [Hash] additional options to the request
-      # @return Dry::Monads::Result::Success with returned events or Dry::Monads::Result::Failure
-      #
-      def read_all(options: {})
-        Commands::Streams::Read.new.call('$all', options: options)
+      # @see {#read} for available params
+      # @return [Enumerator] enumerator will yield Dry::Monads::Success or Dry::Monads::Failure on
+      #   each iteration
+      def read_paginated(stream_name, options: {}, skip_deserialization: false, skip_decryption: false, &blk)
+        Commands::Streams::ReadPaginated.new.call(
+          stream_name,
+          options: options,
+          skip_deserialization: skip_deserialization,
+          skip_decryption: skip_decryption,
+          &blk
+        )
       end
     end
   end

@@ -31,7 +31,7 @@ class DummyRepository
   end
 
   def decrypt(*)
-    { first_name: 'Anakin', last_name: 'Skylwalker'}
+    { first_name: 'Anakin', last_name: 'Skywalker'}
   end
 end
 ```
@@ -60,7 +60,7 @@ end
 event = EncryptedEvent.new(
   user_id: SecureRandom.uuid,
   first_name: 'Anakin',
-  last_name: 'Skylwalker',
+  last_name: 'Skywalker',
   profession: 'Jedi'
 )
 ```

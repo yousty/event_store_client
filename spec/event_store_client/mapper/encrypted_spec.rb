@@ -5,7 +5,7 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
     {
       'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
       'first_name' => 'Anakin',
-      'last_name' => 'Skylwalker',
+      'last_name' => 'Skywalker',
       'profession' => 'Jedi'
     }
   end
@@ -56,7 +56,7 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
       {
         'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
         'first_name' => 'Anakin',
-        'last_name' => 'Skylwalker',
+        'last_name' => 'Skywalker',
         'profession' => 'Jedi'
       }
     end

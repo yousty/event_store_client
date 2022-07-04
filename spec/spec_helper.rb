@@ -24,27 +24,15 @@ if ENV['TEST_COVERAGE'] == 'true'
 end
 
 require 'event_store_client'
+require 'event_store_client/adapters/grpc'
+require 'event_store_client/adapters/http'
+require 'event_store_client/adapters/in_memory'
 require 'pry'
 require 'securerandom'
 require 'webmock/rspec'
 require 'webmock/rspec/matchers'
 
 Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
-
-EventStoreClient.configure do |config|
-  config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'http://localhost:2113' }
-  config.adapter_type = :grpc
-  config.eventstore_user = ENV.fetch('EVENTSTORE_USER') { 'admin' }
-  config.eventstore_password = ENV.fetch('EVENTSTORE_PASSWORD') { 'changeit' }
-  config.verify_ssl = false
-  config.insecure = true
-  config.service_name = ''
-  config.error_handler = proc {}
-  config.subscriptions_repo = EventStoreClient::CatchUpSubscriptions.new(
-    connection: EventStoreClient.client,
-    subscription_store: DummySubscriptionStore.new('dummy-subscription-store')
-  )
-end
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
@@ -79,6 +67,14 @@ RSpec.configure do |config|
   config.order = :random
 
   Kernel.srand config.seed
+
+  config.before do
+    TestHelper.configure_grpc
+  end
+
+  config.after do
+    EventStoreClient.reset_config
+  end
 
   config.before(:each, webmock: :itself.to_proc) do
     WebMock.enable!
