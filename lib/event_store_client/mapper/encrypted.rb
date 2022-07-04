@@ -33,6 +33,7 @@ module EventStoreClient
         )
         encryptor.call
         EventStoreClient::Event.new(
+          id: event.respond_to?(:id) ? event.id : nil,
           data: serializer.serialize(encryptor.encrypted_data),
           metadata: serializer.serialize(
             event.metadata.merge(encryption: encryptor.encryption_metadata)
