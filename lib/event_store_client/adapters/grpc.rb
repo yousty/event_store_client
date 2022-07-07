@@ -12,7 +12,7 @@ require 'event_store_client/adapters/grpc/shared/streams/process_read_response'
 
 require 'event_store_client/adapters/grpc/commands/command'
 require 'event_store_client/adapters/grpc/commands/streams/append'
-require 'event_store_client/adapters/grpc/commands/streams/delete'
+require 'event_store_client/adapters/grpc/commands/streams/hard_delete'
 require 'event_store_client/adapters/grpc/commands/streams/link_to'
 require 'event_store_client/adapters/grpc/commands/streams/read'
 require 'event_store_client/adapters/grpc/commands/streams/read_paginated'

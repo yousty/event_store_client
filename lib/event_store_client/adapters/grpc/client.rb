@@ -40,7 +40,7 @@ module EventStoreClient
       #     ```ruby
       #     read('$all') do |opts|
       #       opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-      #         { stream_identifier: { prefix: ['as'] } }
+      #         { stream_identifier: { prefix: ['as'] }, count: EventStore::Client::Empty.new }
       #       )
       #     end
       #   ```
@@ -66,6 +66,24 @@ module EventStoreClient
           skip_decryption: skip_decryption,
           &blk
         )
+      end
+
+      # Refs https://developers.eventstore.com/server/v5/streams.html#hard-delete
+      # @param stream_name [String]
+      # @param options [Hash]
+      # @option options [Integer, String] :expected_revision provide your own revision number.
+      #   Alternatively you can provide one of next values: 'any', 'no_stream' or 'stream_exists'.
+      # @yield [EventStore::Client::Streams::TombstoneReq::Options] yields request options right
+      #   before sending the request. You can override them in your own way.
+      #   Example:
+      #     ```ruby
+      #     delete_stream('stream_name') do |opts|
+      #       opts.stream_identifier.stream_name = 'overridden-stream-name'
+      #     end
+      #     ```
+      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      def hard_delete_stream(stream_name, options: {}, &blk)
+        Commands::Streams::HardDelete.new.call(stream_name, options: options, &blk)
       end
     end
   end
