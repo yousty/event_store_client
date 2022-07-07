@@ -158,6 +158,54 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
       end
     end
 
+    describe 'reading from $all' do
+      subject do
+        instance.call(
+          stream_name,
+          options: options,
+          skip_deserialization: skip_deserialization,
+          skip_decryption: skip_decryption
+        ) do |opts|
+          opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+            {
+              stream_identifier: { prefix: [stream_1, stream_2] },
+              count: EventStore::Client::Empty.new
+            }
+          )
+        end
+      end
+
+      let(:stream_name) { "$all" }
+      let(:stream_1) { "some-stream-1$#{SecureRandom.uuid}" }
+      let(:stream_2) { "some-stream-2$#{SecureRandom.uuid}" }
+      let(:events_stream_1) do
+        2.times.map do
+          EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event-1')
+        end
+      end
+      let(:events_stream_2) do
+        3.times.map do
+          EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event-2')
+        end
+      end
+
+      before do
+        EventStoreClient.client.append_to_stream(stream_1, events_stream_1)
+        EventStoreClient.client.append_to_stream(stream_2, events_stream_2)
+      end
+
+      it 'reads events from $all' do
+        streams_in_result = subject.success.map(&:stream_name).uniq
+        expect(streams_in_result).to match_array([stream_1, stream_2])
+      end
+      it 'returns correct result' do
+        events_ids_in_result = subject.success.map(&:id)
+        expect(events_ids_in_result).to(
+          match_array(events_stream_1.map(&:id) + events_stream_2.map(&:id))
+        )
+      end
+    end
+
     describe 'when stream does not exist' do
       it 'returns error' do
         is_expected.to be_a(Dry::Monads::Failure)
