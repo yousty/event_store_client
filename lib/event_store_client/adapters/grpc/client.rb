@@ -31,8 +31,9 @@ module EventStoreClient
       #   :start or :end value to define a stream position. **Use this option when stream name
       #   is "$all"**
       # @option options [Integer] :max_count max number of events to return in one response
-      # @option options [Boolean] :resolve_link_tos setting this value to true will tell
-      #   EventStoreDB to return the event as well as the event linking to it
+      # @option options [Boolean] :resolve_link_tos When using projections to create new events you
+      #   can set whether the generated events are pointers to existing events. Setting this value
+      #   to true tells EventStoreDB to return the event as well as the event linking to it.
       # @yield [EventStore::Client::Streams::ReadReq::Options] yields request options right
       #   before sending the request. You can extend it with your own options, not covered in
       #   the default implementation.

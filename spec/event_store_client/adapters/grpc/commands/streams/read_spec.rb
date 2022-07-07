@@ -21,7 +21,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
     let(:skip_deserialization) { false }
     let(:skip_decryption) { false }
 
-    describe 'when stream exists' do
+    context 'when stream exists' do
       let(:event) do
         EventStoreClient::DeserializedEvent.new(
           id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
@@ -154,6 +154,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
               expect(events.first.id).to eq(event.id)
             end
           end
+        end
+      end
+
+      xcontext 'when resolve_link_tos option is given' do
+        it 'it returns linked events' do
+          # implement me when will be an ability to link one event to another
         end
       end
     end
