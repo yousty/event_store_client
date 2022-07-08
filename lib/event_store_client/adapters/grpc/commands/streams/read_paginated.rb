@@ -6,9 +6,10 @@ module EventStoreClient
       module Streams
         class ReadPaginated < Command
           RecordsLimitError = Class.new(StandardError)
+
           # @api private
           # @see {EventStoreClient::GRPC::Client#read_paginated}
-          def call(stream_name, options: {}, skip_deserialization: false, skip_decryption: false, &blk)
+          def call(stream_name, options:, skip_deserialization:, skip_decryption:, &blk)
             position, direction, max_count = nil
             Enumerator.new do |y|
               loop do
@@ -22,7 +23,7 @@ module EventStoreClient
                     yield opts if block_given?
                     position ||= get_position(opts)
                     direction ||= get_direction(opts)
-                    max_count ||= opts.count
+                    max_count ||= opts.count.to_i
 
                     raise(
                       RecordsLimitError,
@@ -32,10 +33,10 @@ module EventStoreClient
                   end
                 if response.success?
                   processed_response =
-                    EventStoreClient::GRPC::Shared::Streams::ProcessReadResponse.new.call(
+                    EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new.call(
                       response.success,
-                      skip_decryption,
-                      skip_deserialization
+                      skip_deserialization,
+                      skip_decryption
                     )
                   y << processed_response if processed_response.success.any?
                   raise StopIteration if end_reached?(response.success, max_count)

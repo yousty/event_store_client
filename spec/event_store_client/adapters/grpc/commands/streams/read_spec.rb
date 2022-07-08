@@ -4,7 +4,6 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
   let(:instance) { described_class.new }
 
   it { is_expected.to be_a(EventStoreClient::GRPC::Commands::Command) }
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
 
   describe '#call' do
     subject do

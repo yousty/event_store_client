@@ -11,10 +11,9 @@ module EventStoreClient
           use_request EventStore::Client::Streams::TombstoneReq
           use_service EventStore::Client::Streams::Streams::Stub
 
-
           # @api private
           # @see {EventStoreClient::GRPC::Client#delete_stream}
-          def call(stream_name, options: {}, &blk)
+          def call(stream_name, options:, &blk)
             options = normalize_options(stream_name, options)
             yield options if block_given?
             Success(service.delete(request.new(options: options), metadata: metadata))

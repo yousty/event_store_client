@@ -14,7 +14,7 @@ module EventStoreClient
           ALLOWED_EVENT_METADATA = %w[type content-type created_at].freeze
 
           # @api private
-          def call(stream, events, options: {})
+          def call(stream, events, options:)
             return unless events.any?
 
             serialized_events = events.map { |event| config.mapper.serialize(event) }

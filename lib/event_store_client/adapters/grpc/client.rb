@@ -3,6 +3,8 @@
 module EventStoreClient
   module GRPC
     class Client < EventStoreClient::Client
+      include Configuration
+
       # @param stream_name [String]
       # @param events [Array<EventStoreClient::DeserializedEvent>]
       # @param options [Hash]
@@ -46,7 +48,8 @@ module EventStoreClient
       #     end
       #   ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
-      def read(stream_name, options: {}, skip_deserialization: false, skip_decryption: false, &blk)
+      def read(stream_name, options: {}, skip_deserialization: config.skip_deserialization,
+               skip_decryption: config.skip_decryption, &blk)
         Commands::Streams::Read.new.call(
           stream_name,
           options: options,
@@ -59,7 +62,9 @@ module EventStoreClient
       # @see {#read} for available params
       # @return [Enumerator] enumerator will yield Dry::Monads::Success or Dry::Monads::Failure on
       #   each iteration
-      def read_paginated(stream_name, options: {}, skip_deserialization: false, skip_decryption: false, &blk)
+      def read_paginated(stream_name, options: {},
+                         skip_deserialization: config.skip_deserialization,
+                         skip_decryption: config.skip_decryption, &blk)
         Commands::Streams::ReadPaginated.new.call(
           stream_name,
           options: options,
@@ -85,6 +90,51 @@ module EventStoreClient
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
       def hard_delete_stream(stream_name, options: {}, &blk)
         Commands::Streams::HardDelete.new.call(stream_name, options: options, &blk)
+      end
+
+      # Subscribe to the given stream and listens for events. Note, that it will block execution of
+      #   current stack. If you want to do it asynchronous - consider putting it out of current
+      #   thread.
+      # @param stream_name [String]
+      # @param handler [#call] whenever new event arrives - #call method of your handler will be
+      #   called with the response passed into it
+      # @param skip_deserialization [Boolean]
+      # @param skip_decryption [Boolean]
+      # @param options [Hash] request options
+      # @option options [String] :direction read direction - 'Forwards' or 'Backwards'
+      # @option options [Integer, Symbol] :from_revision. If number is provided - it is threaded
+      #   as starting revision number. Alternatively you can provide :start or :end value to
+      #   define a stream revision. **Use this option when stream name is a normal stream name**
+      # @option options [Hash, Symbol] :from_position. If hash is provided - you should supply
+      #   it with :commit_position and/or :prepare_position keys. Alternatively you can provide
+      #   :start or :end value to define a stream position. **Use this option when stream name
+      #   is "$all"**
+      # @option options [Boolean] :resolve_link_tos When using projections to create new events you
+      #   can set whether the generated events are pointers to existing events. Setting this value
+      #   to true tells EventStoreDB to return the event as well as the event linking to it.
+      # @yield [EventStore::Client::Streams::ReadReq::Options] yields request options right
+      #   before sending the request. You can extend it with your own options, not covered in
+      #   the default implementation.
+      #   Example:
+      #     ```ruby
+      #     subscribe_to_stream('$all', handler: proc { |response| puts response }) do |opts|
+      #       opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+      #         { stream_identifier: { prefix: ['as'] }, count: EventStore::Client::Empty.new }
+      #       )
+      #     end
+      #     ```
+      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      def subscribe_to_stream(stream_name, handler:, options: {},
+                              skip_deserialization: config.skip_deserialization,
+                              skip_decryption: config.skip_decryption, &blk)
+        Commands::Streams::Subscribe.new.call(
+          stream_name,
+          handler: handler,
+          options: options,
+          skip_deserialization: skip_deserialization,
+          skip_decryption: skip_decryption,
+          &blk
+        )
       end
     end
   end

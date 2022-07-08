@@ -102,6 +102,61 @@ If you would like to skip deserialization of `#read` result, you should use `:sk
 EventStoreClient.client.read('some-stream', skip_deserialization: true)
 ```
 
+## Filtering
+
+Filtering feature is only available for `$all` stream.
+
+Retrieving only `some-event` events from `some-stream` stream:
+
+```ruby
+result = 
+  EventStoreClient.client.read('$all') do |opts|
+    opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+      event_type: { prefix: ['some-event'] }, 
+      stream_identifier: { prefix: ['some-stream'] }, 
+      count: EventStore::Client::Empty.new
+    ) 
+  end
+if result.success?
+  result.success.each do |e|
+    # iterate through events
+  end
+end
+```
+
+Retrieving `some-event` from all streams:
+
+```ruby
+result = 
+  EventStoreClient.client.read('$all') do |opts|
+    opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+      event_type: { prefix: ['some-event'] }, 
+      count: EventStore::Client::Empty.new
+    ) 
+  end
+if result.success?
+  result.success.each do |e|
+    # iterate through events
+  end
+end
+```
+
+Retrieving events from `some-stream-1` and `some-stream-2` streams:
+
+```ruby
+result = 
+  EventStoreClient.client.read('$all') do |opts|
+    opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+      stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] }, 
+      count: EventStore::Client::Empty.new
+    ) 
+  end
+if result.success?
+  result.success.each do |e|
+    # iterate through events
+  end
+end
+```
 
 ## Pagination
 

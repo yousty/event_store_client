@@ -49,6 +49,9 @@ module EventStoreClient
 
         setting :grpc_unavailable_retry_sleep, default: 0.5
         setting :grpc_unavailable_retry_count, default: 3
+
+        setting :skip_deserialization, default: false
+        setting :skip_decryption, default: false
       end
       @config.config
     end

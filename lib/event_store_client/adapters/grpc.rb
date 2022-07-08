@@ -8,16 +8,19 @@ require 'event_store_client/value_objects/read_direction'
 require 'event_store_client/adapters/grpc/options/streams/read_options'
 require 'event_store_client/adapters/grpc/options/streams/revision_option'
 
-require 'event_store_client/adapters/grpc/shared/streams/process_read_response'
+require 'event_store_client/adapters/grpc/shared/event_deserializer'
+require 'event_store_client/adapters/grpc/shared/options/stream_options'
+require 'event_store_client/adapters/grpc/shared/streams/process_response'
+require 'event_store_client/adapters/grpc/shared/streams/process_responses'
 
 require 'event_store_client/adapters/grpc/commands/command'
+
 require 'event_store_client/adapters/grpc/commands/streams/append'
 require 'event_store_client/adapters/grpc/commands/streams/hard_delete'
 require 'event_store_client/adapters/grpc/commands/streams/link_to'
 require 'event_store_client/adapters/grpc/commands/streams/read'
 require 'event_store_client/adapters/grpc/commands/streams/read_paginated'
 require 'event_store_client/adapters/grpc/commands/streams/subscribe'
-require 'event_store_client/adapters/grpc/commands/streams/tombstone'
 
 require 'event_store_client/adapters/grpc/commands/persistent_subscriptions/create'
 require 'event_store_client/adapters/grpc/commands/persistent_subscriptions/update'

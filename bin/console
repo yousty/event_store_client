@@ -23,6 +23,8 @@ EventStoreClient.configure do |config|
   config.insecure = true
   config.per_page = 1000
 end
+# Trigger client initialization
+EventStoreClient.client
 
 def check_stream
   config = EventStoreClient.config

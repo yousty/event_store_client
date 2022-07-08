@@ -8,22 +8,20 @@ module EventStoreClient
     module Commands
       module Streams
         class Read < Command
-          include Configuration
-
           use_request EventStore::Client::Streams::ReadReq
           use_service EventStore::Client::Streams::Streams::Stub
 
           # @api private
           # @see {EventStoreClient::GRPC::Client#read}
-          def call(stream_name, options: {}, skip_deserialization: false, skip_decryption: false)
+          def call(stream_name, options:, skip_deserialization:, skip_decryption:)
             options = normalize_options(stream_name, options)
             yield options if block_given?
             result =
               retry_request { service.read(request.new(options: options), metadata: metadata).to_a }
-            EventStoreClient::GRPC::Shared::Streams::ProcessReadResponse.new.call(
+            EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new.call(
               result,
-              skip_decryption,
-              skip_deserialization
+              skip_deserialization,
+              skip_decryption
             )
           end
 
