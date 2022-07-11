@@ -12,7 +12,7 @@ module EventStoreClient
           use_service EventStore::Client::Streams::Streams::Stub
 
           # @api private
-          # @see {EventStoreClient::GRPC::Client#delete_stream}
+          # @see {EventStoreClient::GRPC::Client#hard_delete_stream}
           def call(stream_name, options:, &blk)
             options = normalize_options(stream_name, options)
             yield options if block_given?

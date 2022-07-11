@@ -4,6 +4,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::HardDelete do
   let(:instance) { described_class.new }
 
   it { is_expected.to be_a(EventStoreClient::GRPC::Commands::Command) }
+  it 'uses correct params class' do
+    expect(instance.request).to eq(EventStore::Client::Streams::TombstoneReq)
+  end
+  it 'uses correct service' do
+    expect(instance.service).to be_a(EventStore::Client::Streams::Streams::Stub)
+  end
 
   describe '#call' do
     subject { instance.call(stream_name, options: {}) }
@@ -26,16 +32,15 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::HardDelete do
           EventStoreClient.client.read(stream_name)
         }.from(be_success).to(be_failure)
       end
-      it 'returns correct failure message' do
-        subject
-        expect(EventStoreClient.client.read(stream_name).failure).to eq(:stream_not_found)
-      end
+      it { is_expected.to be_success }
     end
 
     describe 'deleting non-existing stream' do
+      it 'returns failure' do
+        is_expected.to be_failure
+      end
       it 'returns correct failure message' do
-        subject
-        expect(EventStoreClient.client.read(stream_name).failure).to eq(:stream_not_found)
+        expect(subject.failure).to eq(:stream_not_found)
       end
     end
   end

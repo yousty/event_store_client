@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
-  subject { described_class.new.call(stream, events, options: options) }
+  subject { instance.call(stream, events, options: options) }
 
   let(:client) { EventStoreClient::GRPC::Client.new }
   let(:data) { { key1: 'value1', key2: 'value2' } }
@@ -14,6 +14,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   let(:events) { [event1, event2] }
   let(:stream) { "stream$#{SecureRandom.uuid}" }
   let(:options) { {} }
+  let(:instance) { described_class.new }
 
   it 'appends events to a stream' do
     subject
@@ -21,6 +22,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   end
   it 'returns Success' do
     expect(subject).to be_a(Dry::Monads::Success)
+  end
+  it 'uses correct params class' do
+    expect(instance.request).to eq(EventStore::Client::Streams::AppendReq)
+  end
+  it 'uses correct service' do
+    expect(instance.service).to be_a(EventStore::Client::Streams::Streams::Stub)
   end
 
   context 'when expected revision does not match' do

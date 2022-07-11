@@ -4,6 +4,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
   let(:instance) { described_class.new }
 
   it { is_expected.to be_a(EventStoreClient::GRPC::Commands::Command) }
+  it 'uses correct params class' do
+    expect(instance.request).to eq(EventStore::Client::Streams::ReadReq)
+  end
+  it 'uses correct service' do
+    expect(instance.service).to be_a(EventStore::Client::Streams::Streams::Stub)
+  end
 
   describe '#call' do
     subject do
