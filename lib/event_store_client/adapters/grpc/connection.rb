@@ -27,6 +27,10 @@ module EventStoreClient
         ::GRPC::Core::ChannelCredentials.new(cert.to_s)
       end
 
+      # @param stub_klass [Class]
+      # @param credentials [String] Base64-encoded string. Example:
+      #   Base64.encode64("#{username}:#{password}")
+      # @return [Object] instance of stub_class
       def secure_stub(stub_klass, credentials)
         credentials ||=
           Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")

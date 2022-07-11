@@ -15,3 +15,11 @@ A hard delete of a stream is permanent. You cannot append to the stream or recre
 ```ruby
 EventStoreClient.client.hard_delete_stream('some-stream')
 ```
+
+## User credentials
+
+You can provide user credentials to be used to delete the stream as follows. This will override the default credentials set on the connection.
+
+```ruby
+EventStoreClient.client.delete_stream('some-stream', credentials: { username: 'admin', password: 'changeit' })
+```

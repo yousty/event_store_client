@@ -6,8 +6,6 @@ module EventStoreClient
   module GRPC
     module Commands
       class Command
-        include Configuration
-
         def self.inherited(klass)
           super
           klass.class_eval do
@@ -26,18 +24,35 @@ module EventStoreClient
             end
 
             def service
-              CommandRegistrar.service(self.class)
+              CommandRegistrar.service(self.class, options: { credentials: credentials })
             end
           end
         end
 
+        include Configuration
+
+        attr_reader :username, :password
+        private :username, :password
+
+        # @param credentials [Hash]
+        # @option [String] :username
+        # @option [String] :password
+        def initialize(credentials = {})
+          @username = credentials[:username]
+          @password = credentials[:password]
+        end
+
         def metadata
-          credentials =
-            Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
           { 'authorization' => "Basic #{credentials.delete("\n")}" }
         end
 
         private
+
+        def credentials
+          username = self.username || config.eventstore_user
+          password = self.password || config.eventstore_user
+          Base64.encode64("#{username}:#{password}")
+        end
 
         def retry_request
           retries = 0

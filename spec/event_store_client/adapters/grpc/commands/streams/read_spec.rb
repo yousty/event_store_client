@@ -176,16 +176,10 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
           options: options,
           skip_deserialization: skip_deserialization,
           skip_decryption: skip_decryption
-        ) do |opts|
-          opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-            {
-              stream_identifier: { prefix: [stream_1, stream_2] },
-              count: EventStore::Client::Empty.new
-            }
-          )
-        end
+        )
       end
 
+      let(:options) { { filter: { stream_identifier: { prefix: [stream_1, stream_2] } } } }
       let(:stream_name) { "$all" }
       let(:stream_1) { "some-stream-1$#{SecureRandom.uuid}" }
       let(:stream_2) { "some-stream-2$#{SecureRandom.uuid}" }

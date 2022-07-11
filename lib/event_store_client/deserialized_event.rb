@@ -7,7 +7,8 @@ module EventStoreClient
     InvalidDataError = Class.new(StandardError)
     private_constant :InvalidDataError
 
-    attr_reader :id, :type, :title, :data, :metadata, :stream_name, :stream_revision
+    attr_reader :id, :type, :title, :data, :metadata, :stream_name, :stream_revision,
+                :prepare_position, :commit_position
 
     # @args [Hash] opts
     # @option opts [Boolean] :skip_validation
@@ -17,6 +18,8 @@ module EventStoreClient
     # @option opts [String] :title
     # @option opts [String] :stream_name
     # @option opts [Integer] :stream_revision
+    # @option opts [Integer] :prepare_position
+    # @option opts [Integer] :commit_position
     # @option opts [UUID] :id
     #
     def initialize(args = {})
@@ -32,6 +35,8 @@ module EventStoreClient
             )
       @stream_name = args[:stream_name]
       @stream_revision = args[:stream_revision]
+      @prepare_position = args[:prepare_position]
+      @commit_position = args[:commit_position]
       @title = args[:title]
       @id = args[:id]
     end

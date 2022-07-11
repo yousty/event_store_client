@@ -11,11 +11,14 @@ module EventStoreClient
       # @option options [Integer] :expected_revision provide your own revision number
       # @option options [String] :expected_revision provide one of next values: 'any', 'no_stream'
       #   or 'stream_exists'
+      # @param credentials [Hash]
+      # @option credentials [String] :username override authentication username
+      # @option credentials [String] :password override authentication password
       # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure, nil]
       #   Returns nil if no request was performed. Returns monads' Success/Failure in case whether
       #   request was performed
-      def append_to_stream(stream_name, events, options: {})
-        Commands::Streams::Append.new.call(
+      def append_to_stream(stream_name, events, options: {}, credentials: {})
+        Commands::Streams::Append.new(credentials).call(
           stream_name, events, options: options
         )
       end
@@ -36,6 +39,27 @@ module EventStoreClient
       # @option options [Boolean] :resolve_link_tos When using projections to create new events you
       #   can set whether the generated events are pointers to existing events. Setting this value
       #   to true tells EventStoreDB to return the event as well as the event linking to it.
+      # @option options [Hash] :filter provide it to filter events when reading from $all. You can
+      #   either filter by stream name or filter by event type. Filtering can be done by using
+      #   Regexp or by a string.
+      #   Examples:
+      #     ```ruby
+      #     # Include events only from streams which names start from 'some-stream-1' and
+      #     # 'some-stream-2'
+      #     { filter: { stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] } } }
+      #
+      #     # Include events only from streams which names end with digit
+      #     { filter: { stream_identifier: { regex: /\d$/.to_s } } }
+      #
+      #     # Include events which start from 'some-event-1' and 'some-event-2'
+      #     { filter: { event_type: { prefix: ['some-event-1', 'some-event-2'] } } }
+      #
+      #     # Include events which names end with digit
+      #     { filter: { event_type: { regex: /\d$/.to_s } } }
+      #     ```
+      # @param credentials [Hash]
+      # @option credentials [String] :username override authentication username
+      # @option credentials [String] :password override authentication password
       # @yield [EventStore::Client::Streams::ReadReq::Options] yields request options right
       #   before sending the request. You can extend it with your own options, not covered in
       #   the default implementation.
@@ -49,8 +73,8 @@ module EventStoreClient
       #   ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
       def read(stream_name, options: {}, skip_deserialization: config.skip_deserialization,
-               skip_decryption: config.skip_decryption, &blk)
-        Commands::Streams::Read.new.call(
+               skip_decryption: config.skip_decryption, credentials: {}, &blk)
+        Commands::Streams::Read.new(credentials).call(
           stream_name,
           options: options,
           skip_deserialization: skip_deserialization,
@@ -62,10 +86,10 @@ module EventStoreClient
       # @see {#read} for available params
       # @return [Enumerator] enumerator will yield Dry::Monads::Success or Dry::Monads::Failure on
       #   each iteration
-      def read_paginated(stream_name, options: {},
+      def read_paginated(stream_name, options: {}, credentials: {},
                          skip_deserialization: config.skip_deserialization,
                          skip_decryption: config.skip_decryption, &blk)
-        Commands::Streams::ReadPaginated.new.call(
+        Commands::Streams::ReadPaginated.new(credentials).call(
           stream_name,
           options: options,
           skip_deserialization: skip_deserialization,
@@ -79,6 +103,9 @@ module EventStoreClient
       # @param options [Hash]
       # @option options [Integer, String] :expected_revision provide your own revision number.
       #   Alternatively you can provide one of next values: 'any', 'no_stream' or 'stream_exists'.
+      # @param credentials [Hash]
+      # @option credentials [String] :username override authentication username
+      # @option credentials [String] :password override authentication password
       # @yield [EventStore::Client::Streams::TombstoneReq::Options] yields request options right
       #   before sending the request. You can override them in your own way.
       #   Example:
@@ -88,8 +115,8 @@ module EventStoreClient
       #     end
       #     ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
-      def hard_delete_stream(stream_name, options: {}, &blk)
-        Commands::Streams::HardDelete.new.call(stream_name, options: options, &blk)
+      def hard_delete_stream(stream_name, options: {}, credentials: {}, &blk)
+        Commands::Streams::HardDelete.new(credentials).call(stream_name, options: options, &blk)
       end
 
       # Refs https://developers.eventstore.com/server/v5/streams.html#soft-delete-and-truncatebefore
@@ -97,6 +124,9 @@ module EventStoreClient
       # @param options [Hash]
       # @option options [Integer, String] :expected_revision provide your own revision number.
       #   Alternatively you can provide one of next values: 'any', 'no_stream' or 'stream_exists'.
+      # @param credentials [Hash]
+      # @option credentials [String] :username override authentication username
+      # @option credentials [String] :password override authentication password
       # @yield [EventStore::Client::Streams::DeleteReq::Options] yields request options right
       #   before sending the request. You can override them in your own way.
       #   Example:
@@ -106,8 +136,8 @@ module EventStoreClient
       #     end
       #     ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
-      def delete_stream(stream_name, options: {}, &blk)
-        Commands::Streams::Delete.new.call(stream_name, options: options, &blk)
+      def delete_stream(stream_name, options: {}, credentials: {}, &blk)
+        Commands::Streams::Delete.new(credentials).call(stream_name, options: options, &blk)
       end
 
       # Subscribe to the given stream and listens for events. Note, that it will block execution of
@@ -130,6 +160,27 @@ module EventStoreClient
       # @option options [Boolean] :resolve_link_tos When using projections to create new events you
       #   can set whether the generated events are pointers to existing events. Setting this value
       #   to true tells EventStoreDB to return the event as well as the event linking to it.
+      # @option options [Hash] :filter provide it to filter events when subscribing to $all. You can
+      #   either filter by stream name or filter by event type. Filtering can be done by using
+      #   Regexp or by a string.
+      #   Examples:
+      #     ```ruby
+      #     # Include events only from streams which names start from 'some-stream-1' and
+      #     # 'some-stream-2'
+      #     { filter: { stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] } } }
+      #
+      #     # Include events only from streams which names end with digit
+      #     { filter: { stream_identifier: { regex: /\d$/.to_s } } }
+      #
+      #     # Include events which start from 'some-event-1' and 'some-event-2'
+      #     { filter: { event_type: { prefix: ['some-event-1', 'some-event-2'] } } }
+      #
+      #     # Include events which names end with digit
+      #     { filter: { event_type: { regex: /\d$/.to_s } } }
+      #     ```
+      # @param credentials [Hash]
+      # @option credentials [String] :username override authentication username
+      # @option credentials [String] :password override authentication password
       # @yield [EventStore::Client::Streams::ReadReq::Options] yields request options right
       #   before sending the request. You can extend it with your own options, not covered in
       #   the default implementation.
@@ -137,16 +188,32 @@ module EventStoreClient
       #     ```ruby
       #     subscribe_to_stream('$all', handler: proc { |response| puts response }) do |opts|
       #       opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-      #         { stream_identifier: { prefix: ['as'] }, count: EventStore::Client::Empty.new }
+      #         { stream_identifier: { prefix: ['as'] }, max: 100 }
       #       )
       #     end
       #     ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
-      def subscribe_to_stream(stream_name, handler:, options: {},
+      def subscribe_to_stream(stream_name, handler:, options: {}, credentials: {},
                               skip_deserialization: config.skip_deserialization,
                               skip_decryption: config.skip_decryption, &blk)
-        Commands::Streams::Subscribe.new.call(
+        Commands::Streams::Subscribe.new(credentials).call(
           stream_name,
+          handler: handler,
+          options: options,
+          skip_deserialization: skip_deserialization,
+          skip_decryption: skip_decryption,
+          &blk
+        )
+      end
+
+      # This method acts the same as #subscribe_to_stream with the only exception that it subscribes
+      # to $all stream
+      # @see #subscribe_to_stream
+      def subscribe_to_all(handler:, options: {}, credentials: {},
+                              skip_deserialization: config.skip_deserialization,
+                              skip_decryption: config.skip_decryption, &blk)
+        Commands::Streams::Subscribe.new(credentials).call(
+          '$all',
           handler: handler,
           options: options,
           skip_deserialization: skip_deserialization,

@@ -108,16 +108,10 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
           options: options,
           skip_deserialization: skip_deserialization,
           skip_decryption: skip_decryption
-        ) do |opts|
-          opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-            {
-              stream_identifier: { prefix: [some_stream] },
-              count: EventStore::Client::Empty.new
-            }
-          )
-        end
+        )
       end
 
+      let(:options) { { filter: { stream_identifier: { prefix: [some_stream] } } } }
       let(:stream_name) { "$all" }
       let(:some_stream) { "some-stream-1$#{SecureRandom.uuid}" }
       let(:events) do
@@ -127,14 +121,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
       end
       # Need to re-read events from stream to get commit_position - initially we don't have it
       let(:events_from_es) do
-        EventStoreClient.client.read(stream_name, skip_deserialization: true) do |opts|
-          opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-            {
-              stream_identifier: { prefix: [some_stream] },
-              count: EventStore::Client::Empty.new
-            }
-          )
-        end
+        EventStoreClient.client.read(stream_name, options: options.slice(:filter))
       end
 
       before do
@@ -143,13 +130,13 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
 
       context 'fetching events from the given position' do
         let(:options) do
-          {
+          super().merge(
             max_count: 100,
             from_position: {
               # Take commit_position of second event from the end
-              commit_position: events_from_es.success.last(2).first.event.commit_position
+              commit_position: events_from_es.success.last(2).first.commit_position
             }
-          }
+          )
         end
 
         it 'returns events from the given position' do

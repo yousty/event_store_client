@@ -21,9 +21,15 @@ module EventStoreClient
         @commands[command_klass][:request]
       end
 
-      def self.service(command_klass)
+      # @param command_klass [Class] GRPC service class.
+      #   Examples:
+      #     - EventStore::Client::Streams::Streams::Stub
+      #     - EventStore::Client::Projections::Projections::Stub
+      #
+      # @return [Object] and instance of GRPC service class you have provided
+      def self.service(command_klass, options: {})
         EventStoreClient::GRPC::Connection.new.call(
-          @commands[command_klass][:service]
+          @commands[command_klass][:service], options: options
         )
       end
     end

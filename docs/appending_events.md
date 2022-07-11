@@ -51,7 +51,7 @@ EventStoreClient.client.append_to_stream('some-stream', [event])
 ```
 
 
-##  Handling concurrency
+## Handling concurrency
 
 When appending events to a stream you can supply a stream state or stream revision. Your client can use this to tell EventStoreDB what state or version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be thrown.
 
@@ -100,4 +100,19 @@ EventStoreClient.client.append_to_stream('some-stream', [event1], options: { exp
 
 # Will fail with revisions mismatch error
 EventStoreClient.client.append_to_stream('some-stream', [event2], options: { expected_revision: revision })
+```
+
+## User credentials
+
+You can provide user credentials to be used to append the data as follows. This will override the default credentials set on the connection.
+
+```ruby
+class SomethingHappened < EventStoreClient::DeserializedEvent
+end
+
+event = SomethingHappened.new(
+  id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
+)
+
+EventStoreClient.client.append_to_stream('some-stream', [event], credentials: { username: 'admin', password: 'changeit' })
 ```

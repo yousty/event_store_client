@@ -37,6 +37,8 @@ module EventStoreClient
           data: data,
           metadata: metadata,
           stream_revision: event.stream_revision,
+          commit_position: event.commit_position,
+          prepare_position: event.prepare_position,
           stream_name: event.stream_name
         )
       end

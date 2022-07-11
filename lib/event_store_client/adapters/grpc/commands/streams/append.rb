@@ -14,6 +14,7 @@ module EventStoreClient
           ALLOWED_EVENT_METADATA = %w[type content-type created_at].freeze
 
           # @api private
+          # @see {EventStoreClient::GRPC::Client#append_to_stream}
           def call(stream, events, options:)
             return unless events.any?
 

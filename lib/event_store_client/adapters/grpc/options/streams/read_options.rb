@@ -19,8 +19,7 @@ module EventStoreClient
             @options = options
           end
 
-          # See event_store.client.streams.ReadReq.Options for available options
-          # @return [Hash]
+          # @return [Hash] see event_store.client.streams.ReadReq.Options for available options
           def request_options
             request_options = {}
             request_options.merge!(
@@ -29,13 +28,21 @@ module EventStoreClient
             request_options[:read_direction] = options[:direction]
             request_options[:count] = options[:max_count] || config.per_page
             request_options[:resolve_links] = options[:resolve_link_tos]
-            request_options[:no_filter] = EventStore::Client::Empty.new
+            if options[:filter]
+              request_options[:filter] =
+                EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+                  options[:filter].merge(count: EventStore::Client::Empty.new)
+                )
+            else
+              request_options[:no_filter] = EventStore::Client::Empty.new
+            end
             # This option means how event#id would look like in the response. If you provided
             # :string key, then #id will be a normal UUID string. If you provided :structured
             # key, then #id will be an instance of EventStore::Client::UUID::Structured class.
             # Note: for some reason if you don't provide this option - the request hangs forever
-            # Example:
+            # Examples:
             #   <EventStore::Client::UUID::Structured: most_significant_bits: 1266766466329758182, least_significant_bits: -8366670759139390653>
+            #   <EventStore::Client::UUID: string: "f0e1771c-334b-4b8d-ad88-c2024ccbe141">
             request_options[:uuid_option] = { string: EventStore::Client::Empty.new }
             request_options
           end

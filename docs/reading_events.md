@@ -106,17 +106,11 @@ EventStoreClient.client.read('some-stream', skip_deserialization: true)
 
 Filtering feature is only available for `$all` stream.
 
-Retrieving only `some-event` events from `some-stream` stream:
+Retrieving events from streams that start from `some-stream`:
 
 ```ruby
 result = 
-  EventStoreClient.client.read('$all') do |opts|
-    opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-      event_type: { prefix: ['some-event'] }, 
-      stream_identifier: { prefix: ['some-stream'] }, 
-      count: EventStore::Client::Empty.new
-    ) 
-  end
+  EventStoreClient.client.read('$all', options: { filter: { stream_identifier: { prefix: ['some-stream'] } } })
 if result.success?
   result.success.each do |e|
     # iterate through events
@@ -124,16 +118,11 @@ if result.success?
 end
 ```
 
-Retrieving `some-event` from all streams:
+Retrieving events that start from `some-event` from all streams:
 
 ```ruby
 result = 
-  EventStoreClient.client.read('$all') do |opts|
-    opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-      event_type: { prefix: ['some-event'] }, 
-      count: EventStore::Client::Empty.new
-    ) 
-  end
+  EventStoreClient.client.read('$all', options: { event_type: { prefix: ['some-event'] } })
 if result.success?
   result.success.each do |e|
     # iterate through events
@@ -145,12 +134,7 @@ Retrieving events from `some-stream-1` and `some-stream-2` streams:
 
 ```ruby
 result = 
-  EventStoreClient.client.read('$all') do |opts|
-    opts.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-      stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] }, 
-      count: EventStore::Client::Empty.new
-    ) 
-  end
+  EventStoreClient.client.read('$all', options: { filter: { stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] } } })
 if result.success?
   result.success.each do |e|
     # iterate through events
@@ -203,3 +187,11 @@ end
 ```
 
 Note: for some reason when paginating `$all` stream - EventStoreDB return duplicated records from page to page(first event of `page N` is a last event of `page N - 1`). So, please take this into account when paginating `$all` stream.
+
+## User credentials
+
+You can provide user credentials to be used to read the data as follows. This will override the default credentials set on the connection.
+
+```ruby
+EventStoreClient.client.read('some-stream', credentials: { username: 'admin', password: 'changeit' })
+```

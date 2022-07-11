@@ -28,6 +28,8 @@ module EventStoreClient
             data: data,
             metadata: metadata,
             stream_revision: raw_event.stream_revision,
+            commit_position: raw_event.commit_position,
+            prepare_position: raw_event.prepare_position,
             stream_name: raw_event.stream_identifier.stream_name
           )
 
