@@ -92,6 +92,24 @@ module EventStoreClient
         Commands::Streams::HardDelete.new.call(stream_name, options: options, &blk)
       end
 
+      # Refs https://developers.eventstore.com/server/v5/streams.html#soft-delete-and-truncatebefore
+      # @param stream_name [String]
+      # @param options [Hash]
+      # @option options [Integer, String] :expected_revision provide your own revision number.
+      #   Alternatively you can provide one of next values: 'any', 'no_stream' or 'stream_exists'.
+      # @yield [EventStore::Client::Streams::DeleteReq::Options] yields request options right
+      #   before sending the request. You can override them in your own way.
+      #   Example:
+      #     ```ruby
+      #     delete_stream('stream_name') do |opts|
+      #       opts.stream_identifier.stream_name = 'overridden-stream-name'
+      #     end
+      #     ```
+      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      def delete_stream(stream_name, options: {}, &blk)
+        Commands::Streams::Delete.new.call(stream_name, options: options, &blk)
+      end
+
       # Subscribe to the given stream and listens for events. Note, that it will block execution of
       #   current stack. If you want to do it asynchronous - consider putting it out of current
       #   thread.
