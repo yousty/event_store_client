@@ -7,8 +7,6 @@ module EventStoreClient
     module Options
       module Streams
         class RevisionOption
-          attr_reader :value
-
           # @param val [String, Integer, nil]
           def initialize(val)
             @value = resolve(val)
@@ -16,17 +14,19 @@ module EventStoreClient
 
           # @return [Boolean]
           def number?
-            value&.key?(:revision)
+            @value.key?(:revision)
           end
 
           # @return [Integer]
           def increment!
-            value[:revision] += 1
+            @value[:revision] += 1
           end
 
           # See expected_stream_revision of event_store.client.streams.AppendReq.Options
           # @return [Hash]
-          alias request_options value
+          def request_options
+            @value
+          end
 
           private
 

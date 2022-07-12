@@ -10,7 +10,30 @@ module EventStoreClient
           attr_reader :options
           private :options
 
-          # @param filter_options [Hash]
+          # See event_store.client.streams.ReadReq.Options.FilterOptions in streams_pb.rb generated
+          # file for more info(for persisted subscription the structure is the same)
+          # @param filter_options [Hash, nil]
+          # @option [Integer] :checkpointIntervalMultiplier
+          # @option [Integer] :max
+          # @option [Boolean] :count
+          # @option [Hash] :stream_identifier filter events by stream name using Regexp or String.
+          #   Examples:
+          #   ```ruby
+          #   # Return events streams names of which end with number
+          #   new(stream_identifier: { regex: /.*\d$/.to_s })
+          #   # Return events streams names of which start from 'some-stream-1' or 'some-stream-2'
+          #   # strings
+          #   new(stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] })
+          #   ```
+          # @option [Hash] :event_type filter events by event name using Regexp or String.
+          #   Examples:
+          #   ```ruby
+          #   # Return events names of which end with number
+          #   new(event_type: { regex: /.*\d$/.to_s })
+          #   # Return events names of which start from 'some-event-1' or 'some-event-2'
+          #   # strings
+          #   new(event_type: { prefix: ['some-event-1', 'some-event-2'] })
+          #   ```
           def initialize(filter_options)
             @options = filter_options
           end
@@ -43,6 +66,9 @@ module EventStoreClient
           # @return [void]
           def add_window_options(request_options)
             request_options[:filter][:max] ||= 100
+            if request_options[:filter][:count]
+              request_options[:filter][:count] = EventStore::Client::Empty.new
+            end
             request_options[:filter][:checkpointIntervalMultiplier] ||= 1
           end
         end

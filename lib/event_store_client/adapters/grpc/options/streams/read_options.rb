@@ -14,6 +14,31 @@ module EventStoreClient
 
           # @param stream_name [String]
           # @param options [Hash]
+          # @option [String] :direction 'Forwards' or 'Backwards'
+          # @option [Integer] :max_count
+          # @option [Boolean] :resolve_link_tos
+          # @option [Symbol] :from_revision :start or :end. Works only for regular streams.
+          # @option [Integer] :from_revision revision number to start from. Remember, that all reads
+          #   are inclusive and all subscribes are exclusive. This means if you provide revision
+          #   number when reading from stream - the first event will be an event of revision number
+          #   you provided. And, when subscribing on stream - the first event will be an event next
+          #   to the event of revision number you provided. Works only for regular streams.
+          # @option [Symbol] :from_position :start or :end. Works only for $all streams.
+          # @option [Hash] :from_position provided a hash with either both :commit_position and
+          #   :prepare_position keys or with one of them to define the starting position. Remember,
+          #   that all reads are inclusive and all subscribes are exclusive. This means if you
+          #   provide position number when reading from stream - the first event will be an event of
+          #   position number you provided. And, when subscribing on stream - the first event will
+          #   be an event next to the event of position number you provided. Works only for $all
+          #   streams. Unlike :from_revision - :commit_position and :prepare_position should contain
+          #   values of existing event.
+          #   Example:
+          #     ```ruby
+          #     new('some-stream', from_position: { commit_position: 1024, prepare_position: 1024 })
+          #     ```
+          # @option [Hash] :filter see
+          #   {EventStoreClient::GRPC::Shared::Options::FilterOptions#initialize} for available
+          #   values
           def initialize(stream_name, options)
             @stream_name = stream_name
             @options = options
