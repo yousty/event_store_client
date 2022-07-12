@@ -49,9 +49,9 @@ module EventStoreClient
         private
 
         def credentials
-          username = self.username || config.eventstore_user
-          password = self.password || config.eventstore_user
-          Base64.encode64("#{username}:#{password}")
+          uname = username || config.eventstore_user
+          pwd = password || config.eventstore_user
+          Base64.encode64("#{uname}:#{pwd}")
         end
 
         def retry_request
