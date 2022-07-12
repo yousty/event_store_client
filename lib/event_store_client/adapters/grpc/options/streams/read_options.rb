@@ -28,14 +28,9 @@ module EventStoreClient
             request_options[:read_direction] = options[:direction]
             request_options[:count] = options[:max_count] || config.per_page
             request_options[:resolve_links] = options[:resolve_link_tos]
-            if options[:filter]
-              request_options[:filter] =
-                EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-                  options[:filter].merge(count: EventStore::Client::Empty.new)
-                )
-            else
-              request_options[:no_filter] = EventStore::Client::Empty.new
-            end
+            request_options.merge!(
+              Shared::Options::FilterOptions.new(options[:filter]).request_options
+            )
             # This option means how event#id would look like in the response. If you provided
             # :string key, then #id will be a normal UUID string. If you provided :structured
             # key, then #id will be an instance of EventStore::Client::UUID::Structured class.

@@ -150,3 +150,60 @@ EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |res|
 
 ## Server-side filtering
 
+EventStoreDB allows you to filter the events whilst you subscribe to the `$all` stream so that you only receive the events that you care about.
+
+You can filter by event type or stream name using either a regular expression or a prefix. Server-side filtering is currently only available on the `$all` stream.
+
+A simple stream prefix filter looks like this:
+
+```ruby
+EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { prefix: ['test-', 'other-'] } } })
+```
+
+### Filtering out system events
+
+There are a number of events in EventStoreDB called system events. These are prefixed with a `$` and under most circumstances you won't care about these. They can be filtered out by event type.
+
+```ruby
+EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { event_type: { regex: /^[^\$].*/.to_s } } })
+```
+
+### Filtering by event type
+
+If you only want to subscribe to events of a given type there are two options. You can either use a regular expression or a prefix.
+
+#### Filtering by prefix
+
+This will only subscribe to events with a type that begin with `customer-`:
+
+```ruby
+EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { event_type: { prefix: ['customer-'] } } })
+```
+
+#### Filtering by regular expression
+
+If you want to subscribe to multiple event types then it might be better to provide a regular expression. This will subscribe to any event that begins with `user` or `company`:
+
+```ruby
+EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { event_type: { regex: '^user|^company' } } })
+```
+
+### Filtering by stream name
+
+If you only want to subscribe to a stream with a given name there are two options. You can either use a regular expression or a prefix.
+
+#### Filtering by prefix
+
+This will only subscribe to all streams with a name that begin with `user-`:
+
+```ruby
+EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { prefix: ['user-'] } } })
+```
+
+#### Filtering by regular expression
+
+If you want to subscribe to multiple streams then it might be better to provide a regular expression.
+
+```ruby
+EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { regex: '^account|^savings' } } })
+```

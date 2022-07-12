@@ -92,7 +92,7 @@ module EventStoreClient
           # @param options [EventStore::Client::Streams::ReadReq::Options]
           # @return [Integer, nil]
           def get_position(options)
-            # If start position is set as :end - then we need to wait for first response to get
+            # If start position is set to :end - then we need to wait for first response to get
             # the value of the position
             return if options.all&.end
             return if options.stream&.end

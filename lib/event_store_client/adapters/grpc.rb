@@ -10,6 +10,7 @@ require 'event_store_client/adapters/grpc/options/streams/revision_option'
 
 require 'event_store_client/adapters/grpc/shared/event_deserializer'
 require 'event_store_client/adapters/grpc/shared/options/stream_options'
+require 'event_store_client/adapters/grpc/shared/options/filter_options'
 require 'event_store_client/adapters/grpc/shared/streams/process_response'
 require 'event_store_client/adapters/grpc/shared/streams/process_responses'
 
