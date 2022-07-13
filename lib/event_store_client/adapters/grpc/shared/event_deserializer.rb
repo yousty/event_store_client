@@ -17,9 +17,7 @@ module EventStoreClient
           custom_metadata = normalize_serialized(raw_event.custom_metadata)
 
           metadata =
-            JSON.parse(custom_metadata).merge(
-              raw_event.metadata.to_h || {}
-            ).to_json
+            JSON.parse(custom_metadata).merge(raw_event.metadata.to_h).to_json
 
           event = EventStoreClient::Event.new(
             id: raw_event.id.string,

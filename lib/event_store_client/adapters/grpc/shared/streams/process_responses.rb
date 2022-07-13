@@ -19,8 +19,8 @@ module EventStoreClient
             events =
               responses.map do |read_resp|
                 # It could be <EventStore::Client::Streams::ReadResp: last_stream_position: 39> for
-                # example. See generated files for more info
-                next unless read_resp.event
+                # example. Such responses should be skipped. See generated files for more info.
+                next unless read_resp.event&.event
 
                 EventDeserializer.new.call(read_resp.event.event, skip_decryption)
               end

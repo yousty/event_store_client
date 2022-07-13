@@ -9,9 +9,20 @@ module EventStoreClient
     ##
     # Transforms given event's data and encrypts/decrypts selected subset of data
     # based on encryption schema stored in the event itself.
-
     class Encrypted
       MissingEncryptionKey = Class.new(StandardError)
+
+      attr_reader :key_repository, :serializer
+      private :key_repository, :serializer
+
+      ##
+      # Initializes the mapper with required dependencies. Accepts:
+      # * +key_repoistory+ - repository stored encryption keys. Passed down to the +DataEncryptor+
+      # * +serializer+ - object used to serialize data. By default JSON serializer is used.
+      def initialize(key_repository, serializer: Serializer::Json)
+        @key_repository = key_repository
+        @serializer = serializer
+      end
 
       ##
       # Encrypts the given event's subset of data.
@@ -20,7 +31,6 @@ module EventStoreClient
       # * encryption_schema - hash with information which data to encrypt and
       #   which key should be used as an identifier.
       # *Returns*: General +Event+ instance with encrypted data
-
       def serialize(event)
         encryption_schema = (
           event.class.respond_to?(:encryption_schema) &&
@@ -49,7 +59,6 @@ module EventStoreClient
       # * encryption_metadata - hash with information which data to encrypt and
       #   which key should be used as an identifier.
       # *Returns*: Specific event class with all data decrypted
-
       def deserialize(event, skip_decryption: false)
         metadata = serializer.deserialize(event.metadata)
         encryption_schema = metadata['encryption']
@@ -84,19 +93,6 @@ module EventStoreClient
           prepare_position: event.prepare_position,
           stream_name: event.stream_name
         )
-      end
-
-      private
-
-      attr_reader :key_repository, :serializer
-
-      ##
-      # Initializes the mapper with required dependencies. Accepts:
-      # * +key_repoistory+ - repository stored encryption keys. Passed down to the +DataEncryptor+
-      # * +serializer+ - object used to serialize data. By default JSON serializer is used.
-      def initialize(key_repository, serializer: Serializer::Json)
-        @key_repository = key_repository
-        @serializer = serializer
       end
     end
   end
