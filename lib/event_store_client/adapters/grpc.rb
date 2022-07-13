@@ -3,8 +3,6 @@
 require 'grpc'
 require 'dry-monads'
 
-require 'event_store_client/value_objects/read_direction'
-
 require 'event_store_client/adapters/grpc/options/streams/read_options'
 require 'event_store_client/adapters/grpc/options/streams/revision_option'
 
