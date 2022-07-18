@@ -70,9 +70,9 @@ class AdaptersTestRun
         data: { user_id: SecureRandom.uuid, title: 'Something happened' }
       )
     end
-    return client.append_to_stream(stream, events) if batch
+    return client.append_to_stream(stream, *events) if batch
 
-    events.map { |event| client.append_to_stream(stream, [event]) }
+    events.map { |event| client.append_to_stream(stream, event) }
   end
 
   def publish_other_events(count: 10, batch: false)
@@ -83,9 +83,9 @@ class AdaptersTestRun
         data: { user_id: SecureRandom.uuid, title: 'Something else happened' }
       )
     end
-    return client.append_to_stream(stream, events) if batch
+    return client.append_to_stream(stream, *events) if batch
 
-    events.map { |event| client.append_to_stream(stream, [event]) }
+    events.map { |event| client.append_to_stream(stream, event) }
   end
 
   def delete_stream(stream, hard: false)

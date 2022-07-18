@@ -27,10 +27,7 @@ module EventStoreClient
           # @param options [Hash]
           # @return [EventStore::Client::Streams::TombstoneReq::Options]
           def normalize_options(stream_name, options)
-            opts = { stream_identifier: { stream_name: stream_name } }
-            opts.merge!(
-              Options::Streams::RevisionOption.new(options[:expected_revision]).request_options
-            )
+            opts = Options::Streams::WriteOptions.new(stream_name, options).request_options
             EventStore::Client::Streams::DeleteReq::Options.new(opts)
           end
         end

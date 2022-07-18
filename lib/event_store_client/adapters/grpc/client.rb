@@ -6,7 +6,7 @@ module EventStoreClient
       include Configuration
 
       # @param stream_name [String]
-      # @param events [Array<EventStoreClient::DeserializedEvent>]
+      # @param events_or_event [EventStoreClient::DeserializedEvent, Array<EventStoreClient::DeserializedEvent>]
       # @param options [Hash]
       # @option options [Integer] :expected_revision provide your own revision number
       # @option options [String] :expected_revision provide one of next values: 'any', 'no_stream'
@@ -14,13 +14,35 @@ module EventStoreClient
       # @param credentials [Hash]
       # @option credentials [String] :username override authentication username
       # @option credentials [String] :password override authentication password
-      # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure, nil]
-      #   Returns nil if no request was performed. Returns monads' Success/Failure in case whether
-      #   request was performed
-      def append_to_stream(stream_name, events, options: {}, credentials: {})
-        Commands::Streams::Append.new(credentials).call(
-          stream_name, events, options: options
-        )
+      # @yield [
+      #          <
+      #            EventStore::Client::Streams::AppendReq,
+      #            EventStore::Client::Streams::AppendReq
+      #           >
+      #        ]
+      #   yields options and proposed message option right before sending the request. You can
+      #   extend it with your own options, not covered in the default implementation.
+      #   Example:
+      #     ```ruby
+      #     append_to_stream('some-stream', event) do |req_opts, proposed_msg_opts|
+      #       opts1.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
+      #         { stream_identifier: { prefix: ['as'] }, count: EventStore::Client::Empty.new }
+      #       )
+      #     end
+      #   ```
+      # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure,
+      #           Array<Dry::Monads::Result::Success, Dry::Monads::Result::Failure>]
+      #   Returns monads' Success/Failure in case whether request was performed.
+      def append_to_stream(stream_name, events_or_event, options: {}, credentials: {}, &blk)
+        if events_or_event.is_a?(Array)
+          Commands::Streams::AppendMultiple.new(credentials).call(
+            stream_name, events_or_event, options: options
+          )
+        else
+          Commands::Streams::Append.new(credentials).call(
+            stream_name, events_or_event, options: options, &blk
+          )
+        end
       end
 
       # @param stream_name [String]

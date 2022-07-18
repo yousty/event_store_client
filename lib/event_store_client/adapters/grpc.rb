@@ -4,7 +4,7 @@ require 'grpc'
 require 'dry-monads'
 
 require 'event_store_client/adapters/grpc/options/streams/read_options'
-require 'event_store_client/adapters/grpc/options/streams/revision_option'
+require 'event_store_client/adapters/grpc/options/streams/write_options'
 
 require 'event_store_client/adapters/grpc/shared/event_deserializer'
 require 'event_store_client/adapters/grpc/shared/options/stream_options'
@@ -15,6 +15,7 @@ require 'event_store_client/adapters/grpc/shared/streams/process_responses'
 require 'event_store_client/adapters/grpc/commands/command'
 
 require 'event_store_client/adapters/grpc/commands/streams/append'
+require 'event_store_client/adapters/grpc/commands/streams/append_multiple'
 require 'event_store_client/adapters/grpc/commands/streams/delete'
 require 'event_store_client/adapters/grpc/commands/streams/hard_delete'
 require 'event_store_client/adapters/grpc/commands/streams/link_to'

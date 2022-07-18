@@ -1,32 +1,27 @@
 # frozen_string_literal: true
 
-RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
-  subject { instance.call(stream, event, options: options) }
+RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
+  subject { instance.call(stream, events, options: options) }
 
   let(:client) { EventStoreClient::GRPC::Client.new }
   let(:data) { { key1: 'value1', key2: 'value2' } }
-  let(:metadata) { { key1: 'value1', key2: 'value2', type: 'TestEvent', 'content-type' => 'test' } }
-  let(:event) {
-    EventStoreClient::Event.new(
-      id: SecureRandom.uuid, type: 'TestEvent', data: data.to_json, metadata: metadata.to_json
-    )
+  let(:metadata1) { { key1: 'value1', key2: 'value2', type: 'TestEvent', 'content-type' => 'test' } }
+  let(:metadata2) { { type: 'TestEvent2', 'content-type' => 'test'} }
+  let(:event1) {
+    EventStoreClient::Event.new(type: 'TestEvent', data: data.to_json, metadata: metadata1.to_json)
   }
+  let(:event2) { EventStoreClient::Event.new(type: 'TestEvent2', metadata: metadata2.to_json) }
+  let(:events) { [event1, event2] }
   let(:stream) { "stream$#{SecureRandom.uuid}" }
   let(:options) { {} }
   let(:instance) { described_class.new }
 
-  it 'appends event to a stream' do
+  it 'appends events to a stream' do
     subject
-    expect(client.read(stream).success.size).to eq(1)
+    expect(client.read(stream).value!.count).to eq(2)
   end
   it 'returns Success' do
-    expect(subject).to be_a(Dry::Monads::Success)
-  end
-  it 'uses correct params class' do
-    expect(instance.request).to eq(EventStore::Client::Streams::AppendReq)
-  end
-  it 'uses correct service' do
-    expect(instance.service).to be_a(EventStore::Client::Streams::Streams::Stub)
+    expect(subject).to all be_a(Dry::Monads::Success)
   end
 
   context 'when expected revision does not match' do
@@ -34,11 +29,14 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     let(:failure_message) { 'current version: 0 | expected: 10' }
 
     it 'returns failure' do
-      expect(subject).to be_a(Dry::Monads::Failure)
+      expect(subject).to all be_a(Dry::Monads::Failure)
+    end
+    it 'does not perform requests after first failure' do
+      expect(subject.size).to eq(1)
     end
 
     describe 'failure' do
-      subject { super().failure }
+      subject { super().first.failure }
 
       it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
       it 'has info about current and expected revisions' do
@@ -53,15 +51,10 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   context 'when revision is :no_stream' do
     subject do
       first_event
-      described_class.new.call(stream, event, options: options)
+      described_class.new.call(stream, [event2], options: options)
     end
 
-    let(:first_event) { described_class.new.call(stream, another_event, options: options) }
-    let(:another_event) do
-      EventStoreClient::DeserializedEvent.new(
-        id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
-      )
-    end
+    let(:first_event) { described_class.new.call(stream, [event1], options: options) }
     let(:options) { { expected_revision: :no_stream } }
 
     it 'accepts only one event' do
@@ -69,11 +62,11 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
       expect(client.read(stream).value!.count).to eq(1)
     end
     it 'returns failure' do
-      expect(subject).to be_a(Dry::Monads::Failure)
+      expect(subject).to all be_a(Dry::Monads::Failure)
     end
 
     describe 'failure' do
-      subject { super().failure }
+      subject { super().first.failure }
 
       it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
       it 'has info that the error is due to :no_stream' do
@@ -84,17 +77,17 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
 
   context 'when revision is :stream_exists' do
     subject do
-      described_class.new.call(stream, event, options: options)
+      described_class.new.call(stream, [event1], options: options)
     end
 
     let(:options) { { expected_revision: :stream_exists } }
 
     it 'returns failure' do
-      expect(subject).to be_a(Dry::Monads::Failure)
+      expect(subject).to all be_a(Dry::Monads::Failure)
     end
 
     describe 'failure' do
-      subject { super().failure }
+      subject { super().first.failure }
 
       it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
       it 'has info that the error is due to :stream_exists' do
@@ -112,7 +105,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     end
 
     it 'returns failure' do
-      expect(subject.failure).to be_a(GRPC::Unavailable)
+      expect(subject.map(&:failure)).to all be_a(GRPC::Unavailable)
     end
   end
 end

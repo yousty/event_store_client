@@ -24,7 +24,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Delete do
       end
 
       before do
-        EventStoreClient.client.append_to_stream(stream_name, [event])
+        EventStoreClient.client.append_to_stream(stream_name, event)
       end
 
       it 'deletes stream' do

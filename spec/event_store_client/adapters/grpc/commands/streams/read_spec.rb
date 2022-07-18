@@ -34,7 +34,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
       end
 
       before do
-        EventStoreClient.client.append_to_stream(stream_name, [event])
+        EventStoreClient.client.append_to_stream(stream_name, event)
       end
 
       it 'reads events from stream' do
@@ -82,7 +82,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
         before do
           EventStoreClient.config.mapper =
             EventStoreClient::Mapper::Encrypted.new(DummyRepository.new)
-          EventStoreClient.client.append_to_stream(stream_name, [encrypted_event])
+          EventStoreClient.client.append_to_stream(stream_name, encrypted_event)
         end
 
         context 'when skip_decryption is false' do
@@ -112,7 +112,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
         end
 
         before do
-          EventStoreClient.client.append_to_stream(stream_name, [another_event])
+          EventStoreClient.client.append_to_stream(stream_name, another_event)
         end
 
         describe 'reading events forward' do

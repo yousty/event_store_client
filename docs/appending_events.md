@@ -12,7 +12,38 @@ event = SomethingHappened.new(
   id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
 )
 
-EventStoreClient.client.append_to_stream('some-stream', [event])
+result = EventStoreClient.client.append_to_stream('some-stream', event)
+# Event were appended successfully
+if result.success?
+  # result.success => <EventStore::Client::Streams::AppendResp>
+else # event was not appended, result.failure? => true    
+end
+```
+
+## Appending multiple events
+
+You can pass array of events to the `#append_to_stream` method. This way events will be appended one-by-one. On each iteration `revision` will be incremented by 1. In case if any of requests fails - all further append requests will be cancelled.
+
+```ruby
+class SomethingHappened < EventStoreClient::DeserializedEvent
+end
+
+event1 = SomethingHappened.new(
+  id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened 1" }
+)
+event2 = SomethingHappened.new(
+  id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened 2" }
+)
+
+results = EventStoreClient.client.append_to_stream('some-stream', [event1, event2])
+results.each do |result|
+  # Event were appended successfully
+  if result.success?
+    # result.success => <EventStore::Client::Streams::AppendResp>
+  else # event was not appended, result.failure? => true    
+  end
+end
+
 ```
 
 ## Working with EventStoreClient::DeserializedEvent
@@ -45,9 +76,9 @@ end
 event = SomethingHappened.new(
   id: SecureRandom.uuid, type: 'some-event', data: {},
 )
-EventStoreClient.client.append_to_stream('some-stream', [event])
+EventStoreClient.client.append_to_stream('some-stream', event)
 # Attempt to append the same event again. Will return the same result as for previous call
-EventStoreClient.client.append_to_stream('some-stream', [event])
+EventStoreClient.client.append_to_stream('some-stream', event)
 ```
 
 
@@ -71,16 +102,16 @@ event2 = SomethingHappened.new(
 
 stream_name = "some-stream$#{SecureRandom.uuid}"
 
-EventStoreClient.client.append_to_stream(stream_name, [event1], options: { expected_revision: 'no_stream' })
+EventStoreClient.client.append_to_stream(stream_name, event1, options: { expected_revision: :no_stream })
 
-EventStoreClient.client.append_to_stream(stream_name, [event2], options: { expected_revision: 'no_stream' })
+EventStoreClient.client.append_to_stream(stream_name, event2, options: { expected_revision: :no_stream })
 ```
 
 There are three available stream states:
 
-- `any`
-- `no_stream`
-- `stream_exists`
+- `:any`
+- `:no_stream`
+- `:stream_exists`
 
 This check can be used to implement optimistic concurrency. When you retrieve a stream from EventStoreDB, you take note of the current version number, then when you save it back you can determine if somebody else has modified the record in the meantime.
 
@@ -96,10 +127,10 @@ event1 = SomethingHappened.new(
 event2 = SomethingHappened.new(
   type: 'some-event', data: {},
 )
-EventStoreClient.client.append_to_stream('some-stream', [event1], options: { expected_revision: revision })
+EventStoreClient.client.append_to_stream('some-stream', event1, options: { expected_revision: revision })
 
 # Will fail with revisions mismatch error
-EventStoreClient.client.append_to_stream('some-stream', [event2], options: { expected_revision: revision })
+EventStoreClient.client.append_to_stream('some-stream', event2, options: { expected_revision: revision })
 ```
 
 ## User credentials
@@ -114,5 +145,5 @@ event = SomethingHappened.new(
   id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
 )
 
-EventStoreClient.client.append_to_stream('some-stream', [event], credentials: { username: 'admin', password: 'changeit' })
+EventStoreClient.client.append_to_stream('some-stream', event, credentials: { username: 'admin', password: 'changeit' })
 ```
