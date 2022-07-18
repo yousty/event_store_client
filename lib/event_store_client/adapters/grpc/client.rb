@@ -25,9 +25,8 @@ module EventStoreClient
       #   Example:
       #     ```ruby
       #     append_to_stream('some-stream', event) do |req_opts, proposed_msg_opts|
-      #       opts1.filter = EventStore::Client::Streams::ReadReq::Options::FilterOptions.new(
-      #         { stream_identifier: { prefix: ['as'] }, count: EventStore::Client::Empty.new }
-      #       )
+      #       puts req_opts.options
+      #       puts proposed_msg_opts.proposed_message
       #     end
       #   ```
       # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure,
