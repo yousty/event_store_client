@@ -2,8 +2,9 @@
 
 RSpec.describe EventStoreClient::DataDecryptor do
   describe '#call' do
-    subject { described_class.new(data: data, schema: schema, repository: repository) }
+    subject { instance.call }
 
+    let(:instance) { described_class.new(data: data, schema: schema, repository: repository) }
     let(:repository) { DummyRepository.new }
     let(:key_repository) { DummyRepository.new }
     let(:user_id) { SecureRandom.uuid }
@@ -13,7 +14,7 @@ RSpec.describe EventStoreClient::DataDecryptor do
         'first_name' => 'es_encrypted',
         'last_name' => 'es_encrypted',
         'profession' => 'Jedi',
-        'es_encrypted' => 'darthvader'
+        'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
       }
     end
     let(:decrypted_data) do
@@ -30,13 +31,21 @@ RSpec.describe EventStoreClient::DataDecryptor do
         attributes: %i[first_name last_name]
       }
     end
+    let(:message_to_encrypt) { decrypted_data.slice('first_name', 'last_name').to_json }
+
+    before do
+      DummyRepository.new.encrypt(
+        key: DummyRepository::Key.new(id: user_id),
+        message: message_to_encrypt
+      )
+    end
 
     it 'returns decrypted data' do
-      expect(subject.call).to eq(decrypted_data)
+      expect(subject).to eq(decrypted_data)
     end
     it 'skips the decryption of non-existing keys' do
       schema[:attributes] << :side
-      expect(subject.call).to eq(decrypted_data)
+      expect(subject).to eq(decrypted_data)
     end
 
     context 'when key is not found' do
@@ -45,15 +54,17 @@ RSpec.describe EventStoreClient::DataDecryptor do
       end
 
       it 'does not changed decrypted data' do
-        expect(subject.call).to eq(data)
+        expect(subject).to eq(data)
       end
     end
 
     context 'when data has not been encrypted (schema is nil)' do
-      subject { described_class.new(data: decrypted_data, schema: nil, repository: repository) }
+      let(:instance) do
+        described_class.new(data: decrypted_data, schema: nil, repository: repository)
+      end
 
       it 'returns decrypted data' do
-        expect(subject.call).to eq(decrypted_data)
+        expect(subject).to eq(decrypted_data)
       end
     end
   end

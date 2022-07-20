@@ -161,11 +161,27 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
           end
         end
       end
+    end
 
-      xcontext 'when resolve_link_tos option is given' do
-        it 'it returns linked events' do
-          # implement me when will be an ability to link one event to another
-        end
+    context 'when resolve_link_tos option is given' do
+      subject { super().success.first }
+
+      let(:options) { { resolve_link_tos: true } }
+      let(:another_stream_name) { "some-stream-1$#{SecureRandom.uuid}" }
+      let(:event) do
+        event = EventStoreClient::DeserializedEvent.new(
+          type: 'some-event', data: { foo: :bar }
+        )
+        EventStoreClient.client.append_to_stream(another_stream_name, event)
+        EventStoreClient.client.read(another_stream_name).success.first
+      end
+
+      before do
+        EventStoreClient.client.link_to(stream_name, event)
+      end
+
+      it 'it returns linked event' do
+        is_expected.to eq(event)
       end
     end
 

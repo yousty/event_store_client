@@ -242,6 +242,29 @@ module EventStoreClient
           &blk
         )
       end
+
+      # Links event from one stream into another stream. You can later access it by providing
+      # :resolve_link_tos option when reading from a stream. If you provide an event that does not
+      # present in EventStore database yet - its data will not be appended properly to the stream,
+      # thus, making it look as a malformed event.
+      # @see #append_to_stream for available params and returned value
+      def link_to(stream_name, events_or_event, options: {}, credentials: {}, &blk)
+        if events_or_event.is_a?(Array)
+          Commands::Streams::LinkToMultiple.new(credentials).call(
+            stream_name,
+            events_or_event,
+            options: options,
+            &blk
+          )
+        else
+          Commands::Streams::LinkTo.new(credentials).call(
+            stream_name,
+            events_or_event,
+            options: options,
+            &blk
+          )
+        end
+      end
     end
   end
 end

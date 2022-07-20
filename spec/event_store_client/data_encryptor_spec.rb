@@ -2,8 +2,9 @@
 
 RSpec.describe EventStoreClient::DataEncryptor do
   describe '#call' do
-    subject { described_class.new(data: data, schema: schema, repository: repository) }
+    subject { instance.call }
 
+    let(:instance) { described_class.new(data: data, schema: schema, repository: repository) }
     let(:repository) { DummyRepository.new }
     let(:key_repository) { DummyRepository.new }
     let(:user_id) { SecureRandom.uuid }
@@ -21,35 +22,36 @@ RSpec.describe EventStoreClient::DataEncryptor do
         attributes: %i[first_name last_name]
       }
     end
+    let(:message_to_encrypt) { data.slice(:first_name, :last_name).to_json }
 
     it 'returns encrypted data' do
-      expect(subject.call).to eq(
+      expect(subject).to eq(
         'user_id' => user_id,
         'first_name' => 'es_encrypted',
         'last_name' => 'es_encrypted',
         'profession' => 'Jedi',
-        'es_encrypted' => 'darthvader'
+        'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
       )
     end
     it 'updates the encrypted data reader' do
-      subject.call
-      expect(subject.encrypted_data).to eq(
+      subject
+      expect(instance.encrypted_data).to eq(
         'user_id' => user_id,
         'first_name' => 'es_encrypted',
         'last_name' => 'es_encrypted',
         'profession' => 'Jedi',
-        'es_encrypted' => 'darthvader'
+        'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
       )
     end
     it 'skips the encryption of non-existing keys' do
       schema[:attributes] << :side
-      subject.call
-      expect(subject.encrypted_data).to eq(
+      subject
+      expect(instance.encrypted_data).to eq(
         'user_id' => user_id,
         'first_name' => 'es_encrypted',
         'last_name' => 'es_encrypted',
         'profession' => 'Jedi',
-        'es_encrypted' => 'darthvader'
+        'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
       )
     end
   end

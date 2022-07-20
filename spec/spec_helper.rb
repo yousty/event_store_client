@@ -31,6 +31,7 @@ require 'pry'
 require 'securerandom'
 require 'webmock/rspec'
 require 'webmock/rspec/matchers'
+require 'timecop'
 
 Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
 
@@ -74,6 +75,7 @@ RSpec.configure do |config|
 
   config.after do
     EventStoreClient.reset_config
+    DummyRepository.reset
   end
 
   config.before(:each, webmock: :itself.to_proc) do
@@ -87,5 +89,13 @@ RSpec.configure do |config|
   config.around(:each, webmock: :itself.to_proc) do |example|
     example.run
     WebMock.reset!
+  end
+
+  config.around(timecop: :itself.to_proc) do |example|
+    if example.metadata[:timecop].is_a?(Time)
+      Timecop.freeze(example.metadata[:timecop]) { example.run }
+    else
+      Timecop.freeze { example.run }
+    end
   end
 end

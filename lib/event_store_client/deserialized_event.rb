@@ -51,6 +51,25 @@ module EventStoreClient
       'application/vnd.eventstore.events+json'
     end
 
+    # Implements comparison of `EventStoreClient::DeserializedEvent`-s. Two events matches if all of
+    # their attributes matches
+    # @param other [Object, EventStoreClient::DeserializedEvent]
+    # @return [Boolean]
+    def ==(other)
+      return false unless other.is_a?(EventStoreClient::DeserializedEvent)
+
+      to_h == other.to_h
+    end
+
+    # @return [Hash]
+    def to_h
+      instance_variables.each_with_object({}) do |var, result|
+        key = var.to_s
+        key[0] = '' # remove @ sign
+        result[key.to_sym] = instance_variable_get(var)
+      end
+    end
+
     private
 
     def validate(data)

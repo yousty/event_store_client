@@ -19,7 +19,7 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
         'first_name' => 'es_encrypted',
         'last_name' => 'es_encrypted',
         'profession' => 'Jedi',
-        'es_encrypted' => 'darthvader'
+        'es_encrypted' => DummyRepository.encrypt(data.slice('first_name', 'last_name').to_json)
       }
     end
     let(:user_registered) { EncryptedEvent.new(data: data) }
@@ -49,7 +49,7 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
         'first_name' => 'es_encrypted',
         'last_name' => 'es_encrypted',
         'profession' => 'Jedi',
-        'es_encrypted' => 'darthvader'
+        'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
       }
     end
     let(:decrypted_data) do
@@ -62,13 +62,20 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
     end
     let(:user_registered) do
       EventStoreClient::Event.new(
-        data: JSON.generate(encrypted_data),
-        metadata: JSON.generate(encryption: encryption_metadata),
+        data: encrypted_data.to_json,
+        metadata: { encryption: encryption_metadata }.to_json,
         type: 'EncryptedEvent'
       )
     end
+    let(:message_to_encrypt) do
+      decrypted_data.slice('first_name', 'last_name').to_json
+    end
 
     before do
+      DummyRepository.new.encrypt(
+        key: DummyRepository::Key.new(id: decrypted_data['user_id']),
+        message: message_to_encrypt
+      )
       allow(EncryptedEvent).to receive(:new).and_call_original
     end
 

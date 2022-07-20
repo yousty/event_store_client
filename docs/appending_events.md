@@ -86,7 +86,7 @@ EventStoreClient.client.append_to_stream('some-stream', event)
 
 When appending events to a stream you can supply a stream state or stream revision. Your client can use this to tell EventStoreDB what state or version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be thrown.
 
-For example if we try and append the same record twice expecting both times that the stream doesn't exist we will get an exception on the second:
+For example if we try and append two records expecting both times that the stream doesn't exist we will get an exception on the second:
 
 ```ruby
 class SomethingHappened < EventStoreClient::DeserializedEvent
@@ -119,18 +119,24 @@ This check can be used to implement optimistic concurrency. When you retrieve a 
 class SomethingHappened < EventStoreClient::DeserializedEvent
 end
 
-revision = EventStoreClient.client.read('some-stream').value!.last&.stream_revision || 0
-
+stream_name = "some-stream$#{SecureRandom.uuid}"
 event1 = SomethingHappened.new(
-  type: 'some-event', data: {},
+  type: 'some-event', data: {}
 )
 event2 = SomethingHappened.new(
-  type: 'some-event', data: {},
+  type: 'some-event', data: {}
 )
-EventStoreClient.client.append_to_stream('some-stream', event1, options: { expected_revision: revision })
-
+event3 = SomethingHappened.new(
+  type: 'some-event', data: {}
+)
+# Pre-populate stream with some event
+EventStoreClient.client.append_to_stream(stream_name, event1)
+# Get the revision number of latest event
+revision = EventStoreClient.client.read(stream_name).success.last.stream_revision
+# Expected revision matches => will succeed
+EventStoreClient.client.append_to_stream(stream_name, event2, options: { expected_revision: revision })
 # Will fail with revisions mismatch error
-EventStoreClient.client.append_to_stream('some-stream', event2, options: { expected_revision: revision })
+EventStoreClient.client.append_to_stream(stream_name, event2, options: { expected_revision: revision })
 ```
 
 ## User credentials
