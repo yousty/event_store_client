@@ -14,7 +14,7 @@ module EventStoreClient
             Enumerator.new do |y|
               loop do
                 response =
-                  Read.new(connection_options).call(
+                  Read.new(**connection_options).call(
                     stream_name,
                     options: options,
                     skip_deserialization: true,
