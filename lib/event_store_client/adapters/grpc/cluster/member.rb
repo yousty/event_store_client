@@ -5,7 +5,6 @@ module EventStoreClient
     module Cluster
       class Member
         include Extensions::OptionsExtension
-        include Configuration
 
         option(:host) # String
         option(:port) # Integer

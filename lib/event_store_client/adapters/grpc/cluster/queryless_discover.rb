@@ -4,8 +4,6 @@ module EventStoreClient
   module GRPC
     module Cluster
       class QuerylessDiscover
-        include Configuration
-
         NoHostError = Class.new(StandardError)
 
         # @param nodes [EventStoreClient::Connection::Url::Node]
