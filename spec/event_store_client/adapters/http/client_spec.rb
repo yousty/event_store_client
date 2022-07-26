@@ -3,7 +3,10 @@
 RSpec.describe EventStoreClient::HTTP::Client, webmock: true do
   let(:api_client) { described_class.new }
   let(:stream_name) { "test-stream-#{SecureRandom.hex(6)}" }
-  let(:store_base_url) { EventStoreClient.config.eventstore_url.to_s }
+  let(:store_base_url) do
+    node = EventStoreClient.config.eventstore_url.nodes.first
+    "http://#{node.host}:#{node.port}"
+  end
   let(:stream_url) { "#{store_base_url}/streams/#{stream_name}" }
 
   describe '#append_to_stream' do

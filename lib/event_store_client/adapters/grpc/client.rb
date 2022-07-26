@@ -34,11 +34,11 @@ module EventStoreClient
       #   Returns monads' Success/Failure in case whether request was performed.
       def append_to_stream(stream_name, events_or_event, options: {}, credentials: {}, &blk)
         if events_or_event.is_a?(Array)
-          Commands::Streams::AppendMultiple.new(credentials).call(
+          Commands::Streams::AppendMultiple.new(**credentials).call(
             stream_name, events_or_event, options: options
           )
         else
-          Commands::Streams::Append.new(credentials).call(
+          Commands::Streams::Append.new(**credentials).call(
             stream_name, events_or_event, options: options, &blk
           )
         end
@@ -95,7 +95,7 @@ module EventStoreClient
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
       def read(stream_name, options: {}, skip_deserialization: config.skip_deserialization,
                skip_decryption: config.skip_decryption, credentials: {}, &blk)
-        Commands::Streams::Read.new(credentials).call(
+        Commands::Streams::Read.new(**credentials).call(
           stream_name,
           options: options,
           skip_deserialization: skip_deserialization,
@@ -110,7 +110,7 @@ module EventStoreClient
       def read_paginated(stream_name, options: {}, credentials: {},
                          skip_deserialization: config.skip_deserialization,
                          skip_decryption: config.skip_decryption, &blk)
-        Commands::Streams::ReadPaginated.new(credentials).call(
+        Commands::Streams::ReadPaginated.new(**credentials).call(
           stream_name,
           options: options,
           skip_deserialization: skip_deserialization,
@@ -137,7 +137,7 @@ module EventStoreClient
       #     ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
       def hard_delete_stream(stream_name, options: {}, credentials: {}, &blk)
-        Commands::Streams::HardDelete.new(credentials).call(stream_name, options: options, &blk)
+        Commands::Streams::HardDelete.new(**credentials).call(stream_name, options: options, &blk)
       end
 
       # Refs https://developers.eventstore.com/server/v5/streams.html#soft-delete-and-truncatebefore
@@ -158,7 +158,7 @@ module EventStoreClient
       #     ```
       # @return [Dry::Monads::Success, Dry::Monads::Failure]
       def delete_stream(stream_name, options: {}, credentials: {}, &blk)
-        Commands::Streams::Delete.new(credentials).call(stream_name, options: options, &blk)
+        Commands::Streams::Delete.new(**credentials).call(stream_name, options: options, &blk)
       end
 
       # Subscribe to the given stream and listens for events. Note, that it will block execution of
@@ -217,7 +217,7 @@ module EventStoreClient
       def subscribe_to_stream(stream_name, handler:, options: {}, credentials: {},
                               skip_deserialization: config.skip_deserialization,
                               skip_decryption: config.skip_decryption, &blk)
-        Commands::Streams::Subscribe.new(credentials).call(
+        Commands::Streams::Subscribe.new(**credentials).call(
           stream_name,
           handler: handler,
           options: options,
@@ -233,7 +233,7 @@ module EventStoreClient
       def subscribe_to_all(handler:, options: {}, credentials: {},
                               skip_deserialization: config.skip_deserialization,
                               skip_decryption: config.skip_decryption, &blk)
-        Commands::Streams::Subscribe.new(credentials).call(
+        Commands::Streams::Subscribe.new(**credentials).call(
           '$all',
           handler: handler,
           options: options,
@@ -250,20 +250,28 @@ module EventStoreClient
       # @see #append_to_stream for available params and returned value
       def link_to(stream_name, events_or_event, options: {}, credentials: {}, &blk)
         if events_or_event.is_a?(Array)
-          Commands::Streams::LinkToMultiple.new(credentials).call(
+          Commands::Streams::LinkToMultiple.new(**credentials).call(
             stream_name,
             events_or_event,
             options: options,
             &blk
           )
         else
-          Commands::Streams::LinkTo.new(credentials).call(
+          Commands::Streams::LinkTo.new(**credentials).call(
             stream_name,
             events_or_event,
             options: options,
             &blk
           )
         end
+      end
+
+      # @param credentials [Hash]
+      # @option credentials [String] :username
+      # @option credentials [String] :password
+      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      def cluster_info(credentials: {})
+        Commands::Gossip::ClusterInfo.new(**credentials).call
       end
     end
   end

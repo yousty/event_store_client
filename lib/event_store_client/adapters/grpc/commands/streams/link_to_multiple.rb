@@ -10,7 +10,7 @@ module EventStoreClient
           def call(stream_name, events, options:, &blk)
             result = []
             events.each.with_index do |event, index|
-              link_cmd = Commands::Streams::LinkTo.new(username: username, password: username)
+              link_cmd = Commands::Streams::LinkTo.new(**connection_options)
               response =
                 link_cmd.call(stream_name, event, options: options) do |req_opts, proposed_msg_opts|
                   req_opts.options.revision += index if has_revision_option?(req_opts.options)

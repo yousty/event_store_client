@@ -8,63 +8,39 @@ module EventStoreClient
   module GRPC
     class Connection
       include Configuration
+      include Extensions::OptionsExtension
+
+      option(:host) { Discover.current_member.host }
+      option(:port) { Discover.current_member.port }
+      option(:username) { config.eventstore_url.username }
+      option(:password) { config.eventstore_url.password }
+      option(:timeout) { config.eventstore_url }
 
       class SocketErrorRetryFailed < StandardError; end
 
-      # Initializes the proper stub with the necessary credentials
-      # to create working gRPC connection - Refer to generated grpc files
-      # @return [Stub] Instance of a given `Stub` klass
-      #
-      def call(stub_klass, options: {})
-        return insecure_stub(stub_klass) if config.insecure
+      class << self
+        include Configuration
 
-        secure_stub(stub_klass, options[:credentials])
-      end
+        def new(*args, **kwargs, &blk)
+          return super unless self == Connection
 
-      private
-
-      def channel_credentials
-        ::GRPC::Core::ChannelCredentials.new(cert.to_s)
-      end
-
-      # @param stub_klass [Class]
-      # @param credentials [String] Base64-encoded string. Example:
-      #   Base64.encode64("#{username}:#{password}")
-      # @return [Object] instance of stub_class
-      def secure_stub(stub_klass, credentials)
-        credentials ||=
-          Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-        stub_klass.new(
-          "#{config.eventstore_url.host}:#{config.eventstore_url.port}",
-          channel_credentials,
-          channel_args: { 'authorization' => "Basic #{credentials.delete("\n")}" }
-        )
-      end
-
-      def cert
-        retries = 0
-
-        @cert ||=
-          begin
-            Net::HTTP.start(
-              config.eventstore_url.host, config.eventstore_url.port,
-              use_ssl: true,
-              verify_mode: config.verify_ssl || OpenSSL::SSL::VERIFY_NONE,
-              &:peer_cert
-            )
-          rescue SocketError => e
-            sleep config.socket_error_retry_sleep
-            retries += 1
-            retry if retries <= config.socket_error_retry_count
-            raise SocketErrorRetryFailed
+          if secure?
+            Cluster::SecureConnection.new(*args, **kwargs, &blk)
+          else
+            Cluster::InsecureConnection.new(*args, **kwargs, &blk)
           end
+        end
+
+        def secure?
+          config.eventstore_url.tls
+        end
       end
 
-      def insecure_stub(stub_klass)
-        stub_klass.new(
-          "#{config.eventstore_url.host}:#{config.eventstore_url.port}",
-          :this_channel_is_insecure
-        )
+      def call(stub_class)
+        raise NotImplementedError
+      end
+
+      def credentials_string
       end
     end
   end

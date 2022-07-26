@@ -108,7 +108,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     let(:failure_message) { 'failed to connect to eventstore' }
 
     before do
-      allow(EventStoreClient.config).to receive(:eventstore_url).and_return(URI('localhost:1234'))
+      EventStoreClient.config.eventstore_url.nodes =
+        Set.new([EventStoreClient::Connection::Url::Node.new('localhost', 1234)])
     end
 
     it 'returns failure' do

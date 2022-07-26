@@ -7,7 +7,7 @@ module EventStoreClient
         class LinkTo < Command
           # @see {EventStoreClient::GRPC::Client#hard_delete_stream}
           def call(stream_name, event, options:, &blk)
-            append_cmd = Append.new(username: username, password: username)
+            append_cmd = Append.new(**connection_options)
             link_event = EventStoreClient::DeserializedEvent.new(
               id: event.id, type: '$>', data: event.title
             )

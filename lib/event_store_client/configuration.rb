@@ -18,21 +18,19 @@ module EventStoreClient
         #
         setting :adapter_type, default: :grpc
 
-        setting :use_ssl, default: true
-        setting :verify_ssl, default: false
         setting :insecure, default: false
 
         setting :error_handler, default: ErrorHandler.new
         setting :eventstore_url,
-                default: 'http://localhost:2113',
-                constructor: proc { |value| value.is_a?(URI) ? value : URI(value) }
+                default: 'esdb://localhost:2115',
+                constructor:
+                  proc { |value|
+                    value.is_a?(Connection::Url) ? value : Connection::UrlParser.new.call(value)
+                  }
         setting :eventstore_user, default: 'admin'
         setting :eventstore_password, default: 'changeit'
 
-        setting :db_port, default: 2113
-
         setting :per_page, default: 20
-        setting :pid_path, default: 'tmp/poll.pid'
 
         setting :service_name, default: 'default'
 
@@ -44,9 +42,6 @@ module EventStoreClient
 
         setting :logger
 
-        setting :socket_error_retry_sleep, default: 0.5
-        setting :socket_error_retry_count, default: 3
-
         setting :grpc_unavailable_retry_sleep, default: 0.5
         setting :grpc_unavailable_retry_count, default: 3
 
@@ -54,10 +49,6 @@ module EventStoreClient
         setting :skip_decryption, default: false
       end
       @config.config
-    end
-
-    def reset_config
-      @config = nil
     end
 
     def client

@@ -127,8 +127,8 @@ module EventStoreClient
       attr_reader :connection
 
       def initialize
-        @connection =
-          Connection.new(config.eventstore_url, ssl: { verify: config.verify_ssl })
+        node = config.eventstore_url.nodes.first
+        @connection = Connection.new("http://#{node.host}:#{node.port}")
       end
 
       # @api private

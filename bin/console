@@ -15,39 +15,14 @@ require 'pry'
 
 EventStoreClient.configure do |config|
   ## url needs to match the DNS name in certificate
-  config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'http://localhost:2113' }
+  #config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2115/?tls=false' }
+  #config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2111,localhost:2112,localhost:2113/?tls=true' }
+  #config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2108,localhost:2109,localhost:2113/?tls=true' }
+  config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2108,localhost:2109,localhost:2110/?tls=true' }
   config.adapter_type = :grpc
-  config.eventstore_user = ENV.fetch('EVENTSTORE_USER') { 'admin' }
-  config.eventstore_password = ENV.fetch('EVENTSTORE_PASSWORD') { 'changeit' }
-  config.verify_ssl = false
-  config.insecure = true
-  config.per_page = 1000
+  config.per_page = 1_000
 end
 # Trigger client initialization
 EventStoreClient.client
-
-def check_stream
-  config = EventStoreClient.config
-
-  credentials = Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-  metadata = { 'authorization' => "Basic #{credentials.gsub("\n", '')}" }
-
-  uri = config.eventstore_url
-  service = EventStore::Client::Streams::Streams::Stub.new(
-    "#{uri.host}:#{uri.port}",
-    :this_channel_is_insecure
-  )
-
-  opts = {
-    stream: { stream_identifier: { stream_name: 'nestream' }, start: {} },
-    read_direction: :Forwards,
-    resolve_links: true,
-    count: 20,
-    uuid_option: { string: {} },
-    no_filter: {}
-  }
-
-  puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts), metadata: metadata).inspect
-end
 
 IRB.start(__FILE__)

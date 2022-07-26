@@ -198,7 +198,7 @@ bin/rebuild_protos
 You will have to install Docker first. It is needed to run EventStore DB. You can run EventStore DB with next command:
 
 ```shell
-docker-compose -f docker-compose.local.yml up
+docker-compose -f docker-compose-cluster.yml up
 ```
 
 ### Publishing new version

@@ -1,57 +1,59 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/grpc/command_registrar'
-
 module EventStoreClient
   module GRPC
     module Commands
       class Command
-        def self.inherited(klass)
-          super
-          klass.class_eval do
-            include Dry::Monads[:try, :result]
+        module ClassMethods
+          def use_request(request_klass)
+            CommandRegistrar.register_request(self, request: request_klass)
+          end
 
-            def self.use_request(request_klass)
-              CommandRegistrar.register_request(self, request: request_klass)
-            end
-
-            def self.use_service(service_klass)
-              CommandRegistrar.register_service(self, service: service_klass)
-            end
-
-            def request
-              CommandRegistrar.request(self.class)
-            end
-
-            def service
-              CommandRegistrar.service(self.class, options: { credentials: credentials })
-            end
+          def use_service(service_klass)
+            CommandRegistrar.register_service(self, service: service_klass)
           end
         end
 
+        def self.inherited(klass)
+          klass.extend(ClassMethods)
+        end
+
         include Configuration
+        include Dry::Monads[:try, :result]
 
-        attr_reader :username, :password
-        private :username, :password
+        attr_reader :connection
+        private :connection
 
-        # @param credentials [Hash]
-        # @option [String] :username
-        # @option [String] :password
-        def initialize(credentials = {})
-          @username = credentials[:username]
-          @password = credentials[:password]
+        # @param conn_options [Hash]
+        # @option conn_options [String] :host
+        # @option conn_options [Integer] :port
+        # @option conn_options [String] :username
+        # @option conn_options [String] :password
+        def initialize(**conn_options)
+          @connection = EventStoreClient::GRPC::Connection.new(**conn_options)
         end
 
         def metadata
-          { 'authorization' => "Basic #{credentials.delete("\n")}" }
+          return {} unless connection.credentials_string
+
+          { 'authorization' => "Basic #{connection.credentials_string}" }
+        end
+
+        def request
+          CommandRegistrar.request(self.class)
+        end
+
+        def service
+          connection.call(CommandRegistrar.service(self.class))
         end
 
         private
 
-        def credentials
-          uname = username || config.eventstore_user
-          pwd = password || config.eventstore_user
-          Base64.encode64("#{uname}:#{pwd}")
+        def connection_options
+          {
+            username: connection.username,
+            password: connection.password
+          }
         end
 
         def retry_request

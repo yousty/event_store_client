@@ -37,7 +37,7 @@ module EventStoreClient
             headers: DEFAULT_HEADERS
           }.merge(connection_options)
         ) do |conn|
-          conn.basic_auth(config.eventstore_user, config.eventstore_password)
+          conn.basic_auth(config.eventstore_url.username, config.eventstore_url.password)
           conn.adapter Faraday.default_adapter
         end
       end
