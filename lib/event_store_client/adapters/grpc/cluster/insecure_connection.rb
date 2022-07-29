@@ -4,17 +4,14 @@ module EventStoreClient
   module GRPC
     module Cluster
       class InsecureConnection < Connection
-        # @param stub_class GRPC request stub class. E.g. EventStore::Cluster::Gossip::Service::Stub
+        # @param stub_class GRPC request stub class. E.g. EventStore::Client::Gossip::Gossip::Stub
         # @return instance of the given stub_class class
         def call(stub_class)
-          i = ::GRPC::ClientInterceptor.new
-          # def i.request_response(request: nil, call: nil, method: nil, metadata: nil)
-          #   p ""
-          #   yield
-          # end
           stub_class.new(
             "#{host}:#{port}",
-            :this_channel_is_insecure
+            :this_channel_is_insecure,
+            channel_args: channel_args,
+            timeout: (timeout / 1000.0 if timeout)
           )
         end
       end

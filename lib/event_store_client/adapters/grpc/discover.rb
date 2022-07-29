@@ -9,11 +9,11 @@ module EventStoreClient
         # @return [EventStoreClient::GRPC::Cluster::Member]
         def current_member
           @exception = nil
-          return @current_member if @current_member
+          return @current_member if member_alive?
 
           semaphore.synchronize do
             raise @exception if @exception
-            return @current_member if @current_member
+            return @current_member if member_alive?
 
             failed_member = @current_member if @current_member&.failed_endpoint
             @current_member =
@@ -31,6 +31,13 @@ module EventStoreClient
 
         def semaphore
           @semaphore ||= Thread::Mutex.new
+        end
+
+        # @return [Boolean]
+        def member_alive?
+          return false if @current_member&.failed_endpoint
+
+          !@current_member.nil?
         end
       end
 

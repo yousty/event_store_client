@@ -19,11 +19,12 @@ module EventStoreClient
         # @param nodes [Array<EventStoreClient::Connection::Url::Node>]
         # @param failed_member [EventStoreClient::GRPC::Cluster::Member, nil]
         # @return [EventStoreClient::GRPC::Cluster::Member]
+        # @raise [EventStoreClient::GRPC::Cluster::GossipDiscover::DiscoverError]
         def call(nodes, failed_member:)
           # Put failed node to the end of the list
-          nodes.sort! do |node|
+          nodes = nodes.sort do |node|
             failed_member.host == node.host && failed_member.port == node.port ? 1 : 0
-          end if failed_member&.failed_endpoint
+          end if failed_member
 
           attempts = config.eventstore_url.max_discover_attempts
           attempts.times do
@@ -83,7 +84,6 @@ module EventStoreClient
             )
           end
         rescue ::GRPC::BadStatus, Errno::ECONNREFUSED => e
-          puts "Discovery error: #{e.message}"
         end
       end
     end

@@ -70,6 +70,15 @@ module EventStoreClient
           public_send("#{option}=", value)
         end
       end
+
+      # Construct a hash from options, where key is the option's name and the value is option's
+      # value
+      # @return [Hash]
+      def options_hash
+        self.class.options.each_with_object({}) do |option, res|
+          res[option] = public_send(option)
+        end
+      end
     end
   end
 end

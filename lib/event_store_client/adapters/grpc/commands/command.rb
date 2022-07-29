@@ -4,7 +4,7 @@ module EventStoreClient
   module GRPC
     module Commands
       class Command
-        module ClassMethods
+        class << self
           def use_request(request_klass)
             CommandRegistrar.register_request(self, request: request_klass)
           end
@@ -12,10 +12,6 @@ module EventStoreClient
           def use_service(service_klass)
             CommandRegistrar.register_service(self, service: service_klass)
           end
-        end
-
-        def self.inherited(klass)
-          klass.extend(ClassMethods)
         end
 
         include Configuration
@@ -33,37 +29,46 @@ module EventStoreClient
           @connection = EventStoreClient::GRPC::Connection.new(**conn_options)
         end
 
-        def metadata
-          return {} unless connection.credentials_string
-
-          { 'authorization' => "Basic #{connection.credentials_string}" }
+        # Override it in your implementation of command.
+        def call
+          raise NotImplementedError
         end
 
+        # @return [Hash]
+        def metadata
+          return {} unless connection.class.secure?
+
+          credentials =
+            Base64.encode64("#{connection.username}:#{connection.password}").delete("\n")
+          { 'authorization' => "Basic #{credentials}" }
+        end
+
+        # @return GRPC params class to be used in the request.
+        #   E.g.EventStore::Client::Streams::ReadReq
         def request
           CommandRegistrar.request(self.class)
         end
 
+        # @return GRPC request stub class. E.g. EventStore::Client::Streams::Streams::Stub
         def service
           connection.call(CommandRegistrar.service(self.class))
         end
 
-        private
-
+        # @return [Hash] connection options' hash
         def connection_options
-          {
-            username: connection.username,
-            password: connection.password
-          }
+          @connection.options_hash
         end
+
+        private
 
         def retry_request
           retries = 0
           begin
             yield
           rescue ::GRPC::Unavailable => e
-            sleep config.grpc_unavailable_retry_sleep
+            sleep config.eventstore_url.grpc_retry_interval / 1000.0
             retries += 1
-            retry if retries <= config.grpc_unavailable_retry_count
+            retry if retries <= config.eventstore_url.grpc_retry_attempts
             raise
           end
         end

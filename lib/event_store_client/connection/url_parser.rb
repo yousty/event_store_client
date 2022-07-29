@@ -41,7 +41,9 @@ module EventStoreClient
           value if Url::NODE_PREFERENCES.include?(value)
         },
         connection_name: ->(parsed_url) { parsed_url.params['connectionName'] },
-        timeout: ->(parsed_url) { parsed_url.params['timeout']&.to_i }
+        timeout: ->(parsed_url) { parsed_url.params['timeout']&.to_i },
+        grpc_retry_attempts: ->(parsed_url) { parsed_url.params['grpcRetryAttempts']&.to_i },
+        grpc_retry_interval: ->(parsed_url) { parsed_url.params['grpcRetryInterval']&.to_i }
       }.freeze
 
       # @param connection_str [String] EventStore DB connection string

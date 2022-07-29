@@ -6,19 +6,15 @@ module EventStoreClient
       class SecureConnection < Connection
         CertificateLookupError = Class.new(StandardError)
 
-        # @param stub_class GRPC request stub class. E.g. EventStore::Cluster::Gossip::Service::Stub
+        # @param stub_class GRPC request stub class. E.g. EventStore::Client::Gossip::Gossip::Stub
         # @return instance of the given stub_class class
         def call(stub_class)
           stub_class.new(
             "#{host}:#{port}",
             channel_credentials,
-            channel_args: { 'authorization' => "Basic #{credentials_string}" }
+            channel_args: channel_args,
+            timeout: (timeout / 1000.0 if timeout)
           )
-        end
-
-        # @return [String]
-        def credentials_string
-          Base64.encode64("#{username}:#{password}").delete("\n")
         end
 
         private

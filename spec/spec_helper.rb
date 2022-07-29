@@ -23,13 +23,13 @@ if ENV['TEST_COVERAGE'] == 'true'
   SimpleCov.start 'event-store-client'
 end
 
+require 'pry'
 require 'event_store_client'
 require 'event_store_client/adapters/grpc'
 require 'event_store_client/adapters/http'
 require 'event_store_client/adapters/in_memory'
-require 'pry'
 require 'securerandom'
-require 'webmock/rspec'
+require 'webmock'
 require 'webmock/rspec/matchers'
 require 'timecop'
 
@@ -76,6 +76,8 @@ RSpec.configure do |config|
   config.after do
     EventStoreClient.instance_variable_set(:@config, nil)
     EventStoreClient::GRPC::Discover.instance_variable_set(:@current_member, nil)
+    EventStoreClient::GRPC::Discover.instance_variable_set(:@exception, nil)
+    #EventStoreClient::GRPC::CommandRegistrar.instance_variable_set(:@commands, {})
     DummyRepository.reset
   end
 

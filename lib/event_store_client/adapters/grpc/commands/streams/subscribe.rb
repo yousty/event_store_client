@@ -11,6 +11,11 @@ module EventStoreClient
           use_request EventStore::Client::Streams::ReadReq
           use_service EventStore::Client::Streams::Streams::Stub
 
+          def initialize(**conn_options)
+            # Subscriptions should never be timed out
+            super(**conn_options.merge(timeout: nil))
+          end
+
           # @api private
           # @see {EventStoreClient::GRPC::Client#read}
           def call(stream_name, handler:, options:, skip_deserialization:, skip_decryption:)

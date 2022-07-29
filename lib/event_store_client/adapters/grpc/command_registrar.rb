@@ -16,7 +16,7 @@ module EventStoreClient
       end
 
       def self.request(command_klass)
-        @commands[command_klass][:request]
+        @commands.dig(command_klass,:request)
       end
 
       # @param command_klass [Class]
@@ -25,7 +25,7 @@ module EventStoreClient
       #     - EventStoreClient::GRPC::Commands::Streams::Read
       # @return [Object] GRPC service class
       def self.service(command_klass)
-        @commands[command_klass][:service]
+        @commands.dig(command_klass,:service)
       end
     end
   end

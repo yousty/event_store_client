@@ -33,13 +33,13 @@ module EventStoreClient
       option(:ca_lookup_attempts) { 3 }
       # Discovery request timeout. Only useful when there are several nodes or when dns_discover
       # option is true
-      option(:gossip_timeout) { 5 } # milliseconds
+      option(:gossip_timeout) { 200 } # milliseconds
       # Max attempts before giving up to find a suitable node. Only useful when there are several
       # nodes or when dns_discover option is true
       option(:max_discover_attempts) { 10 }
       # Interval between discovery attempts
       option(:discovery_interval) { 100 } # milliseconds
-      # One value for both connection and request timeouts
+      # One value for both - connection and request timeouts
       option(:timeout) # milliseconds
       # During the discovery - set which state will be taken in prio during nodes look up
       option(:node_preference) { NODE_PREFERENCES.first }
@@ -47,6 +47,11 @@ module EventStoreClient
       # A list of nodes to discover. It is represented as an array of
       # EventStoreClient::Connection::Url::Node instances
       option(:nodes) { Set.new }
+      # Number of time to retry GRPC request. Does not apply to discover request. Final number of
+      # requests in cases of error will be initial request + grpc_retry_attempts.
+      option(:grpc_retry_attempts) { 3 }
+      # Delay between GRPC request retries
+      option(:grpc_retry_interval) { 100 } # milliseconds
     end
   end
 end
