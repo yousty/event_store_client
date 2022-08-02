@@ -16,7 +16,9 @@ module EventStoreClient
           def call(stream_name, options:, &blk)
             options = normalize_options(stream_name, options)
             yield options if block_given?
-            Success(service.delete(request.new(options: options), metadata: metadata))
+            Success(
+              retry_request { service.delete(request.new(options: options), metadata: metadata) }
+            )
           rescue ::GRPC::FailedPrecondition
             Failure(:stream_not_found)
           end

@@ -61,7 +61,9 @@ module EventStoreClient
 
         private
 
-        def retry_request
+        def retry_request(skip_retry: false)
+          return yield if skip_retry
+
           retries = 0
           begin
             yield

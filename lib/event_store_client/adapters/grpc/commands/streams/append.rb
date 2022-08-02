@@ -23,7 +23,10 @@ module EventStoreClient
                 request.new(proposed_message: proposed_message(serialize_event))
               ]
             yield *payload if block_given?
-            validate_response(service.append(payload, metadata: metadata))
+            response = retry_request(skip_retry: config.eventstore_url.throw_on_append_failure) do
+              service.append(payload, metadata: metadata)
+            end
+            validate_response(response)
           rescue ::GRPC::Unavailable => e
             Failure(e)
           end

@@ -15,7 +15,7 @@ module EventStoreClient
           # @api private
           # @see {EventStoreClient::GRPC::Client#cluster_info}
           def call
-            Success(service.read(request.new, metadata: metadata))
+            Success(retry_request { service.read(request.new, metadata: metadata) })
           end
         end
       end

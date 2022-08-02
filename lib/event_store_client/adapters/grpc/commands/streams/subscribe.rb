@@ -31,7 +31,11 @@ module EventStoreClient
 
               handler.call(result) if result
             end
-            Success(service.read(request.new(options: options), metadata: metadata, &callback))
+            Success(
+              retry_request {
+                service.read(request.new(options: options), metadata: metadata, &callback)
+              }
+            )
           end
 
           private
