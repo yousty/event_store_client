@@ -14,5 +14,9 @@ class TestHelper
         )
       end
     end
+
+    def root_path
+      File.expand_path('../..', __dir__)
+    end
   end
 end

@@ -88,6 +88,20 @@ RSpec.describe EventStoreClient::GRPC::Cluster::SecureConnection do
           expect { subject }.to raise_error(GRPC::Unauthenticated)
         end
       end
+
+      context 'when certificate is provided' do
+        before do
+          EventStoreClient.config.eventstore_url.tls_ca_file =
+            File.join(TestHelper.root_path, 'certs/ca/ca.crt')
+          # stub this method to prevent false-positive result in case if handling of custom CA file
+          # is not properly handled
+          allow(instance).to receive(:get_cert)
+        end
+
+        it 'does not raise any errors' do
+          expect { subject }.not_to raise_error
+        end
+      end
     end
   end
 end
