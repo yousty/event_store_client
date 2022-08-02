@@ -26,8 +26,5 @@ jobs:
     - name: Run tests
       run: |
         bundle install
-        ./bin/wait-for-it.sh localhost:2111
-        ./bin/wait-for-it.sh localhost:2112
-        ./bin/wait-for-it.sh localhost:2113
-        ./bin/wait-for-it.sh localhost:2115
+        sleep 10
         TEST_COVERAGE=true bundle exec rspec
