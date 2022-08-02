@@ -9,7 +9,7 @@ module EventStoreClient
     class Url
       include Extensions::OptionsExtension
 
-      NODE_PREFERENCES = %i(Leader Follower ReadOnlyReplica)
+      NODE_PREFERENCES = %i(Leader Follower ReadOnlyReplica).freeze
       Node = Struct.new(:host, :port)
 
       # This option will allow you to perform the discovery by only one host
@@ -37,8 +37,8 @@ module EventStoreClient
       # Max attempts before giving up to find a suitable node. Only useful when there are several
       # nodes or when dns_discover option is true
       option(:max_discover_attempts) { 10 }
-      # Interval between discovery attempts
-      option(:discovery_interval) { 100 } # milliseconds
+      # Interval between discover attempts
+      option(:discover_interval) { 100 } # milliseconds
       # One value for both - connection and request timeouts
       option(:timeout) # milliseconds
       # During the discovery - set which state will be taken in prio during nodes look up

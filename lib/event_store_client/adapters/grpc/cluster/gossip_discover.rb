@@ -39,7 +39,7 @@ module EventStoreClient
               return suitable_member if suitable_member
             end
 
-            sleep(config.eventstore_url.discovery_interval / 1000.0)
+            sleep(config.eventstore_url.discover_interval / 1000.0)
           end
 
           raise DiscoverError, "Failed to discover suitable host after #{attempts} attempts."

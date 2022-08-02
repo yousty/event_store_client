@@ -29,15 +29,18 @@ module EventStoreClient
           @current_member
         end
 
-        def semaphore
-          @semaphore ||= Thread::Mutex.new
-        end
-
         # @return [Boolean]
         def member_alive?
           return false if @current_member&.failed_endpoint
 
           !@current_member.nil?
+        end
+
+        private
+
+        # @return [Thread::Mutex]
+        def semaphore
+          @semaphore ||= Thread::Mutex.new
         end
       end
 

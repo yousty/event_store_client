@@ -4,7 +4,7 @@ module EventStoreClient
   module Connection
     class UrlParser
       class << self
-        def boolean_option(value)
+        def boolean_param(value)
           return unless %w(true false).include?(value)
 
           value == 'true'
@@ -16,24 +16,39 @@ module EventStoreClient
       # "http://", "https://" and so on
       SCHEME_REGEXP = /\A[\w|\+]*:\/\//.freeze
 
+      # Define a set of rules to translate connection string into
+      # EventStoreClient::Connection::Url options.
+      #
+      # "First url" means first extracted from the connection string url. It may contain schema,
+      # discover flag, user name and password.
+      # Example. Let's say a developer provided
+      # "esdb+discover://admin:some-password@localhost:2112,localhost:2113" connection string. Then,
+      # during parsing, the first url will be 'esdb+discover://admin:some-password@localhost:2112'
       FIRST_URL_RULES = {
         dns_discover: ->(parsed_url) { parsed_url.scheme&.include?('+discover') },
         username: ->(parsed_url) { parsed_url.user },
         password: ->(parsed_url) { parsed_url.password }
       }.freeze
+      # "Last url" means the latest extracted url from the connections string. It contains params.
+      # So LAST_URL_RULES rules defines rules how to translate params into
+      # EventStoreClient::Connection::Url options.
+      # Example. Let's say a developer provided
+      # "esdb+discover://admin:some-password@localhost:2112,localhost:2113/?tls=false" connection
+      # string. Then, during parsing, last url will be 'localhost:2113/?tls=false'.
       LAST_URL_RULES = {
         throw_on_append_failure: ->(parsed_url) {
-          boolean_option(parsed_url.params['throwOnAppendFailure'])
+          boolean_param(parsed_url.params['throwOnAppendFailure'])
         },
-        tls: ->(parsed_url) { boolean_option(parsed_url.params['tls']) },
-        tls_verify_cert: ->(parsed_url) { boolean_option(parsed_url.params['tlsVerifyCert']) },
+        tls: ->(parsed_url) { boolean_param(parsed_url.params['tls']) },
+        tls_verify_cert: ->(parsed_url) { boolean_param(parsed_url.params['tlsVerifyCert']) },
         tls_ca_file: ->(parsed_url) { parsed_url.params['tlsCAFile'] },
         gossip_timeout: ->(parsed_url) { parsed_url.params['gossipTimeout']&.to_i },
+        discover_interval: ->(parsed_url) { parsed_url.params['discoverInterval']&.to_i },
         max_discover_attempts: ->(parsed_url) { parsed_url.params['maxDiscoverAttempts']&.to_i },
         ca_lookup_interval: ->(parsed_url) { parsed_url.params['caLookupInterval']&.to_i },
         ca_lookup_attempts: ->(parsed_url) { parsed_url.params['caLookupAttempts']&.to_i },
         node_preference: ->(parsed_url) {
-          value = parsed_url.params['nodePreference']
+          value = parsed_url.params['nodePreference']&.dup
           if value
             value[0] = value[0]&.upcase
             value = value.to_sym
@@ -51,6 +66,7 @@ module EventStoreClient
       def call(connection_str)
         urls = connection_str.split(',')
         return Url.new if urls.empty?
+
         first_url, *other, last_url = urls
 
         es_url = Url.new

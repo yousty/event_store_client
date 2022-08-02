@@ -18,8 +18,6 @@ module EventStoreClient
         #
         setting :adapter_type, default: :grpc
 
-        setting :insecure, default: false
-
         setting :error_handler, default: ErrorHandler.new
         setting :eventstore_url,
                 default: 'esdb://localhost:2115',
@@ -41,9 +39,6 @@ module EventStoreClient
         setting :subscriptions_repo
 
         setting :logger
-
-        setting :grpc_unavailable_retry_sleep, default: 0.5
-        setting :grpc_unavailable_retry_count, default: 3
 
         setting :skip_deserialization, default: false
         setting :skip_decryption, default: false

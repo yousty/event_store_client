@@ -16,8 +16,6 @@ module EventStoreClient
       option(:password) { config.eventstore_url.password }
       option(:timeout) { config.eventstore_url.timeout }
 
-      class SocketErrorRetryFailed < StandardError; end
-
       class << self
         include Configuration
 
@@ -31,6 +29,8 @@ module EventStoreClient
           end
         end
 
+        # Checks if connection class is secure
+        # @return [Boolean]
         def secure?
           self == Cluster::SecureConnection
         end
