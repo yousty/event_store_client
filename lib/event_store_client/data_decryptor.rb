@@ -49,15 +49,8 @@ module EventStoreClient
     end
 
     def find_key(identifier)
-      key =
-        begin
-          key_repository.find(identifier).value!
-        rescue StandardError => e
-          config.error_handler&.call(e)
-          nil
-        end
-
-      key
+      key_repository.find(identifier).value!
+    rescue StandardError
     end
   end
 end

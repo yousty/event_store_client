@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require 'dry-configurable'
-require 'event_store_client/error_handler'
-require 'event_store_client/deserialized_event'
 
 module EventStoreClient
   class << self
@@ -14,7 +12,6 @@ module EventStoreClient
       @config ||= Class.new do
         extend Dry::Configurable
 
-        setting :error_handler, default: ErrorHandler.new
         setting :eventstore_url,
                 default: 'esdb://localhost:2115',
                 constructor:
@@ -31,8 +28,6 @@ module EventStoreClient
         setting :mapper, default: Mapper::Default.new
 
         setting :default_event_class, default: DeserializedEvent
-
-        setting :subscriptions_repo
 
         setting :logger
 

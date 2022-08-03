@@ -9,10 +9,4 @@ module EventStoreClient
       end
     end
   end
-
-  class DummyHandler
-    def self.call(event)
-      puts "Handled #{event.class.name}"
-    end
-  end
 end
