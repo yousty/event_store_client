@@ -14,10 +14,6 @@ module EventStoreClient
       @config ||= Class.new do
         extend Dry::Configurable
 
-        # Supported adapter_types: %i[http in_memory grpc]
-        #
-        setting :adapter_type, default: :grpc
-
         setting :error_handler, default: ErrorHandler.new
         setting :eventstore_url,
                 default: 'esdb://localhost:2115',
@@ -47,19 +43,7 @@ module EventStoreClient
     end
 
     def client
-      case config.adapter_type
-      when :http
-        require 'event_store_client/adapters/http'
-        HTTP::Client.new
-      when :grpc
-        require 'event_store_client/adapters/grpc'
-        GRPC::Client.new
-      else
-        require 'event_store_client/adapters/in_memory'
-        InMemory.new(
-          mapper: config.mapper, per_page: config.per_page
-        )
-      end
+      GRPC::Client.new
     end
   end
 

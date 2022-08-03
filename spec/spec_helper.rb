@@ -25,9 +25,6 @@ end
 
 require 'pry'
 require 'event_store_client'
-require 'event_store_client/adapters/grpc'
-require 'event_store_client/adapters/http'
-require 'event_store_client/adapters/in_memory'
 require 'securerandom'
 require 'webmock'
 require 'webmock/rspec/matchers'
