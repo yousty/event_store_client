@@ -268,14 +268,6 @@ RSpec.describe EventStoreClient::Connection::UrlParser do
           end
         end
 
-        describe ':connection_name rule' do
-          subject { super()[:connection_name].call(parsed_url) }
-
-          let(:params) { { 'connectionName' => 'some-name' } }
-
-          it { is_expected.to eq(params['connectionName']) }
-        end
-
         describe ':timeout rule' do
           subject { super()[:timeout].call(parsed_url) }
 
@@ -361,7 +353,6 @@ RSpec.describe EventStoreClient::Connection::UrlParser do
           expect(subject.max_discover_attempts).to eq(params['maxDiscoverAttempts'])
           expect(subject.timeout).to eq(params['timeout'])
           expect(subject.node_preference).to eq(params['nodePreference'].capitalize.to_sym)
-          expect(subject.connection_name).to eq(params['connectionName'])
           expect(subject.nodes).to(
             eq(
               Set.new(

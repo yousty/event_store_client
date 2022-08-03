@@ -24,7 +24,6 @@ RSpec.describe EventStoreClient::Connection::Url do
       have_option(:node_preference).with_default_value(described_class::NODE_PREFERENCES.first)
     )
   end
-  it { is_expected.to have_option(:connection_name).with_default_value('default') }
   it { is_expected.to have_option(:nodes).with_default_value(Set.new) }
   it { is_expected.to have_option(:grpc_retry_attempts).with_default_value(3) }
   it { is_expected.to have_option(:grpc_retry_interval).with_default_value(100) }

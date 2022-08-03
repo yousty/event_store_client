@@ -43,7 +43,6 @@ module EventStoreClient
       option(:timeout) # milliseconds
       # During the discovery - set which state will be taken in prio during nodes look up
       option(:node_preference) { NODE_PREFERENCES.first }
-      option(:connection_name) { 'default' }
       # A list of nodes to discover. It is represented as an array of
       # EventStoreClient::Connection::Url::Node instances
       option(:nodes) { Set.new }
