@@ -18,12 +18,7 @@ module EventStoreClient
                   proc { |value|
                     value.is_a?(Connection::Url) ? value : Connection::UrlParser.new.call(value)
                   }
-        setting :eventstore_user, default: 'admin'
-        setting :eventstore_password, default: 'changeit'
-
         setting :per_page, default: 20
-
-        setting :service_name, default: 'default'
 
         setting :mapper, default: Mapper::Default.new
 
