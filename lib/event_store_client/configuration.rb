@@ -22,7 +22,7 @@ module EventStoreClient
         end
 
         setting :eventstore_url,
-                default: 'esdb://localhost:2115',
+                default: 'esdb://localhost:2113',
                 constructor:
                   proc { |value|
                     value.is_a?(Connection::Url) ? value : Connection::UrlParser.new.call(value)

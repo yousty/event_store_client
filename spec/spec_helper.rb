@@ -26,17 +26,12 @@ end
 require 'pry'
 require 'event_store_client'
 require 'securerandom'
-require 'webmock'
-require 'webmock/rspec/matchers'
 require 'timecop'
 
 Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
-  config.include WebMock::API
-  config.include WebMock::Matchers
-
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
@@ -75,19 +70,6 @@ RSpec.configure do |config|
     EventStoreClient::GRPC::Discover.instance_variable_set(:@current_member, nil)
     EventStoreClient::GRPC::Discover.instance_variable_set(:@exception, nil)
     DummyRepository.reset
-  end
-
-  config.before(:each, webmock: :itself.to_proc) do
-    WebMock.enable!
-  end
-
-  config.after(:each, webmock: :itself.to_proc) do
-    WebMock.disable!
-  end
-
-  config.around(:each, webmock: :itself.to_proc) do |example|
-    example.run
-    WebMock.reset!
   end
 
   config.around(timecop: :itself.to_proc) do |example|
