@@ -17,7 +17,8 @@ module EventStoreClient
       option(:dns_discover) { false }
       option(:username) { 'admin' }
       option(:password) { 'changeit' }
-      # Whether to throw
+      # Defines if append request should raise error immediately. If set to `false`, in case of
+      # server error - request will be retried.
       option(:throw_on_append_failure) { true }
       # Whether to use secure connection
       option(:tls) { true }
@@ -34,14 +35,14 @@ module EventStoreClient
       # Discovery request timeout. Only useful when there are several nodes or when dns_discover
       # option is true
       option(:gossip_timeout) { 200 } # milliseconds
-      # Max attempts before giving up to find a suitable node. Only useful when there are several
-      # nodes or when dns_discover option is true
+      # Max attempts before giving up to find a suitable cluster member. Only useful when there are
+      # several nodes or when dns_discover option is true
       option(:max_discover_attempts) { 10 }
       # Interval between discover attempts
       option(:discover_interval) { 100 } # milliseconds
-      # One value for both - connection and request timeouts
+      # Response timeout
       option(:timeout) # milliseconds
-      # During the discovery - set which state will be taken in prio during nodes look up
+      # During the discovery - set which state will be taken in prio during cluster members look up
       option(:node_preference) { NODE_PREFERENCES.first }
       # A list of nodes to discover. It is represented as an array of
       # EventStoreClient::Connection::Url::Node instances
