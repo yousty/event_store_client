@@ -9,6 +9,7 @@ module EventStoreClient
         # @param stub_class GRPC request stub class. E.g. EventStore::Client::Gossip::Gossip::Stub
         # @return instance of the given stub_class class
         def call(stub_class)
+          config.logger&.debug("Using secure connection with credentials #{username}:#{password}.")
           stub_class.new(
             "#{host}:#{port}",
             channel_credentials,
@@ -23,8 +24,10 @@ module EventStoreClient
         def channel_credentials
           certificate =
             if config.eventstore_url.tls_ca_file
+              config.logger&.debug("Picking certificate from tlsCAFile option.")
               File.read(config.eventstore_url.tls_ca_file)
             else
+              config.logger&.debug("Resolving certificate from current member.")
               get_cert.to_s
             end
 
@@ -50,7 +53,10 @@ module EventStoreClient
             attempts = config.eventstore_url.ca_lookup_attempts
             sleep config.eventstore_url.ca_lookup_interval / 1000.0
             retries += 1
-            retry if retries <= attempts
+            if retries <= attempts
+              config.logger&.debug("Failed to lookup certificate. Reason: #{e.class}. Retying.")
+              retry
+            end
             raise(
               CertificateLookupError,
               "Failed to get X.509 certificate after #{attempts} attempts."

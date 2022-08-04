@@ -6,6 +6,7 @@ class TestHelper
       EventStoreClient.configure do |config|
         config.eventstore_url =
           ENV.fetch('EVENTSTORE_URL') { 'esdb://localhost:2115/?tls=false&timeout=1000' }
+        config.logger = ENV['DEBUG'] ? Logger.new(STDOUT) : DummyLogger
       end
     end
 

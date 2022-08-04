@@ -29,6 +29,9 @@ module EventStoreClient
           attempts = config.eventstore_url.max_discover_attempts
           attempts.times do
             nodes.each do |node|
+              config.logger&.debug(
+                "Starting to discover #{node.host}:#{node.port} node for candidates."
+              )
               members = node_members(node)
               next unless members
 
@@ -36,7 +39,13 @@ module EventStoreClient
               members.select! { |member| ALLOWED_NODE_STATES.include?(member.state) }
               members.sort! { |member| ordered_states.index(member.state) }
               suitable_member = members.first
-              return suitable_member if suitable_member
+              if suitable_member
+                config.logger&.debug(
+                  "Found suitable member: #{suitable_member.host}:#{suitable_member.port} with"\
+                  " role \"#{suitable_member.state}\"."
+                )
+                return suitable_member
+              end
             end
 
             sleep(config.eventstore_url.discover_interval / 1000.0)
@@ -83,7 +92,9 @@ module EventStoreClient
               instance_id: Utils.uuid_to_str(member.instance_id)
             )
           end
-        rescue ::GRPC::BadStatus, Errno::ECONNREFUSED => e
+        rescue ::GRPC::BadStatus, Errno::ECONNREFUSED
+          config.logger&.debug("Failed to get cluster list from #{node.host}:#{node.port} node.")
+          nil
         end
       end
     end

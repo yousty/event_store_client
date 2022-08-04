@@ -4,6 +4,8 @@ module EventStoreClient
   module GRPC
     module Cluster
       class QuerylessDiscover
+        include Configuration
+
         NoHostError = Class.new(StandardError)
 
         # @param nodes [EventStoreClient::Connection::Url::Node]
@@ -11,7 +13,11 @@ module EventStoreClient
         def call(nodes)
           raise NoHostError, 'No host is setup' if nodes.empty?
 
-          Member.new(host: nodes.first.host, port: nodes.first.port)
+          Member.new(host: nodes.first.host, port: nodes.first.port).tap do |member|
+            config.logger&.debug(
+              "Picking #{member.host}:#{member.port} member without cluster discovery."
+            )
+          end
         end
       end
     end

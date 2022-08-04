@@ -139,7 +139,6 @@ module EventStoreClient
           uri.password,
           URI.decode_www_form(uri.query.to_s).to_h
         )
-      rescue URI::Error
       end
     end
   end

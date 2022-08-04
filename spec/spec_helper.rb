@@ -74,7 +74,6 @@ RSpec.configure do |config|
     EventStoreClient.instance_variable_set(:@config, nil)
     EventStoreClient::GRPC::Discover.instance_variable_set(:@current_member, nil)
     EventStoreClient::GRPC::Discover.instance_variable_set(:@exception, nil)
-    #EventStoreClient::GRPC::CommandRegistrar.instance_variable_set(:@commands, {})
     DummyRepository.reset
   end
 

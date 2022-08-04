@@ -12,6 +12,15 @@ module EventStoreClient
       @config ||= Class.new do
         extend Dry::Configurable
 
+        # @param logger [Logger, nil]
+        # @return [Logger, nil]
+        def self.assign_grpc_logger(logger)
+          ::GRPC.define_singleton_method :logger do
+            @logger ||= logger.nil? ? ::GRPC::DefaultLogger::NoopLogger.new : logger
+          end
+          logger
+        end
+
         setting :eventstore_url,
                 default: 'esdb://localhost:2115',
                 constructor:
@@ -24,7 +33,7 @@ module EventStoreClient
 
         setting :default_event_class, default: DeserializedEvent
 
-        setting :logger
+        setting :logger, constructor: method(:assign_grpc_logger).to_proc
 
         setting :skip_deserialization, default: false
         setting :skip_decryption, default: false

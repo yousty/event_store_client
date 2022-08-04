@@ -70,7 +70,10 @@ module EventStoreClient
           rescue ::GRPC::Unavailable => e
             sleep config.eventstore_url.grpc_retry_interval / 1000.0
             retries += 1
-            retry if retries <= config.eventstore_url.grpc_retry_attempts
+            if retries <= config.eventstore_url.grpc_retry_attempts
+              config.logger&.debug("Request failed. Reason: #{e.class}. Retying.")
+              retry
+            end
             raise
           end
         end
