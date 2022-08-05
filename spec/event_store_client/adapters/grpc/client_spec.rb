@@ -53,6 +53,66 @@ RSpec.describe EventStoreClient::GRPC::Client do
     end
   end
 
+  describe '#read' do
+    subject { instance.read(stream_name) }
+
+    let(:stream_name) { "some-stream$#{SecureRandom.uuid}" }
+    let(:event) do
+      EventStoreClient::DeserializedEvent.new(
+        id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
+      )
+    end
+
+    before do
+      EventStoreClient.client.append_to_stream(stream_name, event)
+    end
+
+    it 'returns events' do
+      expect(subject.success).to all be_a EventStoreClient::DeserializedEvent
+    end
+    it { is_expected.to be_a(Dry::Monads::Success) }
+  end
+
+  describe '#read_paginated' do
+    subject { instance.read_paginated('$all') }
+
+    let(:stream_name) { "some-stream$#{SecureRandom.uuid}" }
+    let(:event) do
+      EventStoreClient::DeserializedEvent.new(
+        id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
+      )
+    end
+
+    before do
+      EventStoreClient.client.append_to_stream(stream_name, event)
+    end
+
+    it { is_expected.to be_a(Enumerator) }
+    it 'returns events on #next' do
+      expect(subject.next.success).to all be_a EventStoreClient::DeserializedEvent
+    end
+  end
+
+  describe '#hard_delete_stream' do
+    subject { instance.hard_delete_stream(stream_name) }
+
+    let(:stream_name) { "some-stream$#{SecureRandom.uuid}" }
+    let(:event) do
+      EventStoreClient::DeserializedEvent.new(
+        id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
+      )
+    end
+
+    before do
+      EventStoreClient.client.append_to_stream(stream_name, event)
+    end
+
+    it { is_expected.to be_a(Dry::Monads::Success) }
+    it 'returns delete response' do
+      expect(subject.success).to be_a(EventStore::Client::Streams::DeleteResp)
+    end
+  end
+
   describe '#clusted_info' do
     subject { instance.cluster_info }
 
