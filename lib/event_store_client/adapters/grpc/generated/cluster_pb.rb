@@ -140,6 +140,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :leader_id, :bytes, 6
       optional :subscription_id, :bytes, 7
       optional :is_promotable, :bool, 8
+      optional :version, :int32, 9
     end
     add_message "event_store.cluster.ReplicaSubscriptionRetry" do
       optional :leader_id, :bytes, 1
@@ -153,6 +154,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "event_store.cluster.ReplicaLogPositionAck" do
       optional :subscription_id, :bytes, 1
       optional :replication_log_position, :int64, 2
+      optional :writer_log_position, :int64, 3
     end
     add_message "event_store.cluster.CreateChunk" do
       optional :leader_id, :bytes, 1
