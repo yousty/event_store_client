@@ -46,7 +46,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Subscribe do
       subject
       sleep 0.5
       expect {
-        EventStoreClient.client.append_to_stream(stream_name, event); sleep 0.5
+        EventStoreClient.client.append_to_stream(stream_name, event)
+        sleep 0.5
       }.to change { responses.size }.by(1)
     end
 
@@ -83,7 +84,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Subscribe do
         subject
         sleep 0.5
         expect {
-          EventStoreClient.client.append_to_stream(event_stream_name, event); sleep 0.5
+          EventStoreClient.client.append_to_stream(event_stream_name, event)
+          sleep 0.5
         }.to change { responses.size }.by(1)
       end
 
@@ -107,7 +109,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Subscribe do
         it 'contains the event, sent by us' do
           subject
           sleep 0.5
-          meaningful_events = responses.map(&:success).select {|r| r.event&.event }
+          meaningful_events = responses.map(&:success).select { |r| r.event&.event }
           expect(meaningful_events.last.event.event.id.string).to eq(event.id)
         end
       end

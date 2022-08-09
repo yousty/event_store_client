@@ -111,7 +111,7 @@ checkpoint = :start
 handler = proc do |result|
   if result.success?
     event = result.success
-    handle_event(result.success)
+    handle_event(event)
     checkpoint = event.stream_revision    
   else
     # do something in case of error
@@ -128,7 +128,7 @@ checkpoint = :start
 handler = proc do |result|
   if result.success?
     event = result.success
-    handle_event(result.success)
+    handle_event(event)
     checkpoint = { prepare_position: event.prepare_position, commit_position: event.commit_position }
   else
     # do something in case of error
@@ -136,6 +136,36 @@ handler = proc do |result|
 end
 
 EventStoreClient.client.subscribe_to_all(handler: handler, options: { from_position: checkpoint })
+```
+
+### Checkpoints and other responses
+
+By default `event_store_client` will skip such EventStore DB responses as checkpoints, confirmations, etc. If you would like to handle them in the subscription handler, you can provide `skip_deserialization` keyword argument, and then handle deserialization by yourself:
+
+```ruby
+checkpoint = :start
+handler = proc do |result|
+  if result.success?
+    response = result.success
+    if response.checkpoint
+      handle_checkpoint(response.checkpoint)
+    else
+      result = EventStoreClient::GRPC::Shared::Streams::ProcessResponse.new.call(
+        response,
+        false,
+        false
+      )
+      if result&.success?
+        event = result.success
+        handle_event(event)
+      end
+    end
+  else
+    # do something in case of error
+  end
+end
+
+EventStoreClient.client.subscribe_to_all(handler: handler, options: { from_position: checkpoint }, skip_deserialization: true)
 ```
 
 ## User credentials
