@@ -2,7 +2,7 @@
 
 ## Append your first event
 
-The simplest way to append an event to EventStoreDB is to create an `EventStoreClient::DeserializedEvent` object and call `#append_to_stream` method.
+The simplest way to append an event to EventStoreDB is to create an `EventStoreClient::DeserializedEvent` object and call the `#append_to_stream` method.
 
 ```ruby
 class SomethingHappened < EventStoreClient::DeserializedEvent
@@ -13,16 +13,16 @@ event = SomethingHappened.new(
 )
 
 result = EventStoreClient.client.append_to_stream('some-stream', event)
-# Event were appended successfully
+# if event was appended successfully
 if result.success?
   # result.success => <EventStore::Client::Streams::AppendResp>
-else # event was not appended, result.failure? => true    
+else # event was not appended, result.failure? => true
 end
 ```
 
 ## Appending multiple events
 
-You can pass array of events to the `#append_to_stream` method. This way events will be appended one-by-one. On each iteration `revision` will be incremented by 1. In case if any of requests fails - all further append requests will be cancelled.
+You can pass an array of events to the `#append_to_stream` method. This way events will be appended one-by-one. On each iteration `revision` will be incremented by 1. In case if any of requests fails - all further append requests will be canceled.
 
 ```ruby
 class SomethingHappened < EventStoreClient::DeserializedEvent
@@ -37,10 +37,10 @@ event2 = SomethingHappened.new(
 
 results = EventStoreClient.client.append_to_stream('some-stream', [event1, event2])
 results.each do |result|
-  # Event were appended successfully
+  # Event was appended successfully
   if result.success?
     # result.success => <EventStore::Client::Streams::AppendResp>
-  else # event was not appended, result.failure? => true    
+  else # event was not appended, result.failure? => true
   end
 end
 
@@ -50,15 +50,15 @@ end
 
 When appending events to EventStoreDB they must first all be wrapped in an `EventStoreClient::DeserializedEvent` object. This allows you to specify the content of the event and the type of event.
 
-A sample of creating of event:
+A sample of creating an event:
 
 ```ruby
 EventStoreClient::DeserializedEvent.new(
-  # Id of event. Optional. If omitted - its value will be generated using `SecureRandom.uuid`
+  # ID of event. Optional. If omitted, its value is generated using `SecureRandom.uuid`
   id: SecureRandom.uuid,
-  # Event name. Optional. If omitted - its value will be generated using `self.class.to_s`
-  type: 'some-event-name', 
-  # Event data. Optional. Will default to `{}`(empty hash) if omitted
+  # Event name. Optional. If omitted, its value will be generated using `self.class.to_s`
+  type: 'some-event-name',
+  # Event data. Optional. Will default to `{}` (empty hash) if omitted
   data: { foo: :bar },
   # Optional. Defaults to `{ 'type' => event_name_you_provided, 'content-type' => 'application/json' }`
   metadata: {}

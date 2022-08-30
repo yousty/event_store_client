@@ -37,12 +37,12 @@ Before you start, make sure you are connecting to a running EventStoreDB instanc
 See documentation chapters for the usage reference:
 
 - [Configuration](docs/configuration.md)
-- [Encrypting events](docs/encrypting_events.md)
 - [Appending events](docs/appending_events.md)
 - [Reading events](docs/reading_events.md)
-- [Linking events](docs/linking_events.md)
 - [Catch-up subscriptions](docs/catch_up_subscriptions.md)
+- [Linking events](docs/linking_events.md)
 - [Deleting streams](docs/deleting_streams.md)
+- [Encrypting events](docs/encrypting_events.md)
 
 ## Contributing
 
@@ -54,7 +54,7 @@ Do you want to contribute? Welcome!
 
 ### Re-generating GRPC files from Proto
 
-If you need to re-generate GRPC files from [Proto](https://github.com/EventStore/EventStore/tree/master/src/Protos/Grpc) files - there is a tool to do it. Just run next command:
+If you need to re-generate GRPC files from [Proto](https://github.com/EventStore/EventStore/tree/master/src/Protos/Grpc) files - there is a tool to do it. Just run this command:
 
 ```shell
 bin/rebuild_protos
@@ -62,15 +62,15 @@ bin/rebuild_protos
 
 ### Running tests and development console
 
-You will have to install Docker first. It is needed to run EventStore DB. You can run EventStore DB with next command:
+You will have to install Docker first. It is needed to run EventStore DB. You can run EventStore DB with this command:
 
 ```shell
 docker-compose -f docker-compose-cluster.yml up
 ```
 
-Now you can enter dev console by running `bin/console` or run tests by running `rspec` command.
+Now you can enter the dev console by running `bin/console` or run tests by running `rspec` command.
 
-### Publishing new version
+### Publishing a new version
 
 1. Push commit with updated `version.rb` file to the `release` branch. The new version will be automatically pushed to [rubygems](https://rubygems.org).
 2. Create release on github including change log.

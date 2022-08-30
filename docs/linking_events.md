@@ -2,7 +2,7 @@
 
 ## Linking single event
 
-To create a link on an existing event, you need to have a stream name where you want to link that event, and you need to have an event, fetched from the database:
+To create a link on an existing event, you need to have a stream name where you want to link that event to and you need to have an event, fetched from the database:
 
 ```ruby
 class SomethingHappened < EventStoreClient::DeserializedEvent
@@ -20,17 +20,17 @@ event = EventStoreClient.client.read(stream_name_1).success.first
 # Link event from first stream into second stream
 result = EventStoreClient.client.link_to(stream_name_2, event)
 if result.success? # Event was successfully linked
-else # event was not linked, result.failure? => true    
+else # event was not linked, result.failure? => true
 end
 ```
 
-Linked event can later be fetched by providing `:resolve_link_tos` option when reading from stream:
+The linked event can later be fetched by providing the `:resolve_link_tos` option when reading from the stream:
 
 ```ruby
 EventStoreClient.client.read('some-stream-2', options: { resolve_link_tos: true }).success
 ```
 
-If you don't provide `:resolve_link_tos` option - instead original event "linked" event will be returned.
+If you don't provide the `:resolve_link_tos` option, the "linked" event will be returned instead of the original one.
 
 ## Linking multiple events
 
@@ -40,7 +40,7 @@ You can provide an array of events to link to the target stream:
 class SomethingHappened < EventStoreClient::DeserializedEvent
 end
 
-events = 
+events =
   3.times.map do
     SomethingHappened.new(
       id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
@@ -58,14 +58,14 @@ events = EventStoreClient.client.read(stream_name_1).success
 results = EventStoreClient.client.link_to(stream_name_2, events)
 results.each do |result|
   if result.success? # Event was successfully linked
-  else # event was not linked, result.failure? => true    
+  else # event was not linked, result.failure? => true
   end
 end
 ```
 
 ## Handling concurrency
 
-When linking events to a stream you can supply a stream state or stream revision. Your client can use this to tell EventStoreDB what state or version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be thrown.
+When linking events to a stream you can supply a stream state or stream revision. Your client can use this to tell EventStoreDB what state or version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be raised.
 
 For example if we try and link two records expecting both times that the stream doesn't exist we will get an exception on the second:
 
@@ -139,5 +139,11 @@ event = SomethingHappened.new(
   id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
 )
 
-EventStoreClient.client.append_to_stream('some-stream', event, credentials: { username: 'admin', password: 'changeit' })
+stream_name_1 = 'some-stream-1'
+stream_name_2 = 'some-stream-2'
+EventStoreClient.client.append_to_stream(stream_name_1, event)
+# Get persisted event
+event = EventStoreClient.client.read(stream_name_1).success.first
+# Link event from first stream into second stream
+result = EventStoreClient.client.link_to(stream_name_2, event, credentials: { username: 'admin', password: 'changeit' })
 ```

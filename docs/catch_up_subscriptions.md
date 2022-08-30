@@ -8,14 +8,14 @@ If events already exist, the handler will be called for each event one by one un
 
 ## Subscribing from the start
 
-When you need to process all the events in the store, including historical events, you'd need to subscribe from the beginning. You can either subscribe to receive events from a single stream, or subscribe to `$all` if you need to process all events in the database.
+When you need to process all the events in the store, including historical events, you need to subscribe from the beginning. You can either subscribe to receive events from a single stream, or subscribe to `$all` if you need to process all events in the database.
 
 ### Subscribing to a stream
 
-The simplest stream subscription looks like the following:
+The most simple stream subscription looks like the following:
 
 ```ruby
-handler = proc do |result| 
+handler = proc do |result|
   if result.success?
     event = result.success # retrieve a result
     # ... do something with event
@@ -33,7 +33,7 @@ The provided handler will be called for every event in the stream.
 Subscribing to `$all` is much the same as subscribing to a single stream. The handler will be called for every event appended after the starting position.
 
 ```ruby
-handler = proc do |result| 
+handler = proc do |result|
   if result.success?
     event = result.success # retrieve a result
     # ... do something with event
@@ -54,7 +54,7 @@ Once caught up, the sever will push any new events received on the streams to th
 
 ### Subscribing to a stream
 
-To subscribe to a stream from a specific position, you need to provide a _stream position_. This can be `:start`, `:end` or integer position.
+To subscribe to a stream from a specific position, you need to provide a _stream position_. This can be `:start`, `:end` or an integer position.
 
 The following subscribes to the stream `some-stream` at position `20`, this means that events `21` and onward will be handled:
 
@@ -64,15 +64,15 @@ EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |res|
 
 ### Subscribing to $all
 
-Subscribing to the `$all` stream is much like subscribing to a regular stream. The only difference is how you need to specify the stream position. For the `$all` stream, you have to provide `:from_position` hash instead, which consists of two integers - `:commit_position` and `:prepare_position` positions. The `:from_position` value can accept `:start` and `:end` values as well.
+Subscribing to the `$all` stream is much like subscribing to a regular stream. The only difference is how you need to specify the stream position. For the `$all` stream, you have to provide the `:from_position` hash, which consists of two integers, `:commit_position` and `:prepare_position`. The `:from_position` value can accept `:start` and `:end` values as well.
 
-The corresponding `$all` subscription will subscribe from the event after the one at commit position `1056` and prepare position `1056`.
-
-Please note that this position will need to be a legitimate position in `$all`.
+The following `$all` subscription will subscribe from the event after the one at commit position `1056` and prepare position `1056`:
 
 ```ruby
 EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { from_position: { commit_position: 1056, prepare_position: 1056 } })
 ```
+
+Please note that the given position needs to be a legitimate position in the `$all` stream.
 
 ## Subscribing to a stream for live updates
 
@@ -112,7 +112,7 @@ handler = proc do |result|
   if result.success?
     event = result.success
     handle_event(event)
-    checkpoint = event.stream_revision    
+    checkpoint = event.stream_revision
   else
     # do something in case of error
   end
@@ -140,7 +140,7 @@ EventStoreClient.client.subscribe_to_all(handler: handler, options: { from_posit
 
 ### Checkpoints and other responses
 
-By default `event_store_client` will skip such EventStore DB responses as checkpoints, confirmations, etc. If you would like to handle them in the subscription handler, you can provide `skip_deserialization` keyword argument, and then handle deserialization by yourself:
+By default `event_store_client` will skip such EventStore DB responses as checkpoints, confirmations, etc. If you would like to handle them in the subscription handler, you can provide the`skip_deserialization` keyword argument, and then handle deserialization by yourself:
 
 ```ruby
 checkpoint = :start

@@ -67,7 +67,7 @@ event = EncryptedEvent.new(
 )
 ```
 
-When you'll publish this event, in the store will be saved:
+When you publish this event, the eventstore will store this payload:
 
 ```ruby
 {
