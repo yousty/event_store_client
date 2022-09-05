@@ -26,7 +26,21 @@ end
 EventStoreClient.client.subscribe_to_stream('some-stream', handler: handler)
 ```
 
-The provided handler will be called for every event in the stream.
+The provided handler will be called for every event in the stream. You may provide **any** object that responds to `#call`:
+
+```ruby
+class SomeStreamHandler
+  def call(result)
+    if result.success?
+      event = result.success # retrieve a result
+      # ... do something with event
+    else # result.failure?
+      puts result.failure # prints error
+    end
+  end
+end
+EventStoreClient.client.subscribe_to_stream('some-stream', handler: SomeStreamHandler.new)
+```
 
 ### Subscribing to $all
 
