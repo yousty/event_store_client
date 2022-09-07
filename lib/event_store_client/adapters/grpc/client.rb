@@ -14,7 +14,7 @@ module EventStoreClient
       # @param credentials [Hash]
       # @option credentials [String] :username override authentication username
       # @option credentials [String] :password override authentication password
-      # @yield [<EventStore::Client::Streams::AppendReq, EventStore::Client::Streams::AppendReq>]
+      # @yield [EventStore::Client::Streams::AppendReq, EventStore::Client::Streams::AppendReq]
       #   yields options and proposed message option right before sending the request. You can
       #   extend it with your own options, not covered in the default implementation.
       #   Example:
