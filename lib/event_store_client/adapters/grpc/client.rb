@@ -14,12 +14,7 @@ module EventStoreClient
       # @param credentials [Hash]
       # @option credentials [String] :username override authentication username
       # @option credentials [String] :password override authentication password
-      # @yield [
-      #          <
-      #            EventStore::Client::Streams::AppendReq,
-      #            EventStore::Client::Streams::AppendReq
-      #           >
-      #        ]
+      # @yield [<EventStore::Client::Streams::AppendReq, EventStore::Client::Streams::AppendReq>]
       #   yields options and proposed message option right before sending the request. You can
       #   extend it with your own options, not covered in the default implementation.
       #   Example:
@@ -29,8 +24,7 @@ module EventStoreClient
       #       puts proposed_msg_opts.proposed_message
       #     end
       #   ```
-      # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure,
-      #           Array<Dry::Monads::Result::Success, Dry::Monads::Result::Failure>]
+      # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure, Array<Dry::Monads::Result::Success, Dry::Monads::Result::Failure>]
       #   Returns monads' Success/Failure in case whether request was performed.
       def append_to_stream(stream_name, events_or_event, options: {}, credentials: {}, &blk)
         if events_or_event.is_a?(Array)
