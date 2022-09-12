@@ -55,6 +55,7 @@ module EventStoreClient
         end
 
         def inherited(klass)
+          super
           klass.options = Set.new(options).freeze
         end
       end

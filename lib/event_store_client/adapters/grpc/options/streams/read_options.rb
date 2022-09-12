@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/AbcSize
+
 require 'event_store_client/adapters/grpc/generated/shared_pb'
 
 module EventStoreClient
@@ -61,7 +63,9 @@ module EventStoreClient
             # key, then #id will be an instance of EventStore::Client::UUID::Structured class.
             # Note: for some reason if you don't provide this option - the request hangs forever
             # Examples:
-            #   <EventStore::Client::UUID::Structured: most_significant_bits: 1266766466329758182, least_significant_bits: -8366670759139390653>
+            #   <EventStore::Client::UUID::Structured:
+            #     most_significant_bits: 1266766466329758182,
+            #     least_significant_bits: -8366670759139390653>
             #   <EventStore::Client::UUID: string: "f0e1771c-334b-4b8d-ad88-c2024ccbe141">
             request_options[:uuid_option] = { string: EventStore::Client::Empty.new }
             request_options
@@ -71,3 +75,4 @@ module EventStoreClient
     end
   end
 end
+# rubocop:enable Metrics/AbcSize

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Layout/LineLength, Metrics/ParameterLists
+
 module EventStoreClient
   module GRPC
     class Client
@@ -270,3 +272,4 @@ module EventStoreClient
     end
   end
 end
+# rubocop:enable Layout/LineLength, Metrics/ParameterLists

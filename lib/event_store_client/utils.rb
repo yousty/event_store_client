@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/AbcSize
+
 module EventStoreClient
   class Utils
     class << self
@@ -25,3 +27,4 @@ module EventStoreClient
     end
   end
 end
+# rubocop:enable Metrics/AbcSize

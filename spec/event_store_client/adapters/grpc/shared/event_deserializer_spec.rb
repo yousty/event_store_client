@@ -8,7 +8,7 @@ RSpec.describe EventStoreClient::GRPC::Shared::EventDeserializer do
   it { is_expected.to be_a(EventStoreClient::Configuration) }
 
   describe '#call' do
-    subject { instance.call(raw_event, skip_decryption) }
+    subject { instance.call(raw_event, skip_decryption: skip_decryption) }
 
     let(:raw_event) do
       EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent.new(

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+
 require 'event_store_client/adapters/grpc/generated/shared_pb'
 require 'event_store_client/adapters/grpc/generated/gossip_pb'
 require 'event_store_client/adapters/grpc/generated/gossip_services_pb'
@@ -103,8 +105,6 @@ module EventStoreClient
           end
         end
 
-        # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-
         # Searches a suitable member among members of the given node
         # @param node [EventStoreClient::Connection::Url::Node]
         # @return [EventStoreClient::GRPC::Cluster::Member, nil]
@@ -124,8 +124,8 @@ module EventStoreClient
           )
           suitable_member
         end
-        # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
       end
     end
   end
 end
+# rubocop:enable Metrics/AbcSize, Metrics/MethodLength

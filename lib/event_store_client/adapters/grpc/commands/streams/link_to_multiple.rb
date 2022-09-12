@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Naming/PredicateName
+
 module EventStoreClient
   module GRPC
     module Commands
@@ -39,3 +41,4 @@ module EventStoreClient
     end
   end
 end
+# rubocop:enable Naming/PredicateName

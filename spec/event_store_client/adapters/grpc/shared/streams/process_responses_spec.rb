@@ -81,7 +81,9 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
 
           it 'takes it into account' do
             subject
-            expect(deserializer).to have_received(:call).with(recorded_event, skip_decryption)
+            expect(deserializer).to(
+              have_received(:call).with(recorded_event, skip_decryption: skip_decryption)
+            )
           end
         end
       end

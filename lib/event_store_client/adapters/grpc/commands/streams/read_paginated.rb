@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable all
+
 module EventStoreClient
   module GRPC
     module Commands
@@ -7,8 +9,6 @@ module EventStoreClient
         class ReadPaginated < Command
           RecordsLimitError = Class.new(StandardError)
           DEFAULT_READ_DIRECTION = :Forwards
-
-          # rubocop:disable all
 
           # @api private
           # @see {EventStoreClient::GRPC::Client#read_paginated}
@@ -166,9 +166,9 @@ module EventStoreClient
               "Current value is `#{max_count}'."
             )
           end
-          # rubocop:enable all
         end
       end
     end
   end
 end
+# rubocop:enable all

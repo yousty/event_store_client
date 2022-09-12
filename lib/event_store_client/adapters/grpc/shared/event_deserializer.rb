@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/AbcSize
+
 module EventStoreClient
   module GRPC
     module Shared
@@ -12,7 +14,7 @@ module EventStoreClient
         # ]
         # @param skip_decryption [Boolean]
         # @return [EventStoreClient::DeserializedEvent]
-        def call(raw_event, skip_decryption = false)
+        def call(raw_event, skip_decryption: false)
           data = normalize_serialized(raw_event.data)
           custom_metadata = normalize_serialized(raw_event.custom_metadata)
 
@@ -47,3 +49,4 @@ module EventStoreClient
     end
   end
 end
+# rubocop:enable Metrics/AbcSize

@@ -18,6 +18,5 @@ require 'event_store_client/connection/url_parser'
 require 'event_store_client/event'
 require 'event_store_client/deserialized_event'
 require 'event_store_client/configuration'
-require 'event_store_client/deserialized_event'
 
 require 'event_store_client/adapters/grpc'

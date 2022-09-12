@@ -22,7 +22,7 @@ module EventStoreClient
                 # example. Such responses should be skipped. See generated files for more info.
                 next unless read_resp.event&.event
 
-                EventDeserializer.new.call(read_resp.event.event, skip_decryption)
+                EventDeserializer.new.call(read_resp.event.event, skip_decryption: skip_decryption)
               end
             Success(events.compact)
           end

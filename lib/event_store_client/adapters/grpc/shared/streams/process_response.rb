@@ -17,7 +17,9 @@ module EventStoreClient
             return Success(response) if skip_deserialization
             return unless response.event&.event
 
-            Success(EventDeserializer.new.call(response.event.event, skip_decryption))
+            Success(
+              EventDeserializer.new.call(response.event.event, skip_decryption: skip_decryption)
+            )
           end
         end
       end

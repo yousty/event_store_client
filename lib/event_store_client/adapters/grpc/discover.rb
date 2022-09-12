@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/CyclomaticComplexity
+
 module EventStoreClient
   module GRPC
     class Discover
@@ -70,3 +72,4 @@ module EventStoreClient
     end
   end
 end
+# rubocop:enable Metrics/CyclomaticComplexity
