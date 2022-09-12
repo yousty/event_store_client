@@ -43,10 +43,8 @@ module EventStoreClient
           def request_options
             request_options = {}
             case options
-            in { stream_identifier: { regex: String } } | { stream_identifier: { prefix: Array } }
-              request_options[:filter] = options
-              add_window_options(request_options)
-            in { event_type: { regex: String } } | { event_type: { prefix: Array } }
+            in { stream_identifier: { regex: String } } | { stream_identifier: { prefix: Array } } |
+              { event_type: { regex: String } } | { event_type: { prefix: Array } }
               request_options[:filter] = options
               add_window_options(request_options)
             else

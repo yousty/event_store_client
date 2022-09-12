@@ -49,7 +49,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::LinkTo do
       it 'has proper metadata', timecop: true do
         expect(subject.metadata).to(
           include(
-            'type' => '$>', 'created_at' => Time.now.to_s, 'content-type' => 'application/json'
+            'type' => '$>', 'created_at' => Time.now.utc.to_s, 'content-type' => 'application/json'
           )
         )
       end

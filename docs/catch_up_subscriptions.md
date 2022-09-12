@@ -238,7 +238,7 @@ If you only want to subscribe to a stream with a given name there are two option
 
 #### Filtering by prefix
 
-This will only subscribe to all streams with a name that begin with `user-`:
+This will only subscribe to all streams with a name that begins with `user-`:
 
 ```ruby
 EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { prefix: ['user-'] } } })

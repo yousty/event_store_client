@@ -20,7 +20,7 @@ RSpec.describe EventStoreClient::GRPC::Cluster::QuerylessDiscover do
 
     context 'when nodes are absent' do
       it 'raises error' do
-        expect { subject }.to raise_error(described_class::NoHostError, 'No host is setup')
+        expect { subject }.to raise_error(described_class::NoHostError, 'No host setup')
       end
     end
 

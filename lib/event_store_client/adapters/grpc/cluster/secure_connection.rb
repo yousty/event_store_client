@@ -24,31 +24,25 @@ module EventStoreClient
         def channel_credentials
           certificate =
             if config.eventstore_url.tls_ca_file
-              config.logger&.debug("Picking certificate from tlsCAFile option.")
+              config.logger&.debug('Picking certificate from tlsCAFile option.')
               File.read(config.eventstore_url.tls_ca_file)
             else
-              config.logger&.debug("Resolving certificate from current member.")
-              get_cert.to_s
+              config.logger&.debug('Resolving certificate from current member.')
+              cert.to_s
             end
 
           ::GRPC::Core::ChannelCredentials.new(certificate)
         end
 
-        def get_cert
+        # rubocop:disable Metrics/AbcSize
+
+        # @return [String, nil] returns the X.509 certificates the server presented
+        # @raise [EventStoreClient::GRPC::Cluster::SecureConnection::CertificateLookupError]
+        def cert
           retries = 0
-          verify_mode =
-            if config.eventstore_url.tls_verify_cert
-              OpenSSL::SSL::VERIFY_PEER
-            else
-              OpenSSL::SSL::VERIFY_NONE
-            end
+
           begin
-            Net::HTTP.start(
-              host, port,
-              use_ssl: true,
-              verify_mode: verify_mode,
-              &:peer_cert
-            )
+            Net::HTTP.start(host, port, use_ssl: true, verify_mode: verify_mode, &:peer_cert)
           rescue SocketError => e
             attempts = config.eventstore_url.ca_lookup_attempts
             sleep config.eventstore_url.ca_lookup_interval / 1000.0
@@ -62,6 +56,14 @@ module EventStoreClient
               "Failed to get X.509 certificate after #{attempts} attempts."
             )
           end
+        end
+        # rubocop:enable Metrics/AbcSize
+
+        # @return [Integer] SSL verify mode
+        def verify_mode
+          return OpenSSL::SSL::VERIFY_PEER if config.eventstore_url.tls_verify_cert
+
+          OpenSSL::SSL::VERIFY_NONE
         end
       end
     end

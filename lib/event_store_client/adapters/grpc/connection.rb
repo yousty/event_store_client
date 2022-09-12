@@ -19,6 +19,22 @@ module EventStoreClient
       class << self
         include Configuration
 
+        # Resolve which connection class we instantiate, based on config.eventstore_url.tls config
+        # option. If :new method is called from SecureConnection or InsecureConnection class - then
+        # that particular class will be instantiated despite on config.eventstore_url.tls config
+        # option. Example:
+        #   ```ruby
+        #   config.eventstore_url.tls = true
+        #   Connection.new # => #<EventStoreClient::GRPC::Cluster::SecureConnection>
+        #
+        #   config.eventstore_url.tls = false
+        #   Connection.new # => #<EventStoreClient::GRPC::Cluster::InsecureConnection>
+        #
+        #   Cluster::SecureConnection.new
+        #   # => #<EventStoreClient::GRPC::Cluster::SecureConnection>
+        #   Cluster::InsecureConnection.new
+        #   # => #<EventStoreClient::GRPC::Cluster::InsecureConnection>
+        #   ```
         def new(*args, **kwargs, &blk)
           return super unless self == Connection
 

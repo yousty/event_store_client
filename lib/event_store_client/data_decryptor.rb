@@ -50,7 +50,6 @@ module EventStoreClient
 
     def find_key(identifier)
       key_repository.find(identifier).value!
-    rescue StandardError
     end
   end
 end

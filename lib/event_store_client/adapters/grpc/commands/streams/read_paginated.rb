@@ -6,12 +6,20 @@ module EventStoreClient
       module Streams
         class ReadPaginated < Command
           RecordsLimitError = Class.new(StandardError)
+          DEFAULT_READ_DIRECTION = :Forwards
+
+          # rubocop:disable all
 
           # @api private
           # @see {EventStoreClient::GRPC::Client#read_paginated}
           def call(stream_name, options:, skip_deserialization:, skip_decryption:, &blk)
+            # TODO: Improve the implementation by extracting the pagination into a separate class to
+            # allow persisting the pagination options(position, direction, max_count) among the
+            # whole instance. This approach will allow us to get rid of passing paginate options
+            # into private methods explicitly.
             position, direction, max_count = nil
-            Enumerator.new do |y|
+            first_call = true
+            Enumerator.new do |yielder|
               loop do
                 response =
                   Read.new(**connection_options).call(
@@ -20,33 +28,33 @@ module EventStoreClient
                     skip_deserialization: true,
                     skip_decryption: true
                   ) do |opts|
-                    yield opts if block_given?
-                    position ||= get_position(opts)
-                    direction ||= get_direction(opts)
-                    max_count ||= opts.count.to_i
+                    if first_call
+                      # Evaluate user-provided block only once
+                      yield opts if blk
+                      position = get_position(opts)
+                      direction = get_direction(opts)
+                      max_count = opts.count.to_i
+                      validate_max_count(max_count)
+                      first_call = false
+                    end
 
-                    raise(
-                      RecordsLimitError,
-                      "Pagination requires :max_count option to be greater than or equal to 2. Current value is `#{max_count}'."
-                    ) if max_count < 2
                     paginate_options(opts, position)
                   end
-                if response.success?
-                  processed_response =
-                    EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new.call(
-                      response.success,
-                      skip_deserialization,
-                      skip_decryption
-                    )
-                  y << processed_response if processed_response.success.any?
-                  raise StopIteration if end_reached?(response.success, max_count)
-
-                  position = calc_next_position(response.success, direction, stream_name)
-                  raise StopIteration if position.negative?
-                else
-                  y << response
+                unless response.success?
+                  yielder << response
                   raise StopIteration
                 end
+                processed_response =
+                  EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new.call(
+                    response.success,
+                    skip_deserialization,
+                    skip_decryption
+                  )
+                yielder << processed_response if processed_response.success.any?
+                raise StopIteration if end_reached?(response.success, max_count)
+
+                position = calc_next_position(response.success, direction, stream_name)
+                raise StopIteration if position.negative?
               end
             end
           end
@@ -86,7 +94,7 @@ module EventStoreClient
           def get_direction(options)
             return options.read_direction if options.read_direction
 
-            :Forwards
+            DEFAULT_READ_DIRECTION
           end
 
           # @param options [EventStore::Client::Streams::ReadReq::Options]
@@ -111,15 +119,27 @@ module EventStoreClient
           def calc_next_position(raw_events, direction, stream_name)
             events = meaningful_events(raw_events).map { |e| e.event.event }
 
-            if stream_name == '$all'
-              return events.last.commit_position if direction == :Forwards
+            return next_position_for_all(events, direction) if stream_name == '$all'
 
-              events.first.commit_position
-            else
-              return events.last.stream_revision + 1 if direction == :Forwards
+            next_position_for_regular(events, direction)
+          end
 
-              events.last.stream_revision - 1
-            end
+          # @param events [Array<EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent>]
+          # @param direction [Symbol] :Backwards or :Forwards
+          # @return [Integer]
+          def next_position_for_all(events, direction)
+            return events.last.commit_position if direction == DEFAULT_READ_DIRECTION
+
+            events.first.commit_position
+          end
+
+          # @param events [Array<EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent>]
+          # @param direction [Symbol] :Backwards or :Forwards
+          # @return [Integer]
+          def next_position_for_regular(events, direction)
+            return events.last.stream_revision + 1 if direction == DEFAULT_READ_DIRECTION
+
+            events.last.stream_revision - 1
           end
 
           # @param raw_events [Array<EventStore::Client::Streams::ReadResp>]
@@ -134,6 +154,19 @@ module EventStoreClient
           def end_reached?(raw_events, max_count)
             meaningful_events(raw_events).size < max_count
           end
+
+          # @return [void]
+          # @raise [RecordsLimitError] raises error in case if max_count is less than 2
+          def validate_max_count(max_count)
+            return if max_count >= 2
+
+            raise(
+              RecordsLimitError,
+              'Pagination requires :max_count option to be greater than or equal to 2. ' \
+              "Current value is `#{max_count}'."
+            )
+          end
+          # rubocop:enable all
         end
       end
     end

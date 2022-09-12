@@ -62,7 +62,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
       end
       it 'sets the same result for all threads' do
         subject
-        members = threads.map {|t| t.thread_variable_get(:current_member) }
+        members = threads.map { |t| t.thread_variable_get(:current_member) }
         aggregate_failures do
           expect(members).to all be_a(EventStoreClient::GRPC::Cluster::Member)
           expect(members).to all satisfy('be the same object') { |m|
@@ -103,6 +103,10 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         end
         it 'raises error in all threads' do
           expect(subject).to all be_a(DiscoverError)
+        end
+        it 'does not raise on further calls when error is gone' do
+          subject
+          expect { described_class.current_member }.not_to raise_error
         end
       end
     end

@@ -2,8 +2,8 @@
 
 module EventStoreClient
   module Extensions
-    # A vary simple extension that implements DLS for adding attr_accessors with default values, and
-    # assigning their values during object initialization.
+    # A very simple extension that implements a DLS for adding attr_accessors with default values,
+    # and assigning their values during object initialization.
     # Example. Let's say you frequently do something like this:
     # ```ruby
     # class SomeClass
@@ -23,7 +23,7 @@ module EventStoreClient
     # SomeClass.new(attr1: 'hihi', attr4: 'byebye')
     # ```
     #
-    # You can replace the code about using OptionsExtension in next way:
+    # You can replace the code above using the OptionsExtension:
     # ```ruby
     # class SomeClass
     #   include EventStoreClient::Extensions::OptionsExtension

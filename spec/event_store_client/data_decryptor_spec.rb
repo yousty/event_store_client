@@ -49,12 +49,14 @@ RSpec.describe EventStoreClient::DataDecryptor do
     end
 
     context 'when key is not found' do
+      let(:error) { Class.new(StandardError).new }
+
       before do
-        allow(repository).to receive(:find).and_raise(StandardError)
+        allow(repository).to receive(:find).and_raise(error)
       end
 
-      it 'does not changed decrypted data' do
-        expect(subject).to eq(data)
+      it 'raises that error' do
+        expect { subject }.to raise_error(error)
       end
     end
 

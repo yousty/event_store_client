@@ -16,13 +16,12 @@ module EventStoreClient
           # @api private
           # @see {EventStoreClient::GRPC::Client#append_to_stream}
           def call(stream_name, event, options:, &blk)
-            serialize_event = config.mapper.serialize(event)
             payload =
               [
                 request.new(options: options(stream_name, options)),
-                request.new(proposed_message: proposed_message(serialize_event))
+                request.new(proposed_message: proposed_message(event))
               ]
-            yield *payload if block_given?
+            yield(*payload) if blk
             response = retry_request(skip_retry: config.eventstore_url.throw_on_append_failure) do
               service.append(payload, metadata: metadata)
             end
@@ -33,9 +32,10 @@ module EventStoreClient
 
           private
 
-          # @param serialized_event [EventStoreClient::Event]
+          # @param event [EventStoreClient::DeserializedEvent]
           # @return [EventStore::Client::Streams::AppendReq::ProposedMessage]
-          def proposed_message(serialized_event)
+          def proposed_message(event)
+            serialized_event = config.mapper.serialize(event)
             event_metadata = JSON.parse(serialized_event.metadata)
             custom_metadata = custom_metadata(serialized_event.type, event_metadata)
             opts =
@@ -56,7 +56,7 @@ module EventStoreClient
           def custom_metadata(event_type, event_metadata)
             {
               type: event_type,
-              created_at: Time.now,
+              created_at: Time.now.utc,
               encryption: event_metadata['encryption'],
               'content-type': event_metadata['content-type'],
               transaction: event_metadata['transaction']

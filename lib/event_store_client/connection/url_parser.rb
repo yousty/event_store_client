@@ -69,11 +69,10 @@ module EventStoreClient
         first_url, *other, last_url = urls
 
         es_url = Url.new
+        options_from_first(es_url, first_url)
         if last_url.nil? # We are dealing with one node in the url
-          options_from_first(es_url, first_url)
           options_from_last(es_url, first_url)
         else
-          options_from_first(es_url, first_url)
           options_from_other(es_url, other)
           options_from_last(es_url, last_url)
         end

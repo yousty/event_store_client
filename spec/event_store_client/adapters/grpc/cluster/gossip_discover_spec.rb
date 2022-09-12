@@ -17,6 +17,15 @@ RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
       it { is_expected.to be_frozen }
     end
 
+    describe 'READ_ONLY_STATES' do
+      subject { described_class::READ_ONLY_STATES }
+
+      it 'has correctly ordered value' do
+        is_expected.to eq(%i(ReadOnlyReplica PreReadOnlyReplica ReadOnlyLeaderless))
+      end
+      it { is_expected.to be_frozen }
+    end
+
     describe 'DiscoverError' do
       subject { described_class::DiscoverError }
 
@@ -158,7 +167,6 @@ RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
 
       describe 'suitable member' do
         let(:hosts) { ['localhost:3000'] }
-
         let(:member_1) do
           EventStoreClient::GRPC::Cluster::Member.new(
             host: 'localhost', port: 2110, state: :Leader, active: true
@@ -169,42 +177,29 @@ RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
             host: 'localhost', port: 2111, state: :Follower, active: true
           )
         end
-
-        let(:members) do
-          [member_1, member_2]
-        end
+        let(:members) { [member_1, member_2] }
+        let(:suitable_member) { member_1 }
 
         before do
           EventStoreClient.config.eventstore_url.node_preference = :Follower
           allow(instance).to receive(:node_members).and_return(members)
+          allow(instance).to receive(:detect_suitable_member).and_return(suitable_member)
         end
 
         it 'returns member of correct node' do
           subject
           expect(instance).to have_received(:node_members).with(nodes.first)
         end
-        it 'returns member, based on node preference' do
-          is_expected.to eq(member_2)
+        it 'detects suitable member correctly' do
+          subject
+          expect(instance).to have_received(:detect_suitable_member).with(members)
+        end
+        it 'returns suitable member' do
+          is_expected.to eq(suitable_member)
         end
 
-        context 'when member by preference is not active' do
-          before do
-            member_2.active = false
-          end
-
-          it 'look ups among active members' do
-            is_expected.to eq(member_1)
-          end
-        end
-
-        context 'when members are not in the allowed list' do
-          let(:members) do
-            [
-              EventStoreClient::GRPC::Cluster::Member.new(
-                host: 'localhost', port: 2111, state: :CatchingUp, active: true
-              )
-            ]
-          end
+        context 'when suitable member can not be detected' do
+          let(:suitable_member) { nil }
 
           it 'raises error' do
             expect { subject }.to raise_error(described_class::DiscoverError, /Failed to discover/)
@@ -249,6 +244,54 @@ RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
           )
         )
       end
+    end
+  end
+
+  describe '#detect_suitable_member' do
+    subject { instance.send(:detect_suitable_member, members) }
+
+    let(:member_1) do
+      EventStoreClient::GRPC::Cluster::Member.new(
+        host: 'localhost', port: 2110, state: :Leader, active: true
+      )
+    end
+    let(:member_2) do
+      EventStoreClient::GRPC::Cluster::Member.new(
+        host: 'localhost', port: 2111, state: :Follower, active: true
+      )
+    end
+    let(:members) do
+      [member_1, member_2]
+    end
+
+    before do
+      EventStoreClient.config.eventstore_url.node_preference = :Follower
+    end
+
+    it 'returns member, based on node preference' do
+      is_expected.to eq(member_2)
+    end
+
+    context 'when member by preference is not active' do
+      before do
+        member_2.active = false
+      end
+
+      it 'looks up among active members' do
+        is_expected.to eq(member_1)
+      end
+    end
+
+    context 'when members are not in the allowed list' do
+      let(:members) do
+        [
+          EventStoreClient::GRPC::Cluster::Member.new(
+            host: 'localhost', port: 2111, state: :CatchingUp, active: true
+          )
+        ]
+      end
+
+      it { is_expected.to be_nil }
     end
   end
 end

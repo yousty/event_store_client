@@ -37,7 +37,7 @@ RSpec.describe EventStoreClient::GRPC::Cluster::SecureConnection do
 
     describe 'with stubbed certificate' do
       before do
-        allow(instance).to receive(:get_cert).and_return(nil)
+        allow(instance).to receive(:cert).and_return(nil)
       end
 
       it { is_expected.to be_a(stub_class) }
@@ -95,7 +95,7 @@ RSpec.describe EventStoreClient::GRPC::Cluster::SecureConnection do
             File.join(TestHelper.root_path, 'certs/ca/ca.crt')
           # stub this method to prevent false-positive result in case if handling of custom CA file
           # is not properly handled
-          allow(instance).to receive(:get_cert)
+          allow(instance).to receive(:cert)
         end
 
         it 'does not raise any errors' do

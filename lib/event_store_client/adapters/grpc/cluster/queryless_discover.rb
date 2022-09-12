@@ -11,7 +11,7 @@ module EventStoreClient
         # @param nodes [EventStoreClient::Connection::Url::Node]
         # @return [EventStoreClient::GRPC::Cluster::Member]
         def call(nodes)
-          raise NoHostError, 'No host is setup' if nodes.empty?
+          raise NoHostError, 'No host setup' if nodes.empty?
 
           Member.new(host: nodes.first.host, port: nodes.first.port).tap do |member|
             config.logger&.debug(

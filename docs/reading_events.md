@@ -91,6 +91,7 @@ The only difference in reading from `$all` vs reading from specific stream is th
 
 ```ruby
 EventStoreClient.client.read('$all', options: { from_position: :start })
+EventStoreClient.client.read('$all', options: { from_position: :end, direction: 'Backwards' })
 EventStoreClient.client.read('$all', options: { from_position: { commit_position: 9023, prepare_position: 9023 } })
 ```
 
@@ -100,6 +101,7 @@ If you would like to skip deserialization of the `#read` result, you should use 
 
 ```ruby
 EventStoreClient.client.read('some-stream', skip_deserialization: true)
+# => Success([<EventStore::Client::Streams::ReadResp ...>])
 ```
 
 ## Filtering

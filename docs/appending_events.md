@@ -86,7 +86,7 @@ EventStoreClient.client.append_to_stream('some-stream', event)
 
 When appending events to a stream you can supply a stream state or stream revision. Your client can use this to tell EventStoreDB what state or version you expect the stream to be in when you append. If the stream isn't in that state then an exception will be thrown.
 
-For example if we try and append two records expecting both times that the stream doesn't exist we will get an exception on the second:
+For example if we try to and append two records expecting both times that the stream doesn't exist we will get an exception on the second:
 
 ```ruby
 class SomethingHappened < EventStoreClient::DeserializedEvent

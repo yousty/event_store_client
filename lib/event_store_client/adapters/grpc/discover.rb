@@ -48,19 +48,20 @@ module EventStoreClient
       # @return [EventStoreClient::GRPC::Cluster::Member]
       def call(failed_member: nil)
         if needs_discover?
-          nodes =
-            if config.eventstore_url.dns_discover
-              [config.eventstore_url.nodes.first]
-            else
-              config.eventstore_url.nodes.to_a
-            end
-          Cluster::GossipDiscover.new.call(nodes, failed_member: failed_member)
-        else
-          Cluster::QuerylessDiscover.new.call(config.eventstore_url.nodes.to_a)
+          return Cluster::GossipDiscover.new.call(nodes, failed_member: failed_member)
         end
+
+        Cluster::QuerylessDiscover.new.call(config.eventstore_url.nodes.to_a)
       end
 
       private
+
+      # @return [Array<EventStoreClient::Connection::Url::Node>]
+      def nodes
+        return [config.eventstore_url.nodes.first] if config.eventstore_url.dns_discover
+
+        config.eventstore_url.nodes.to_a
+      end
 
       # @return [Boolean]
       def needs_discover?
