@@ -9,7 +9,7 @@ module EventStoreClient
     class Url
       include Extensions::OptionsExtension
 
-      NODE_PREFERENCES = %i(Leader Follower ReadOnlyReplica).freeze
+      NODE_PREFERENCES = %i[Leader Follower ReadOnlyReplica].freeze
       Node = Struct.new(:host, :port)
 
       # This option will allow you to perform the discovery by only one host

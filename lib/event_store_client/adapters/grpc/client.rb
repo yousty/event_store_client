@@ -225,8 +225,8 @@ module EventStoreClient
       # to $all stream
       # @see #subscribe_to_stream
       def subscribe_to_all(handler:, options: {}, credentials: {},
-                              skip_deserialization: config.skip_deserialization,
-                              skip_decryption: config.skip_decryption, &blk)
+                           skip_deserialization: config.skip_deserialization,
+                           skip_decryption: config.skip_decryption, &blk)
         Commands::Streams::Subscribe.new(**credentials).call(
           '$all',
           handler: handler,

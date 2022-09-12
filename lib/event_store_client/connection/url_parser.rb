@@ -5,7 +5,7 @@ module EventStoreClient
     class UrlParser
       class << self
         def boolean_param(value)
-          return unless %w(true false).include?(value)
+          return unless %w[true false].include?(value)
 
           value == 'true'
         end
@@ -14,7 +14,7 @@ module EventStoreClient
       ParsedUrl = Struct.new(:scheme, :host, :port, :user, :password, :params)
       # It is used to detect if string starts from some scheme. E.g. "esdb://", "esdb+discover://",
       # "http://", "https://" and so on
-      SCHEME_REGEXP = /\A[\w|\+]*:\/\//.freeze
+      SCHEME_REGEXP = %r{\A[\w|+]*://}.freeze
 
       # Define a set of rules to translate connection string into
       # EventStoreClient::Connection::Url options.
@@ -36,7 +36,7 @@ module EventStoreClient
       # "esdb+discover://admin:some-password@localhost:2112,localhost:2113/?tls=false" connection
       # string. Then, during parsing, last url will be 'localhost:2113/?tls=false'.
       LAST_URL_RULES = {
-        throw_on_append_failure: ->(parsed_url) {
+        throw_on_append_failure: lambda { |parsed_url|
           boolean_param(parsed_url.params['throwOnAppendFailure'])
         },
         tls: ->(parsed_url) { boolean_param(parsed_url.params['tls']) },
@@ -47,7 +47,7 @@ module EventStoreClient
         max_discover_attempts: ->(parsed_url) { parsed_url.params['maxDiscoverAttempts']&.to_i },
         ca_lookup_interval: ->(parsed_url) { parsed_url.params['caLookupInterval']&.to_i },
         ca_lookup_attempts: ->(parsed_url) { parsed_url.params['caLookupAttempts']&.to_i },
-        node_preference: ->(parsed_url) {
+        node_preference: lambda { |parsed_url|
           value = parsed_url.params['nodePreference']&.dup
           if value
             value[0] = value[0]&.upcase

@@ -45,9 +45,11 @@ module EventStoreClient
         def option(opt_name, &blk)
           self.options = (options + Set.new([opt_name])).freeze
           attr_writer opt_name
+
           define_method opt_name do
             result = instance_variable_get(:"@#{opt_name}")
             return result if instance_variable_defined?(:"@#{opt_name}")
+
             instance_exec(&blk) if blk
           end
         end

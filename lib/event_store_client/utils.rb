@@ -10,13 +10,13 @@ module EventStoreClient
 
         msb =
           if uuid.structured.most_significant_bits.negative?
-            2**64 + uuid.structured.most_significant_bits
+            (2**64) + uuid.structured.most_significant_bits
           else
             uuid.structured.most_significant_bits
           end
         lsb =
           if uuid.structured.least_significant_bits.negative?
-            2**64 + uuid.structured.least_significant_bits
+            (2**64) + uuid.structured.least_significant_bits
           else
             uuid.structured.least_significant_bits
           end

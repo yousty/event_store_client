@@ -20,6 +20,4 @@ require 'event_store_client/deserialized_event'
 require 'event_store_client/configuration'
 require 'event_store_client/deserialized_event'
 
-require 'event_store_client/subscription'
-require 'event_store_client/subscriptions'
 require 'event_store_client/adapters/grpc'

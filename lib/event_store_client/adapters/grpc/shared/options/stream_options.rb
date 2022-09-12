@@ -24,7 +24,7 @@ module EventStoreClient
 
           # @return [Hash]
           def request_options
-            stream_name == "$all" ? all_stream : stream
+            stream_name == '$all' ? all_stream : stream
           end
 
           private

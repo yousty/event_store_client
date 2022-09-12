@@ -28,11 +28,11 @@ module EventStoreClient
       @data = args.fetch(:data) { {} }
       @type = args[:type] || self.class.name
       @metadata =
-        args.fetch(:metadata) { {} }
-            .merge(
-              'type' => @type,
-              'content-type' => payload_content_type
-            )
+        args.fetch(:metadata) { {} }.
+        merge(
+          'type' => @type,
+          'content-type' => payload_content_type
+        )
       @stream_name = args[:stream_name]
       @stream_revision = args[:stream_revision]
       @prepare_position = args[:prepare_position]

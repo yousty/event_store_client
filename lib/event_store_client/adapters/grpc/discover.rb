@@ -19,7 +19,7 @@ module EventStoreClient
             @current_member =
               begin
                 new.call(failed_member: failed_member)
-              rescue => e
+              rescue StandardError => e
                 @exception = e
                 nil
               end

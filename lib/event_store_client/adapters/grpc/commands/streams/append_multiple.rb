@@ -15,7 +15,7 @@ module EventStoreClient
               ) do |req_opts, proposed_msg_opts|
                 req_opts.options.revision += index if has_revision_option?(req_opts.options)
 
-                blk.call(req_opts, proposed_msg_opts) if block_given?
+                yield(req_opts, proposed_msg_opts) if blk
               end
               result.push(response)
               break if response.failure?

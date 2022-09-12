@@ -15,7 +15,7 @@ module EventStoreClient
           # @see {EventStoreClient::GRPC::Client#hard_delete_stream}
           def call(stream_name, options:, &blk)
             options = normalize_options(stream_name, options)
-            yield options if block_given?
+            yield options if blk
             Success(
               retry_request { service.delete(request.new(options: options), metadata: metadata) }
             )
