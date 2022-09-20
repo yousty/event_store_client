@@ -227,7 +227,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
       end
     end
 
-    describe 'when stream does not exist' do
+    context 'when stream does not exist' do
       it 'returns error' do
         is_expected.to be_a(Dry::Monads::Failure)
       end

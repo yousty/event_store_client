@@ -30,7 +30,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Delete do
       it 'deletes stream' do
         expect { subject }.to change {
           EventStoreClient.client.read(stream_name)
-        }.from(be_success).to(be_failure)
+        }.from(be_success).to(Dry::Monads::Failure(:stream_not_found))
       end
       it { is_expected.to be_success }
     end

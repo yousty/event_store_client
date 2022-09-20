@@ -31,16 +31,14 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
       end
 
       context 'when skip_deserialization is false' do
-        it 'returns nothing' do
-          is_expected.to eq(nil)
-        end
+        it { is_expected.to be_nil }
       end
 
       context 'when skip_deserialization is true' do
         let(:skip_deserialization) { true }
 
         it { is_expected.to be_success }
-        it 'returns response as is' do
+        it 'returns response as it is' do
           expect(subject.success).to eq(response)
         end
       end
@@ -63,7 +61,7 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
         expect(subject.success).to be_a(EventStoreClient::DeserializedEvent)
       end
 
-      describe 'skip_decryption option' do
+      context 'when skip_decryption is true' do
         let(:skip_decryption) { true }
         let(:deserializer) { EventStoreClient::GRPC::Shared::EventDeserializer.new }
 

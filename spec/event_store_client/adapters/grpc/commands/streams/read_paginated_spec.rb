@@ -55,7 +55,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
         expect(subject.next).to be_success
       end
 
-      context 'when number of events is less than or equal to :max_count option' do
+      context 'when number of events is greater than or equal to :max_count option' do
         it 'returns correct amount of records' do
           expect(subject.next.success.size).to eq(9)
         end
@@ -83,7 +83,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
         end
       end
 
-      context 'when number of events is greater than or equal to :max_count option' do
+      context 'when number of events is less than or equal to :max_count option' do
         let(:options) { { max_count: 100 } }
 
         it 'returns all of them in first iteration' do

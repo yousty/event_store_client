@@ -310,16 +310,16 @@ RSpec.describe EventStoreClient::Connection::UrlParser do
       end
       let(:params) do
         {
-          'throwOnAppendFailure' => true,
-          'tls' => true,
+          'throwOnAppendFailure' => false,
+          'tls' => false,
           'tlsVerifyCert' => true,
           'tlsCAFile' => '/path/to/cert.crt',
           'gossipTimeout' => 100,
           'discoverInterval' => 202,
           'maxDiscoverAttempts' => 2,
           'caLookupInterval' => 200,
-          'caLookupAttempts' => 3,
-          'nodePreference' => 'leader',
+          'caLookupAttempts' => 4,
+          'nodePreference' => 'follower',
           'connectionName' => 'some-name',
           'timeout' => 300,
           'grpcRetryAttempts' => 4,
@@ -329,44 +329,78 @@ RSpec.describe EventStoreClient::Connection::UrlParser do
 
       before do
         allow(EventStoreClient::Connection::Url).to receive(:new).and_return(url)
-        # For testing purpose - set all options values to nil
-        EventStoreClient::Connection::Url.options.each do |option|
-          next if option == :nodes
-
-          url.public_send("#{option}=", nil)
-        end
       end
 
-      it 'parses connection string correctly' do
-        aggregate_failures do
-          expect(subject.dns_discover).to eq(true)
-          expect(subject.username).to eq('adm')
-          expect(subject.password).to eq('passwd')
-          expect(subject.throw_on_append_failure).to eq(params['throwOnAppendFailure'])
-          expect(subject.tls).to eq(params['tls'])
-          expect(subject.tls_verify_cert).to eq(params['tlsVerifyCert'])
-          expect(subject.tls_ca_file).to eq(params['tlsCAFile'])
-          expect(subject.ca_lookup_interval).to eq(params['caLookupInterval'])
-          expect(subject.ca_lookup_attempts).to eq(params['caLookupAttempts'])
-          expect(subject.gossip_timeout).to eq(params['gossipTimeout'])
-          expect(subject.discover_interval).to eq(params['discoverInterval'])
-          expect(subject.max_discover_attempts).to eq(params['maxDiscoverAttempts'])
-          expect(subject.timeout).to eq(params['timeout'])
-          expect(subject.node_preference).to eq(params['nodePreference'].capitalize.to_sym)
-          expect(subject.nodes).to(
-            eq(
-              Set.new(
-                [
-                  EventStoreClient::Connection::Url::Node.new('localhost', 2111),
-                  EventStoreClient::Connection::Url::Node.new('localhost', 2112),
-                  EventStoreClient::Connection::Url::Node.new('localhost', 2113)
-                ]
-              )
-            )
+      it 'parses dns_discover correctly' do
+        expect { subject }.to change { url.dns_discover }.to(true)
+      end
+      it 'parses username correctly' do
+        expect { subject }.to change { url.username }.to('adm')
+      end
+      it 'parses password correctly' do
+        expect { subject }.to change { url.password }.to('passwd')
+      end
+      it 'parses throw_on_append_failure correctly' do
+        expect { subject }.to change {
+          url.throw_on_append_failure
+        }.to(params['throwOnAppendFailure'])
+      end
+      it 'parses tls correctly' do
+        expect { subject }.to change { url.tls }.to(params['tls'])
+      end
+      it 'parses tls_verify_cert correctly' do
+        expect { subject }.to change { url.tls_verify_cert }.to(params['tlsVerifyCert'])
+      end
+      it 'parses tls_ca_file correctly' do
+        expect { subject }.to change { url.tls_ca_file }.to(params['tlsCAFile'])
+      end
+      it 'parses ca_lookup_interval correctly' do
+        expect { subject }.to change { url.ca_lookup_interval }.to(params['caLookupInterval'])
+      end
+      it 'parses ca_lookup_attempts correctly' do
+        expect { subject }.to change { url.ca_lookup_attempts }.to(params['caLookupAttempts'])
+      end
+      it 'parses gossip_timeout correctly' do
+        expect { subject }.to change { url.gossip_timeout }.to(params['gossipTimeout'])
+      end
+      it 'parses discover_interval correctly' do
+        expect { subject }.to change { url.discover_interval }.to(params['discoverInterval'])
+      end
+      it 'parses max_discover_attempts correctly' do
+        expect { subject }.to change {
+          url.max_discover_attempts
+        }.to(params['maxDiscoverAttempts'])
+      end
+      it 'parses timeout correctly' do
+        expect { subject }.to change { url.timeout }.to(params['timeout'])
+      end
+      it 'parses node_preference correctly' do
+        expect { subject }.to change {
+          url.node_preference
+        }.to(params['nodePreference'].capitalize.to_sym)
+      end
+      it 'parses nodes correctly' do
+        expect { subject }.to change {
+          url.nodes
+        }.to(
+          Set.new(
+            [
+              EventStoreClient::Connection::Url::Node.new('localhost', 2111),
+              EventStoreClient::Connection::Url::Node.new('localhost', 2112),
+              EventStoreClient::Connection::Url::Node.new('localhost', 2113)
+            ]
           )
-          expect(subject.grpc_retry_attempts).to eq(params['grpcRetryAttempts'])
-          expect(subject.grpc_retry_interval).to eq(params['grpcRetryInterval'])
-        end
+        )
+      end
+      it 'parses grpc_retry_attempts correctly' do
+        expect { subject }.to change {
+          url.grpc_retry_attempts
+        }.to(params['grpcRetryAttempts'])
+      end
+      it 'parses grpc_retry_interval correctly' do
+        expect { subject }.to change {
+          url.grpc_retry_interval
+        }.to(params['grpcRetryInterval'])
       end
     end
 

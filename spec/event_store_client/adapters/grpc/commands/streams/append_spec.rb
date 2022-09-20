@@ -16,8 +16,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   let(:instance) { described_class.new }
 
   it 'appends event to a stream' do
-    subject
-    expect(client.read(stream).success.size).to eq(1)
+    expect { subject }.to change {
+      client.read(
+        '$all',
+        options: { filter: { stream_identifier: { prefix: [stream] } } }
+      ).success.count
+    }.by(1)
   end
   it 'returns Success' do
     expect(subject).to be_a(Dry::Monads::Success)

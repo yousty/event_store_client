@@ -17,8 +17,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
   let(:instance) { described_class.new }
 
   it 'appends events to a stream' do
-    subject
-    expect(client.read(stream).value!.count).to eq(2)
+    expect { subject }.to change {
+      client.read(
+        '$all',
+        options: { filter: { stream_identifier: { prefix: [stream] } } }
+      ).success.count
+    }.by(2)
   end
   it 'returns Success' do
     expect(subject).to all be_a(Dry::Monads::Success)
@@ -26,12 +30,29 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
 
   context 'when expected revision does not match' do
     let(:options) { { expected_revision: 10 } }
-    let(:failure_message) { 'current version: 0 | expected: 10' }
+    let(:requests) { [] }
+
+    before do
+      allow(EventStoreClient::GRPC::Commands::Streams::Append).to receive(:new).
+        and_wrap_original do |original_method, *args, **kwargs, &blk|
+        instance = original_method.call(*args, **kwargs, &blk)
+        allow(instance).to receive(:call).
+          and_wrap_original do |original_method, *args, **kwargs, &blk|
+          result = original_method.call(*args, **kwargs, &blk)
+          requests.push(:request)
+          result
+        end
+        instance
+      end
+    end
 
     it 'returns failure' do
       expect(subject).to all be_a(Dry::Monads::Failure)
     end
     it 'does not perform requests after first failure' do
+      expect { subject }.to change { requests.size }.by(1)
+    end
+    it 'accumulates first failure' do
       expect(subject.size).to eq(1)
     end
 
@@ -58,8 +79,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
     let(:options) { { expected_revision: :no_stream } }
 
     it 'accepts only one event' do
-      subject
-      expect(client.read(stream).value!.count).to eq(1)
+      expect { subject }.to change {
+        client.read(
+          '$all',
+          options: { filter: { stream_identifier: { prefix: [stream] } } }
+        ).success.count
+      }.by(1)
     end
     it 'returns failure' do
       expect(subject).to all be_a(Dry::Monads::Failure)
