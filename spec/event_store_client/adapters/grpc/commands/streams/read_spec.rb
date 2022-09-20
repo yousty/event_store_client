@@ -41,7 +41,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
         is_expected.to be_a(Dry::Monads::Success)
       end
 
-      describe 'read events' do
+      describe 'success result' do
         subject { super(); subject.success }
 
         it 'returns events of the given stream' do
@@ -163,7 +163,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
       end
     end
 
-    context 'when resolve_link_tos option is given' do
+    context 'when resolve_link_tos option is true' do
       subject { super().success.first }
 
       let(:options) { { resolve_link_tos: true } }
