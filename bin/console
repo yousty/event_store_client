@@ -10,36 +10,14 @@
 #
 require 'bundler/setup'
 require 'event_store_client'
-require 'event_store_client/adapters/grpc'
+require 'irb'
+require 'pry'
 
 EventStoreClient.configure do |config|
   ## url needs to match the DNS name in certificate
-  config.eventstore_url = 'eventstoredb:2113'
-  config.adapter = :grpc
-  config.eventstore_user = 'admin'
-  config.eventstore_password = 'changeit'
+  config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2115/?tls=false' }
+  config.per_page = 1_000
+  config.logger = Logger.new(STDOUT) if ENV['DEBUG']
 end
-config = EventStoreClient.config
 
-credentials = Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-metadata = { 'authorization' => "Basic #{credentials.gsub("\n", '')}" }
-
-# OD: .NET Client is able to load by default certs, but I didn't manage to make autoload work, so I'm loading it manually
-# as I found in https://docs.servicestack.net/grpc-ruby
-channelCredentials = GRPC::Core::ChannelCredentials.new(File.read('/usr/local/share/ca-certificates/eventstoredb_ca.crt'))
-
-service = EventStore::Client::Streams::Streams::Stub.new(
-  config.eventstore_url.to_s,
-  channelCredentials
-)
-
-opts = {
-  stream: { stream_identifier: { streamName: 'nestream' }, start: {} },
-  read_direction: :Forwards,
-  resolve_links: true,
-  count: 20,
-  uuid_option: { string: {} },
-  no_filter: {}
-}
-
-puts service.read(EventStore::Client::Streams::ReadReq.new(options: opts), metadata: metadata).inspect
+IRB.start(__FILE__)

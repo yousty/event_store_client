@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'grpc'
-require 'event_store_client/adapters/grpc/connection'
-
 module EventStoreClient
   module GRPC
     class CommandRegistrar
@@ -19,13 +16,16 @@ module EventStoreClient
       end
 
       def self.request(command_klass)
-        @commands[command_klass][:request]
+        @commands.dig(command_klass, :request)
       end
 
+      # @param command_klass [Class]
+      #   Examples:
+      #     - EventStoreClient::GRPC::Commands::Streams::Append
+      #     - EventStoreClient::GRPC::Commands::Streams::Read
+      # @return [Object] GRPC service class
       def self.service(command_klass)
-        EventStoreClient::GRPC::Connection.new.call(
-          @commands[command_klass][:service]
-        )
+        @commands.dig(command_klass, :service)
       end
     end
   end

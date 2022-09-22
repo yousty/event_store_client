@@ -1,3 +1,5 @@
+# Encrypting events
+
 To encrypt/decrypt events payload, you can use an encrypted mapper.
 
 
@@ -31,7 +33,7 @@ class DummyRepository
   end
 
   def decrypt(*)
-    { first_name: 'Anakin', last_name: 'Skylwalker'}
+    { first_name: 'Anakin', last_name: 'Skywalker'}
   end
 end
 ```
@@ -60,12 +62,12 @@ end
 event = EncryptedEvent.new(
   user_id: SecureRandom.uuid,
   first_name: 'Anakin',
-  last_name: 'Skylwalker',
+  last_name: 'Skywalker',
   profession: 'Jedi'
 )
 ```
 
-When you'll publish this event, in the store will be saved:
+When you publish this event, the eventstore will store this payload:
 
 ```ruby
 {

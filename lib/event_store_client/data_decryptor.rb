@@ -43,21 +43,14 @@ module EventStoreClient
 
     def deep_dup(hash)
       return hash unless hash.instance_of?(Hash)
+
       dupl = hash.dup
       dupl.each { |k, v| dupl[k] = v.instance_of?(Hash) ? deep_dup(v) : v }
       dupl
     end
 
     def find_key(identifier)
-      key =
-        begin
-          key_repository.find(identifier).value!
-        rescue StandardError => e
-          config.error_handler&.call(e)
-          nil
-        end
-
-      key
+      key_repository.find(identifier).value!
     end
   end
 end

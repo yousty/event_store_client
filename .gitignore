@@ -17,3 +17,5 @@ tmp
 
 # Ignore coverage report
 /coverage
+
+Gemfile.lock

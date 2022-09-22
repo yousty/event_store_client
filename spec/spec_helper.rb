@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'irb'
-
 if ENV['TEST_COVERAGE'] == 'true'
   require 'simplecov'
   require 'simplecov-formatter-badge'
@@ -25,27 +23,17 @@ if ENV['TEST_COVERAGE'] == 'true'
   SimpleCov.start 'event-store-client'
 end
 
+require 'pry'
 require 'event_store_client'
-require 'event_store_client/adapters/in_memory'
-require 'webmock/rspec'
-require 'dry/monads'
+require 'securerandom'
+require 'timecop'
 
-require_relative 'event_store_client/event_store_helpers.rb'
-
-EventStoreClient.configure do |config|
-  config.adapter = :in_memory
-  config.eventstore_url = 'https://www.example.com:8080'
-end
+Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
-  config.include Dry::Monads[:result]
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
-  end
-
-  config.before do
-    EventStoreClient.adapter.instance_variable_set(:@event_store, {})
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
@@ -62,9 +50,9 @@ RSpec.configure do |config|
   # Allows RSpec to persist some state between runs in order to support
   # the `--only-failures` and `--next-failure` CLI options. We recommend
   # you configure your source control system to ignore this file.
-  config.example_status_persistence_file_path = 'spec/examples.txt'
+  config.example_status_persistence_file_path = 'tmp/spec/examples.txt'
   config.disable_monkey_patching!
-  config.warnings = true
+  config.warnings = false
 
   config.default_formatter = 'doc' if config.files_to_run.one?
   config.profile_examples = 10
@@ -72,4 +60,23 @@ RSpec.configure do |config|
   config.order = :random
 
   Kernel.srand config.seed
+
+  config.before do
+    TestHelper.configure_grpc
+  end
+
+  config.after do
+    EventStoreClient.instance_variable_set(:@config, nil)
+    EventStoreClient::GRPC::Discover.instance_variable_set(:@current_member, nil)
+    EventStoreClient::GRPC::Discover.instance_variable_set(:@exception, nil)
+    DummyRepository.reset
+  end
+
+  config.around(timecop: :itself.to_proc) do |example|
+    if example.metadata[:timecop].is_a?(Time)
+      Timecop.freeze(example.metadata[:timecop]) { example.run }
+    else
+      Timecop.freeze { example.run }
+    end
+  end
 end

@@ -2,7 +2,7 @@
 # Source: streams.proto for package 'event_store.client.streams'
 
 require 'grpc'
-require 'event_store_client/adapters/grpc/generated/streams_pb'
+require_relative 'streams_pb'
 
 module EventStore
   module Client
@@ -10,7 +10,7 @@ module EventStore
       module Streams
         class Service
 
-          include GRPC::GenericService
+          include ::GRPC::GenericService
 
           self.marshal_class_method = :encode
           self.unmarshal_class_method = :decode
@@ -20,6 +20,7 @@ module EventStore
           rpc :Append, stream(::EventStore::Client::Streams::AppendReq), ::EventStore::Client::Streams::AppendResp
           rpc :Delete, ::EventStore::Client::Streams::DeleteReq, ::EventStore::Client::Streams::DeleteResp
           rpc :Tombstone, ::EventStore::Client::Streams::TombstoneReq, ::EventStore::Client::Streams::TombstoneResp
+          rpc :BatchAppend, stream(::EventStore::Client::Streams::BatchAppendReq), stream(::EventStore::Client::Streams::BatchAppendResp)
         end
 
         Stub = Service.rpc_stub_class

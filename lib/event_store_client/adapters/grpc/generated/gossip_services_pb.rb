@@ -2,7 +2,7 @@
 # Source: gossip.proto for package 'event_store.client.gossip'
 
 require 'grpc'
-require 'gossip_pb'
+require_relative 'gossip_pb'
 
 module EventStore
   module Client
@@ -10,13 +10,13 @@ module EventStore
       module Gossip
         class Service
 
-          include GRPC::GenericService
+          include ::GRPC::GenericService
 
           self.marshal_class_method = :encode
           self.unmarshal_class_method = :decode
           self.service_name = 'event_store.client.gossip.Gossip'
 
-          rpc :Read, ::EventStore::Client::Shared::Empty, ::EventStore::Client::Gossip::ClusterInfo
+          rpc :Read, ::EventStore::Client::Empty, ::EventStore::Client::Gossip::ClusterInfo
         end
 
         Stub = Service.rpc_stub_class

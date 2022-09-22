@@ -2,3 +2,8 @@
 
 Style/Copyright:
   Enabled: false
+Rails:
+  Enabled: false
+AllCops:
+  Exclude:
+    - 'lib/event_store_client/adapters/grpc/generated/*.rb'

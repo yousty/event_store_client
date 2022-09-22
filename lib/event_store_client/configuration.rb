@@ -1,64 +1,49 @@
 # frozen_string_literal: true
 
 require 'dry-configurable'
-require 'event_store_client/error_handler'
-require 'event_store_client/deserialized_event'
 
 module EventStoreClient
-  extend Dry::Configurable
+  class << self
+    def configure
+      yield(config) if block_given?
+    end
 
-  # Supported adapters: %i[api in_memory grpc]
-  #
-  setting :adapter, default: :grpc
-  setting :verify_ssl, default: true
+    def config
+      @config ||= Class.new do
+        extend Dry::Configurable
 
-  setting :error_handler, default: ErrorHandler.new
-  setting :eventstore_url,
-          default: 'http://localhost:2113',
-          constructor: proc { |value| value.is_a?(URI) ? value : URI(value) }
-  setting :eventstore_user, default: 'admin'
-  setting :eventstore_password, default: 'changeit'
+        # @param logger [Logger, nil]
+        # @return [Logger, nil]
+        def self.assign_grpc_logger(logger)
+          ::GRPC.define_singleton_method :logger do
+            @logger ||= logger.nil? ? ::GRPC::DefaultLogger::NoopLogger.new : logger
+          end
+          logger
+        end
 
-  setting :db_port, default: 2113
+        setting :eventstore_url,
+                default: 'esdb://localhost:2113',
+                constructor:
+                  proc { |value|
+                    value.is_a?(Connection::Url) ? value : Connection::UrlParser.new.call(value)
+                  }
+        setting :per_page, default: 20
 
-  setting :per_page, default: 20
-  setting :pid_path, default: 'tmp/poll.pid'
+        setting :mapper, default: Mapper::Default.new
 
-  setting :service_name, default: 'default'
+        setting :default_event_class, default: DeserializedEvent
 
-  setting :mapper, default: Mapper::Default.new
+        setting :logger, constructor: method(:assign_grpc_logger).to_proc
 
-  setting :default_event_class, default: DeserializedEvent
-
-  setting :subscriptions_repo
-
-  setting :logger
-
-  setting :socket_error_retry_sleep, default: 0.5
-  setting :socket_error_retry_count, default: 3
-
-  setting :grpc_unavailable_retry_sleep, default: 0.5
-  setting :grpc_unavailable_retry_count, default: 3
-
-  def self.configure
-    yield(config) if block_given?
-  end
-
-  def self.adapter
-    @adapter =
-      case config.adapter
-      when :http
-        require 'event_store_client/adapters/http'
-        HTTP::Client.new
-      when :grpc
-        require 'event_store_client/adapters/grpc'
-        GRPC::Client.new
-      else
-        require 'event_store_client/adapters/in_memory'
-        InMemory.new(
-          mapper: config.mapper, per_page: config.per_page
-        )
+        setting :skip_deserialization, default: false
+        setting :skip_decryption, default: false
       end
+      @config.config
+    end
+
+    def client
+      GRPC::Client.new
+    end
   end
 
   # Configuration module to be included in classes required configured variables

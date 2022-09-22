@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require 'grpc'
 require 'event_store_client/adapters/grpc/generated/streams_pb'
 require 'event_store_client/adapters/grpc/generated/streams_services_pb'
-
-require 'event_store_client/adapters/grpc/commands/command'
 
 module EventStoreClient
   module GRPC
@@ -17,91 +14,69 @@ module EventStoreClient
           ALLOWED_EVENT_METADATA = %w[type content-type created_at].freeze
 
           # @api private
-          def call(stream, events, options: {})
-            return unless events.any?
-
-            serialized_events = events.map { |event| config.mapper.serialize(event) }
-
-            expected_version = options[:expected_version]
-
-            res = nil
-            serialized_events.each_with_index do |event, i|
-              expected_version += i if expected_version
-              res = append(stream, event, expected_version)
-              break if res.failure?
+          # @see {EventStoreClient::GRPC::Client#append_to_stream}
+          def call(stream_name, event, options:, &blk)
+            payload =
+              [
+                request.new(options: options(stream_name, options)),
+                request.new(proposed_message: proposed_message(event))
+              ]
+            yield(*payload) if blk
+            response = retry_request(skip_retry: config.eventstore_url.throw_on_append_failure) do
+              service.append(payload, metadata: metadata)
             end
-
-            res.success? ? Success(events) : Failure(res.failure)
+            validate_response(response)
+          rescue ::GRPC::Unavailable => e
+            Failure(e)
           end
 
           private
 
-          def append(stream, event, expected_version)
-            event_metadata = JSON.parse(event.metadata)
-
-            payload = append_request_payload(
-              options(stream, expected_version),
-              message(
-                data: event.data.b,
-                event_metadata: event_metadata.select { |k| ALLOWED_EVENT_METADATA.include?(k) },
-                custom_metadata: custom_metadata(event.type, event_metadata)
-              )
-            )
-
-            resp = service.append(payload, metadata: metadata)
-
-            validate_response(resp)
+          # @param event [EventStoreClient::DeserializedEvent]
+          # @return [EventStore::Client::Streams::AppendReq::ProposedMessage]
+          def proposed_message(event)
+            serialized_event = config.mapper.serialize(event)
+            event_metadata = JSON.parse(serialized_event.metadata)
+            custom_metadata = custom_metadata(serialized_event.type, event_metadata)
+            opts =
+              {
+                id: {
+                  string: serialized_event.id
+                },
+                data: serialized_event.data.b,
+                custom_metadata: custom_metadata.to_json,
+                metadata: event_metadata.slice(*ALLOWED_EVENT_METADATA)
+              }
+            EventStore::Client::Streams::AppendReq::ProposedMessage.new(opts)
           end
 
+          # @param event_type [String]
+          # @param event_metadata [Hash]
+          # @return [Hash]
           def custom_metadata(event_type, event_metadata)
             {
               type: event_type,
-              created_at: Time.current,
+              created_at: Time.now.utc,
               encryption: event_metadata['encryption'],
               'content-type': event_metadata['content-type'],
               transaction: event_metadata['transaction']
             }.compact
           end
 
-          def append_request_payload(options, message)
-            [
-              request.new(
-                options: options
-              ),
-              request.new(
-                proposed_message: message
-              )
-            ]
+          # @param stream_name [String]
+          # @param options [Hash]
+          # @return [EventStore::Client::Streams::AppendReq::Options]
+          def options(stream_name, options)
+            opts = Options::Streams::WriteOptions.new(stream_name, options).request_options
+            EventStore::Client::Streams::AppendReq::Options.new(opts)
           end
 
-          def options(stream, expected_version)
-            {
-              stream_identifier: {
-                streamName: stream
-              },
-              revision: expected_version,
-              any: (expected_version ? nil : {})
-            }.compact
-          end
-
-          def message(data:, event_metadata:, custom_metadata:)
-            {
-              id: {
-                string: SecureRandom.uuid
-              },
-              data: data,
-              custom_metadata: JSON.generate(custom_metadata),
-              metadata: event_metadata
-            }
-          end
-
+          # @param resp [EventStore::Client::Streams::AppendResp]
+          # @return [Dry::Monads::Success, Dry::Monads::Failure]
           def validate_response(resp)
-            return Success() if resp.success
+            return Success(resp) if resp.success
 
-            Failure(
-              "current version: #{resp.wrong_expected_version.current_revision} | "\
-              "expected: #{resp.wrong_expected_version.expected_revision}"
-            )
+            Failure(resp.wrong_expected_version)
           end
         end
       end

@@ -3,33 +3,75 @@
 
 require 'google/protobuf'
 
+require 'google/protobuf/empty_pb'
+
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("shared.proto", :syntax => :proto3) do
-    add_message "event_store.client.shared.UUID" do
+    add_message "event_store.client.UUID" do
       oneof :value do
-        optional :structured, :message, 1, "event_store.client.shared.UUID.Structured"
+        optional :structured, :message, 1, "event_store.client.UUID.Structured"
         optional :string, :string, 2
       end
     end
-    add_message "event_store.client.shared.UUID.Structured" do
+    add_message "event_store.client.UUID.Structured" do
       optional :most_significant_bits, :int64, 1
       optional :least_significant_bits, :int64, 2
     end
-    add_message "event_store.client.shared.Empty" do
+    add_message "event_store.client.Empty" do
     end
-    add_message "event_store.client.shared.StreamIdentifier" do
-      optional :streamName, :bytes, 3
+    add_message "event_store.client.StreamIdentifier" do
+      optional :stream_name, :bytes, 3
+    end
+    add_message "event_store.client.AllStreamPosition" do
+      optional :commit_position, :uint64, 1
+      optional :prepare_position, :uint64, 2
+    end
+    add_message "event_store.client.WrongExpectedVersion" do
+      oneof :current_stream_revision_option do
+        optional :current_stream_revision, :uint64, 1
+        optional :current_no_stream, :message, 2, "google.protobuf.Empty"
+      end
+      oneof :expected_stream_position_option do
+        optional :expected_stream_position, :uint64, 3
+        optional :expected_any, :message, 4, "google.protobuf.Empty"
+        optional :expected_stream_exists, :message, 5, "google.protobuf.Empty"
+        optional :expected_no_stream, :message, 6, "google.protobuf.Empty"
+      end
+    end
+    add_message "event_store.client.AccessDenied" do
+    end
+    add_message "event_store.client.StreamDeleted" do
+      optional :stream_identifier, :message, 1, "event_store.client.StreamIdentifier"
+    end
+    add_message "event_store.client.Timeout" do
+    end
+    add_message "event_store.client.Unknown" do
+    end
+    add_message "event_store.client.InvalidTransaction" do
+    end
+    add_message "event_store.client.MaximumAppendSizeExceeded" do
+      optional :maxAppendSize, :uint32, 1
+    end
+    add_message "event_store.client.BadRequest" do
+      optional :message, :string, 1
     end
   end
 end
 
 module EventStore
   module Client
-    module Shared
-      UUID = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.shared.UUID").msgclass
-      UUID::Structured = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.shared.UUID.Structured").msgclass
-      Empty = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.shared.Empty").msgclass
-      StreamIdentifier = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.shared.StreamIdentifier").msgclass
-    end
+    UUID = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.UUID").msgclass
+    UUID::Structured = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.UUID.Structured").msgclass
+    Empty = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.Empty").msgclass
+    StreamIdentifier = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.StreamIdentifier").msgclass
+    AllStreamPosition = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.AllStreamPosition").msgclass
+    WrongExpectedVersion = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.WrongExpectedVersion").msgclass
+    AccessDenied = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.AccessDenied").msgclass
+    StreamDeleted = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.StreamDeleted").msgclass
+    Timeout = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.Timeout").msgclass
+    Unknown = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.Unknown").msgclass
+    InvalidTransaction = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.InvalidTransaction").msgclass
+    MaximumAppendSizeExceeded = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.MaximumAppendSizeExceeded").msgclass
+    BadRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("event_store.client.BadRequest").msgclass
   end
 end

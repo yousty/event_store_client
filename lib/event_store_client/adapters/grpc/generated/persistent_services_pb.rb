@@ -2,15 +2,15 @@
 # Source: persistent.proto for package 'event_store.client.persistent_subscriptions'
 
 require 'grpc'
-
-require 'event_store_client/adapters/grpc/generated/persistent_pb'
+require_relative 'persistent_pb'
 
 module EventStore
   module Client
     module PersistentSubscriptions
       module PersistentSubscriptions
         class Service
-          include GRPC::GenericService
+
+          include ::GRPC::GenericService
 
           self.marshal_class_method = :encode
           self.unmarshal_class_method = :decode
@@ -20,6 +20,10 @@ module EventStore
           rpc :Update, ::EventStore::Client::PersistentSubscriptions::UpdateReq, ::EventStore::Client::PersistentSubscriptions::UpdateResp
           rpc :Delete, ::EventStore::Client::PersistentSubscriptions::DeleteReq, ::EventStore::Client::PersistentSubscriptions::DeleteResp
           rpc :Read, stream(::EventStore::Client::PersistentSubscriptions::ReadReq), stream(::EventStore::Client::PersistentSubscriptions::ReadResp)
+          rpc :GetInfo, ::EventStore::Client::PersistentSubscriptions::GetInfoReq, ::EventStore::Client::PersistentSubscriptions::GetInfoResp
+          rpc :ReplayParked, ::EventStore::Client::PersistentSubscriptions::ReplayParkedReq, ::EventStore::Client::PersistentSubscriptions::ReplayParkedResp
+          rpc :List, ::EventStore::Client::PersistentSubscriptions::ListReq, ::EventStore::Client::PersistentSubscriptions::ListResp
+          rpc :RestartSubsystem, ::EventStore::Client::Empty, ::EventStore::Client::Empty
         end
 
         Stub = Service.rpc_stub_class

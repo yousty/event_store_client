@@ -1,43 +1,81 @@
 # frozen_string_literal: true
 
-require 'dry-monads'
-require 'event_store_client/adapters/grpc/command_registrar'
-
 module EventStoreClient
   module GRPC
     module Commands
       class Command
-        include Configuration
+        class << self
+          def use_request(request_klass)
+            CommandRegistrar.register_request(self, request: request_klass)
+          end
 
-        class GRPCUnavailableRetryFailed < StandardError; end
-
-        def self.inherited(klass)
-          super
-          klass.class_eval do
-            include Dry::Monads[:try, :result]
-
-            def self.use_request(request_klass)
-              CommandRegistrar.register_request(self, request: request_klass)
-            end
-
-            def self.use_service(service_klass)
-              CommandRegistrar.register_service(self, service: service_klass)
-            end
-
-            def request
-              CommandRegistrar.request(self.class)
-            end
-
-            def service
-              CommandRegistrar.service(self.class)
-            end
+          def use_service(service_klass)
+            CommandRegistrar.register_service(self, service: service_klass)
           end
         end
 
+        include Configuration
+        include Dry::Monads[:try, :result]
+
+        attr_reader :connection
+        private :connection
+
+        # @param conn_options [Hash]
+        # @option conn_options [String] :host
+        # @option conn_options [Integer] :port
+        # @option conn_options [String] :username
+        # @option conn_options [String] :password
+        def initialize(**conn_options)
+          @connection = EventStoreClient::GRPC::Connection.new(**conn_options)
+        end
+
+        # Override it in your implementation of command.
+        def call
+          raise NotImplementedError
+        end
+
+        # @return [Hash]
         def metadata
+          return {} unless connection.class.secure?
+
           credentials =
-            Base64.encode64("#{config.eventstore_user}:#{config.eventstore_password}")
-          { 'authorization' => "Basic #{credentials.delete("\n")}" }
+            Base64.encode64("#{connection.username}:#{connection.password}").delete("\n")
+          { 'authorization' => "Basic #{credentials}" }
+        end
+
+        # @return GRPC params class to be used in the request.
+        #   E.g.EventStore::Client::Streams::ReadReq
+        def request
+          CommandRegistrar.request(self.class)
+        end
+
+        # @return GRPC request stub class. E.g. EventStore::Client::Streams::Streams::Stub
+        def service
+          connection.call(CommandRegistrar.service(self.class))
+        end
+
+        # @return [Hash] connection options' hash
+        def connection_options
+          @connection.options_hash
+        end
+
+        private
+
+        def retry_request(skip_retry: false)
+          return yield if skip_retry
+
+          retries = 0
+          begin
+            yield
+          rescue ::GRPC::Unavailable => e
+            sleep config.eventstore_url.grpc_retry_interval / 1000.0
+            retries += 1
+            if retries <= config.eventstore_url.grpc_retry_attempts
+              config.logger&.debug("Request failed. Reason: #{e.class}. Retying.")
+              retry
+            end
+            raise
+          end
         end
       end
     end
