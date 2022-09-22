@@ -1,4 +1,4 @@
-name: Test & Release
+name: Test & Publish
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -28,7 +28,7 @@ jobs:
         bundle exec rspec
   push:
     needs: build
-    name: Publish
+    name: Publish to RubyGems
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +37,7 @@ jobs:
         uses: ruby/setup-ruby@v1.111.0
         with:
           ruby-version: 3.1
-      - name: Publish to RubyGems
+      - name: Publish
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
