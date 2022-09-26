@@ -1,3 +1,5 @@
+# @title Catch-up subscriptions
+
 # Catch-up subscriptions
 
 Subscriptions allow you to subscribe to a stream and receive notifications about new events added to the stream.

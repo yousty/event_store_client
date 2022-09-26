@@ -1,3 +1,5 @@
+# @title Appending events
+
 # Append your first event
 
 ## Append your first event

@@ -1,3 +1,5 @@
+# @title Deleting streams
+
 # Deleting streams
 
 ## Soft deleting streams

@@ -1,3 +1,5 @@
+# @title Configuration
+
 # Configuration
 
 Currently only one setup is supported. For example, you can't configure a connection to multiple clusters.

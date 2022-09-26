@@ -1,0 +1,1 @@
+--protected --private 'lib/**/*.rb' - docs/*.md docs/**/*.md README.md LICENSE.txt
