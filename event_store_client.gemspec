@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
       'public gem pushes.'
   end
 
-  spec.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md', 'docs/**/*']
+  spec.files = Dir['{app,config,db,lib}/**/*', 'LICENSE.txt', 'Rakefile', 'README.md', 'docs/**/*']
 
   spec.add_dependency 'dry-configurable', '~> 0.13'
   spec.add_dependency 'dry-monads', '~> 1'
