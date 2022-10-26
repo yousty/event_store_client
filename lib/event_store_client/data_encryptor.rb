@@ -39,6 +39,8 @@ module EventStoreClient
     end
 
     def deep_dup(hash)
+      return hash unless hash.instance_of?(Hash)
+
       dupl = hash.dup
       dupl.each { |k, v| dupl[k] = v.instance_of?(Hash) ? deep_dup(v) : v }
       dupl
