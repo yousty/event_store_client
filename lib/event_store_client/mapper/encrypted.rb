@@ -32,6 +32,9 @@ module EventStoreClient
       #   which key should be used as an identifier.
       # *Returns*: General +Event+ instance with encrypted data
       def serialize(event)
+        # Links does not need to be encrypted
+        return Default.new(serializer: serializer).serialize(event) if event.type == '$>'
+
         encryption_schema = (
           event.class.respond_to?(:encryption_schema) &&
           event.class.encryption_schema

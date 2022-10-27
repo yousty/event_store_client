@@ -31,6 +31,14 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
       expect(subject.metadata).to include('encryption')
       expect(subject.type).to eq('EncryptedEvent')
     end
+
+    context 'when event is a link' do
+      let(:user_registered) { EncryptedEvent.new(data: data, type: '$>') }
+
+      it 'does not encrypt its data' do
+        expect(subject.data).to eq(JSON.generate(data))
+      end
+    end
   end
 
   describe '#deserialize' do
