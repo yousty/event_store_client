@@ -10,9 +10,11 @@ module EventStoreClient
 
     def call
       return encrypted_data if encryption_metadata.empty?
+      result = find_key(encryption_metadata['key'])
+      return encrypted_data unless result.success?
 
       decrypt_attributes(
-        key: find_key(encryption_metadata['key']),
+        key: result.value!,
         data: encrypted_data,
         attributes: encryption_metadata['attributes']
       )
@@ -49,6 +51,7 @@ module EventStoreClient
       dupl
     end
 
+    # @return [Dry::Monads::Result]
     def find_key(identifier)
       key_repository.find(identifier).value!
     end

@@ -49,14 +49,14 @@ RSpec.describe EventStoreClient::DataDecryptor do
     end
 
     context 'when key is not found' do
-      let(:error) { Class.new(StandardError).new }
+      let(:failure) { Dry::Monads::Failure('some failure') }
 
       before do
-        allow(repository).to receive(:find).and_raise(error)
+        allow(repository).to receive(:find).and_return(failure)
       end
 
-      it 'raises that error' do
-        expect { subject }.to raise_error(error)
+      it 'returns data as is' do
+        expect(subject).to eq(data)
       end
     end
 
