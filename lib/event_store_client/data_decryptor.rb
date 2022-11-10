@@ -53,7 +53,7 @@ module EventStoreClient
 
     # @return [Dry::Monads::Result]
     def find_key(identifier)
-      key_repository.find(identifier).value!
+      key_repository.find(identifier)
     end
   end
 end
