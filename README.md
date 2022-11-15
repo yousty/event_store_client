@@ -44,6 +44,10 @@ See documentation chapters for the usage reference:
 - [Deleting streams](docs/deleting_streams.md)
 - [Encrypting events](docs/encrypting_events.md)
 
+### Subscriptions
+
+We have written a gem that helps you to manage and handle Catch-up Subscriptions - `event_store_subscription`. You could check it [here](https://github.com/yousty/event_store_subscriptions).
+
 ## Contributing
 
 Do you want to contribute? Welcome!
