@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/grpc/generated/shared_pb'
-
 module EventStoreClient
   module GRPC
     module Options

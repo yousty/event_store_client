@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'dry/schema'
-
 module EventStoreClient
   class DeserializedEvent
+    LINK_TYPE = '$>'
+
     InvalidDataError = Class.new(StandardError)
     private_constant :InvalidDataError
 
@@ -12,6 +12,7 @@ module EventStoreClient
 
     # @args [Hash] opts
     # @option opts [Boolean] :skip_validation
+    # @option opts [UUID] :id
     # @option opts [Hash] :data
     # @option opts [Hash] :metadata
     # @option opts [String] :type
@@ -66,6 +67,12 @@ module EventStoreClient
         key[0] = '' # remove @ sign
         result[key.to_sym] = instance_variable_get(var)
       end
+    end
+
+    # Detect whether an event is a link event
+    # @return [Boolean]
+    def link?
+      type == LINK_TYPE
     end
 
     private

@@ -6,6 +6,7 @@ module EventStoreClient
       module Streams
         class ProcessResponse
           include Dry::Monads[:result]
+          include Configuration
 
           # @api private
           # @param response [EventStore::Client::Streams::ReadResp]
@@ -18,7 +19,7 @@ module EventStoreClient
             return unless response.event&.event
 
             Success(
-              EventDeserializer.new.call(response.event.event, skip_decryption: skip_decryption)
+              config.mapper.deserialize(response.event.event, skip_decryption: skip_decryption)
             )
           end
         end

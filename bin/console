@@ -9,9 +9,9 @@
 # bin/console
 #
 require 'bundler/setup'
-require 'event_store_client'
 require 'irb'
 require 'pry'
+require 'event_store_client'
 
 EventStoreClient.configure do |config|
   ## url needs to match the DNS name in certificate

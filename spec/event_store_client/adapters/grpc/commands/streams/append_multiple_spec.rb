@@ -8,9 +8,11 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
   let(:metadata1) { { key1: 'value1', key2: 'value2', type: 'TestEvent', 'content-type' => 'test' } }
   let(:metadata2) { { type: 'TestEvent2', 'content-type' => 'test'} }
   let(:event1) {
-    EventStoreClient::Event.new(type: 'TestEvent', data: data.to_json, metadata: metadata1.to_json)
+    EventStoreClient::DeserializedEvent.new(
+      type: 'TestEvent', data: data, metadata: metadata1
+    )
   }
-  let(:event2) { EventStoreClient::Event.new(type: 'TestEvent2', metadata: metadata2.to_json) }
+  let(:event2) { EventStoreClient::DeserializedEvent.new(type: 'TestEvent2', metadata: metadata2) }
   let(:events) { [event1, event2] }
   let(:stream) { "stream$#{SecureRandom.uuid}" }
   let(:options) { {} }
@@ -118,20 +120,6 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
       it 'has info that the error is due to :stream_exists' do
         expect(subject.expected_stream_exists).to be_a(EventStore::Client::Empty)
       end
-    end
-  end
-
-  # move to lower level
-  context 'in case the eventstore is down' do
-    let(:failure_message) { 'failed to connect to eventstore' }
-
-    before do
-      EventStoreClient.config.eventstore_url.nodes =
-        Set.new([EventStoreClient::Connection::Url::Node.new('localhost', 1234)])
-    end
-
-    it 'returns failure' do
-      expect(subject.map(&:failure)).to all be_a(GRPC::Unavailable)
     end
   end
 end

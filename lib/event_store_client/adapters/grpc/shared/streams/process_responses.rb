@@ -6,6 +6,7 @@ module EventStoreClient
       module Streams
         class ProcessResponses
           include Dry::Monads[:result]
+          include Configuration
 
           # @api private
           # @param responses [Array<EventStore::Client::Streams::ReadResp>]
@@ -17,12 +18,12 @@ module EventStoreClient
             return Success(responses) if skip_deserialization
 
             events =
-              responses.map do |read_resp|
+              responses.map do |response|
                 # It could be <EventStore::Client::Streams::ReadResp: last_stream_position: 39> for
                 # example. Such responses should be skipped. See generated files for more info.
-                next unless read_resp.event&.event
+                next unless response.event&.event
 
-                EventDeserializer.new.call(read_resp.event.event, skip_decryption: skip_decryption)
+                config.mapper.deserialize(response.event.event, skip_decryption: skip_decryption)
               end
             Success(events.compact)
           end

@@ -29,8 +29,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'dry-configurable', '~> 0.13'
   spec.add_dependency 'dry-monads', '~> 1'
-  spec.add_dependency 'dry-schema', '~> 1'
-  spec.add_dependency 'dry-struct', '~> 1'
   spec.add_dependency 'grpc', '~> 1.0'
 
   spec.add_development_dependency 'pry', '~> 0.14'
@@ -40,4 +38,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'grpc-tools', '~> 1.46'
   spec.add_development_dependency 'timecop', '~> 0.9.5'
+  spec.add_development_dependency 'dry-schema', '~> 1'
 end

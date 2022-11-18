@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::Mapper::Encrypted do
+  let(:instance) { described_class.new(DummyRepository.new, serializer: serializer) }
+  let(:serializer) { EventStoreClient::Serializer::Json }
   let(:data) do
     {
       'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
@@ -11,7 +13,7 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
   end
 
   describe '#serialize' do
-    subject { described_class.new(DummyRepository.new).serialize(user_registered) }
+    subject { instance.serialize(event) }
 
     let(:encrypted_data) do
       {
@@ -22,80 +24,98 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
         'es_encrypted' => DummyRepository.encrypt(data.slice('first_name', 'last_name').to_json)
       }
     end
-    let(:user_registered) { EncryptedEvent.new(data: data) }
+    let(:event) { EncryptedEvent.new(data: data) }
 
-    it 'returns serialized event' do
-      expect(subject).to be_kind_of(EventStoreClient::Event)
-      expect(subject.data).to eq(JSON.generate(encrypted_data))
-      expect(subject.metadata).to include('created_at')
-      expect(subject.metadata).to include('encryption')
-      expect(subject.type).to eq('EncryptedEvent')
+    before do
+      allow(EventStoreClient::Serializer::EventSerializer).to receive(:call).and_call_original
+    end
+
+    it { is_expected.to be_a(EventStoreClient::SerializedEvent) }
+    it 'has correct structure' do
+      aggregate_failures do
+        expect(subject.id).to be_a(String)
+        expect(subject.data).to eq(encrypted_data)
+        expect(subject.custom_metadata).to(
+          match(hash_including('content-type', 'created_at', 'type', 'encryption'))
+        )
+        expect(subject.metadata).to match(hash_including('content-type', 'created_at', 'type'))
+      end
+    end
+    it 'serializes it using EventSerializer' do
+      subject
+      expect(EventStoreClient::Serializer::EventSerializer).to(
+        have_received(:call).with(event, serializer: serializer)
+      )
     end
 
     context 'when event is a link' do
-      let(:user_registered) { EncryptedEvent.new(data: data, type: '$>') }
+      let(:event) { EncryptedEvent.new(data: data, type: '$>') }
 
       it 'does not encrypt its data' do
-        expect(subject.data).to eq(JSON.generate(data))
+        expect(subject.data).to eq(data)
       end
     end
   end
 
   describe '#deserialize' do
-    subject { described_class.new(DummyRepository.new).deserialize(user_registered) }
+    context 'when event is a EventStoreClient::DeserializedEvent' do
+      subject { instance.deserialize(event) }
 
-    let(:encryption_metadata) do
-      {
-        iv: 'DarthSidious',
-        key: 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-        attributes: %i[first_name last_name]
-      }
-    end
-    let(:encrypted_data) do
-      {
-        'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-        'first_name' => 'es_encrypted',
-        'last_name' => 'es_encrypted',
-        'profession' => 'Jedi',
-        'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
-      }
-    end
-    let(:decrypted_data) do
-      {
-        'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-        'first_name' => 'Anakin',
-        'last_name' => 'Skywalker',
-        'profession' => 'Jedi'
-      }
-    end
-    let(:user_registered) do
-      EventStoreClient::Event.new(
-        data: encrypted_data.to_json,
-        metadata: { encryption: encryption_metadata }.to_json,
-        type: 'EncryptedEvent'
-      )
-    end
-    let(:message_to_encrypt) do
-      decrypted_data.slice('first_name', 'last_name').to_json
-    end
+      let(:encryption_metadata) do
+        {
+          iv: 'DarthSidious',
+          key: 'dab48d26-e4f8-41fc-a9a8-59657e590716',
+          attributes: %i[first_name last_name]
+        }
+      end
+      let(:encrypted_data) do
+        {
+          'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
+          'first_name' => 'es_encrypted',
+          'last_name' => 'es_encrypted',
+          'profession' => 'Jedi',
+          'es_encrypted' => DummyRepository.encrypt(message_to_encrypt)
+        }
+      end
+      let(:decrypted_data) do
+        {
+          'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
+          'first_name' => 'Anakin',
+          'last_name' => 'Skywalker',
+          'profession' => 'Jedi'
+        }
+      end
+      let!(:event) do
+        event = EncryptedEvent.new(
+          data: encrypted_data,
+          metadata: { encryption: encryption_metadata }
+        )
+        append_and_reload("some-stream$#{SecureRandom.uuid}", event, skip_decryption: true)
+      end
+      let(:message_to_encrypt) do
+        decrypted_data.slice('first_name', 'last_name').to_json
+      end
 
-    before do
-      DummyRepository.new.encrypt(
-        key: DummyRepository::Key.new(id: decrypted_data['user_id']),
-        message: message_to_encrypt
-      )
-      allow(EncryptedEvent).to receive(:new).and_call_original
-    end
+      before do
+        DummyRepository.new.encrypt(
+          key: DummyRepository::Key.new(id: decrypted_data['user_id']),
+          message: message_to_encrypt
+        )
+        allow(EncryptedEvent).to receive(:new).and_call_original
+      end
 
-    it 'returns deserialized event' do
-      expect(subject).to be_kind_of(EncryptedEvent)
-      expect(subject.data).to eq(decrypted_data)
-      expect(subject.metadata).to include('created_at')
-      expect(subject.data).not_to include('es_encrypted')
-    end
-    it 'skips validation' do
-      subject
-      expect(EncryptedEvent).to have_received(:new).with(hash_including(skip_validation: true))
+      it 'returns decrypted event' do
+        aggregate_failures do
+          expect(subject).to be_a(EncryptedEvent)
+          expect(subject.data).to eq(decrypted_data)
+          expect(subject.data).not_to include('es_encrypted')
+          expect(subject.metadata).to include('created_at')
+        end
+      end
+      it 'skips validation' do
+        subject
+        expect(EncryptedEvent).to have_received(:new).with(hash_including(skip_validation: true))
+      end
     end
   end
 end

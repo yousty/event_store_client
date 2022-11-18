@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'dry-struct'
-
 module EventStoreClient
   class SomethingHappened < DeserializedEvent
     def schema

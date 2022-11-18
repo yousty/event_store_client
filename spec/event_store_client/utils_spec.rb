@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/grpc/generated/shared_pb'
-
 RSpec.describe EventStoreClient::Utils do
   describe '.uuid_to_str' do
     subject { described_class.uuid_to_str(uuid) }
