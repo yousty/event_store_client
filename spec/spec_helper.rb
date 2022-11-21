@@ -25,8 +25,8 @@ end
 
 require 'pry'
 require 'event_store_client'
-require 'securerandom'
 require 'timecop'
+require 'dry-schema'
 
 Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
 
@@ -79,4 +79,5 @@ RSpec.configure do |config|
       Timecop.freeze { example.run }
     end
   end
+  config.include EventHelpers
 end

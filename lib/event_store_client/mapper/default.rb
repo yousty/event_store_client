@@ -1,47 +1,32 @@
 # frozen_string_literal: true
 
+# rubocop:disable Layout/LineLength
+
 module EventStoreClient
   module Mapper
     class Default
       attr_reader :serializer
       private :serializer
 
+      # @param serializer [#serialize, #deserialize]
       def initialize(serializer: Serializer::Json)
         @serializer = serializer
       end
 
+      # @param event [EventStoreClient::DeserializedEvent]
+      # @return [EventStoreClient::SerializedEvent]
       def serialize(event)
-        Event.new(
-          id: event.respond_to?(:id) ? event.id : nil,
-          type: (event.respond_to?(:type) ? event.type : nil) || event.class.to_s,
-          data: serializer.serialize(event.data),
-          metadata: serializer.serialize(event.metadata)
-        )
+        Serializer::EventSerializer.call(event, serializer: serializer)
       end
 
-      def deserialize(event, **)
-        metadata = serializer.deserialize(event.metadata)
-        data = serializer.deserialize(event.data)
+      # @param event_or_raw_event [EventStoreClient::DeserializedEvent, EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent, EventStore::Client::PersistentSubscriptions::ReadResp::ReadEvent::RecordedEvent]
+      # @return event [EventStoreClient::DeserializedEvent]
+      def deserialize(event_or_raw_event, **)
+        return event_or_raw_event if event_or_raw_event.is_a?(EventStoreClient::DeserializedEvent)
 
-        event_class =
-          begin
-            Object.const_get(event.type)
-          rescue NameError
-            EventStoreClient.config.default_event_class
-          end
-        event_class.new(
-          skip_validation: true,
-          id: event.id,
-          type: event.type,
-          title: event.title,
-          data: data,
-          metadata: metadata,
-          stream_revision: event.stream_revision,
-          commit_position: event.commit_position,
-          prepare_position: event.prepare_position,
-          stream_name: event.stream_name
-        )
+        Serializer::EventDeserializer.call(event_or_raw_event, serializer: serializer)
       end
     end
   end
 end
+# rubocop:enable Layout/LineLength

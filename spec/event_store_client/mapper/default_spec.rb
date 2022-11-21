@@ -1,93 +1,64 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::Mapper::Default do
-  let(:data) do
-    {
-      'user_id' => 'dab48d26-e4f8-41fc-a9a8-59657e590716',
-      'email' => 'darth@vader.sv'
-    }
-  end
-  let(:default_event) do
-    Class.new(EventStoreClient::DeserializedEvent) do
-      def self.to_s
-        'DefaultEvent'
-      end
-
-      def schema
-        Dry::Schema.Params do
-          required(:user_id).value(:string)
-          required(:email).value(:string)
-        end
-      end
-    end
-  end
-  let(:serialized_default_event) do
-    Class.new(EventStoreClient::Event) do
-      def self.to_s
-        'SerializedDefaultEvent'
-      end
-
-      def metadata
-        '{"created_at":"2019-12-05 19:37:38 +0100"}'
-      end
-
-      def data
-        '{"user_id":"dab48d26-e4f8-41fc-a9a8-59657e590716","email":"darth@vader.sv"}'
-      end
-    end
-  end
-
-  before do
-    stub_const(default_event.to_s, default_event)
-    stub_const(serialized_default_event.to_s, default_event)
-  end
+  let(:instance) { described_class.new(serializer: serializer) }
+  let(:serializer) { EventStoreClient::Serializer::Json }
 
   describe '#serialize' do
-    subject { described_class.new.serialize(user_registered) }
+    subject { instance.serialize(event) }
 
-    let(:user_registered) { default_event.new(data: data) }
+    let(:event) { EventStoreClient::DeserializedEvent.new(data: { foo: :bar }) }
 
-    it 'returns serialized event' do
-      expect(subject).to be_kind_of(EventStoreClient::Event)
-      expect(subject.data).to eq(JSON.generate(data))
-      expect(subject.metadata).to include('created_at')
-      expect(subject.type).to eq('DefaultEvent')
+    before do
+      allow(EventStoreClient::Serializer::EventSerializer).to receive(:call).and_call_original
+    end
+
+    it { is_expected.to be_a(EventStoreClient::SerializedEvent) }
+    it 'has correct structure' do
+      aggregate_failures do
+        expect(subject.id).to be_a(String)
+        expect(subject.data).to eq('foo' => 'bar')
+        expect(subject.custom_metadata).to match(hash_including('content-type', 'created_at', 'type'))
+        expect(subject.metadata).to match(hash_including('content-type', 'created_at', 'type'))
+      end
+    end
+    it 'serializes it using EventSerializer' do
+      subject
+      expect(EventStoreClient::Serializer::EventSerializer).to(
+        have_received(:call).with(event, serializer: serializer)
+      )
     end
   end
 
   describe '#deserialize' do
-    context 'when the event type const exists' do
-      subject { described_class.new.deserialize(event) }
+    subject { instance.deserialize(event) }
 
-      let(:event) { serialized_default_event.new(type: 'DefaultEvent') }
+    let(:event) { EventStoreClient::DeserializedEvent.new(data: { foo: :bar }) }
 
-      before do
-        allow(default_event).to receive(:new).and_call_original
-      end
-
-      it 'returns instance of DefaultEvent' do
-        expect(subject).to be_kind_of(default_event)
-        expect(subject.data).to eq(data)
-        expect(subject.metadata['created_at']).not_to be_nil
-        expect(subject.type).to eq('DefaultEvent')
-      end
-
-      it 'skips validation' do
-        subject
-        expect(default_event).to have_received(:new).with(hash_including(skip_validation: true))
+    context 'when event is a DeserializedEvent' do
+      it 'returns that event' do
+        is_expected.to eq(event)
       end
     end
 
-    context 'when the event type const does not exist' do
-      let(:event) { serialized_default_event.new(type: 'SomethingHappened') }
+    context 'when event is a raw event' do
+      subject { instance.deserialize(raw_event) }
 
-      subject { described_class.new.deserialize(event) }
+      let(:stream_name) { "some-stream$#{SecureRandom.uuid}" }
+      let(:raw_event) do
+        append_and_reload(stream_name, event, skip_deserialization: true).event.event
+      end
 
-      it 'returns instance of DeserializedEvent' do
-        expect(subject).to be_kind_of(EventStoreClient::DeserializedEvent)
-        expect(subject.data).to eq(data)
-        expect(subject.metadata['created_at']).not_to be_nil
-        expect(subject.type).to eq('SomethingHappened')
+      before do
+        allow(EventStoreClient::Serializer::EventDeserializer).to receive(:call).and_call_original
+      end
+
+      it { is_expected.to be_a(EventStoreClient::DeserializedEvent) }
+      it 'deserializes it using EventDeserializer' do
+        subject
+        expect(EventStoreClient::Serializer::EventDeserializer).to(
+          have_received(:call).with(raw_event, serializer: serializer)
+        )
       end
     end
   end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/AbcSize, Layout/LineLength, Style/IfUnlessModifier
+
 require 'event_store_client/encryption_metadata'
 require 'event_store_client/data_encryptor'
 require 'event_store_client/data_decryptor'
@@ -15,88 +17,62 @@ module EventStoreClient
       attr_reader :key_repository, :serializer
       private :key_repository, :serializer
 
-      ##
-      # Initializes the mapper with required dependencies. Accepts:
-      # * +key_repoistory+ - repository stored encryption keys. Passed down to the +DataEncryptor+
-      # * +serializer+ - object used to serialize data. By default JSON serializer is used.
+      # @param key_repository [#find, #create, #encrypt, #decrypt]
+      #   See spec/support/dummy_repository.rb for the example of simple in-memory implementation
+      # @param serializer [#serialize, #deserialize]
       def initialize(key_repository, serializer: Serializer::Json)
         @key_repository = key_repository
         @serializer = serializer
       end
 
-      ##
-      # Encrypts the given event's subset of data.
-      # Accepts specific event class instance with:
-      # * +#data+ - hash with non-encrypted values.
-      # * encryption_schema - hash with information which data to encrypt and
-      #   which key should be used as an identifier.
-      # *Returns*: General +Event+ instance with encrypted data
+      # @param event [EventStoreClient::DeserializedEvent]
+      # @return [Hash]
       def serialize(event)
-        # Links does not need to be encrypted
-        return Default.new(serializer: serializer).serialize(event) if event.type == '$>'
+        # Links don't need to be encrypted
+        return Default.new(serializer: serializer).serialize(event) if event.link?
 
-        encryption_schema = (
-          event.class.respond_to?(:encryption_schema) &&
-          event.class.encryption_schema
-        )
+        serialized = Serializer::EventSerializer.call(event, serializer: serializer)
+        encryption_schema =
+          if event.class.respond_to?(:encryption_schema)
+            event.class.encryption_schema
+          end
+
         encryptor = EventStoreClient::DataEncryptor.new(
-          data: event.data,
+          data: serialized.data,
           schema: encryption_schema,
           repository: key_repository
         )
         encryptor.call
-        EventStoreClient::Event.new(
-          id: event.respond_to?(:id) ? event.id : nil,
-          data: serializer.serialize(encryptor.encrypted_data),
-          metadata: serializer.serialize(
-            event.metadata.merge(encryption: encryptor.encryption_metadata)
-          ),
-          type: event.class.to_s
-        )
+        serialized.data = encryptor.encrypted_data
+        serialized.custom_metadata['encryption'] = encryptor.encryption_metadata
+        serialized
       end
 
-      ##
       # Decrypts the given event's subset of data.
-      # General +Event+ instance with encrypted data
-      # * +#data+ - hash with encrypted values.
-      # * encryption_metadata - hash with information which data to encrypt and
-      #   which key should be used as an identifier.
-      # *Returns*: Specific event class with all data decrypted
-      def deserialize(event, skip_decryption: false)
-        metadata = serializer.deserialize(event.metadata)
-        encryption_schema = metadata['encryption']
+      # @param event_or_raw_event [EventStoreClient::DeserializedEvent, EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent, EventStore::Client::PersistentSubscriptions::ReadResp::ReadEvent::RecordedEvent]
+      # @param skip_decryption [Boolean]
+      # @return event [EventStoreClient::DeserializedEvent]
+      def deserialize(event_or_raw_event, skip_decryption: false)
+        if skip_decryption
+          return Default.new(serializer: serializer).deserialize(event_or_raw_event)
+        end
+
+        event =
+          if event_or_raw_event.is_a?(EventStoreClient::DeserializedEvent)
+            event_or_raw_event
+          else
+            Serializer::EventDeserializer.call(event_or_raw_event, serializer: serializer)
+          end
 
         decrypted_data =
-          if skip_decryption
-            serializer.deserialize(event.data)
-          else
-            EventStoreClient::DataDecryptor.new(
-              data: serializer.deserialize(event.data),
-              schema: encryption_schema,
-              repository: key_repository
-            ).call
-          end
-
-        event_class =
-          begin
-            Object.const_get(event.type)
-          rescue NameError
-            EventStoreClient.config.default_event_class
-          end
-
-        event_class.new(
-          skip_validation: true,
-          id: event.id,
-          type: event.type,
-          title: event.title,
-          data: decrypted_data,
-          metadata: metadata,
-          stream_revision: event.stream_revision,
-          commit_position: event.commit_position,
-          prepare_position: event.prepare_position,
-          stream_name: event.stream_name
-        )
+          EventStoreClient::DataDecryptor.new(
+            data: event.data,
+            schema: event.metadata['encryption'],
+            repository: key_repository
+          ).call
+        event.class.new(**event.to_h.merge(data: decrypted_data, skip_validation: true))
       end
     end
   end
 end
+# rubocop:enable Metrics/AbcSize, Layout/LineLength, Style/IfUnlessModifier

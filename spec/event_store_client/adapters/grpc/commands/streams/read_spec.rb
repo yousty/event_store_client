@@ -27,9 +27,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
     let(:skip_decryption) { false }
 
     context 'when stream exists' do
+      let(:data) { { foo: :bar } }
+      let(:metadata) { { transaction: 'some-trx', created_at: created_at } }
+      let(:created_at) { Time.at(10) }
       let(:event) do
         EventStoreClient::DeserializedEvent.new(
-          id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
+          id: SecureRandom.uuid, type: 'some-event', data: data, metadata: metadata
         )
       end
 
@@ -38,16 +41,29 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
       end
 
       it 'reads events from stream' do
-        is_expected.to be_a(Dry::Monads::Success)
+        aggregate_failures do
+          is_expected.to be_a(Dry::Monads::Success)
+          expect(subject.success.size).to eq(1)
+        end
       end
 
-      describe 'success result' do
-        subject { super(); subject.success }
+      describe 'read event' do
+        subject { super(); subject.success.first }
 
         it 'returns events of the given stream' do
           aggregate_failures do
-            expect(subject.size).to eq(1)
-            expect(subject.first.id).to eq(event.id)
+            expect(subject.id).to eq(event.id)
+            expect(subject.type).to eq(event.type)
+            expect(subject.data).to eq('foo' => 'bar')
+            expect(subject.metadata).to(
+              match(
+                'transaction' => 'some-trx',
+                'created_at' => created_at.to_s,
+                'content-type' => 'application/json',
+                'created' => instance_of(String),
+                'type' => event.type
+              )
+            )
           end
         end
       end
@@ -88,7 +104,9 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
         context 'when skip_decryption is false' do
           it 'returns decrypted event' do
             event = subject.success.find { |e| e.id == encrypted_event.id }
-            expect(event.data).to match(hash_including('first_name' => 'Anakin', 'last_name' => 'Skywalker'))
+            expect(event.data).to(
+              match(hash_including('first_name' => 'Anakin', 'last_name' => 'Skywalker'))
+            )
           end
         end
 

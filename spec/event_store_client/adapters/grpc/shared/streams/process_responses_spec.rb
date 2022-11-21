@@ -4,8 +4,10 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
   subject { instance }
 
   let(:instance) { described_class.new }
+  let(:mapper) { instance.config.mapper }
 
   it { is_expected.to be_a(Dry::Monads::Result::Mixin) }
+  it { is_expected.to be_a(EventStoreClient::Configuration) }
 
   describe '#call' do
     subject { instance.call(responses, skip_deserialization, skip_decryption) }
@@ -70,19 +72,15 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
 
         describe 'skip_decryption option' do
           let(:skip_decryption) { true }
-          let(:deserializer) { EventStoreClient::GRPC::Shared::EventDeserializer.new }
 
           before do
-            allow(EventStoreClient::GRPC::Shared::EventDeserializer).to(
-              receive(:new).and_return(deserializer)
-            )
-            allow(deserializer).to receive(:call).and_call_original
+            allow(mapper).to receive(:deserialize).and_call_original
           end
 
           it 'takes it into account' do
             subject
-            expect(deserializer).to(
-              have_received(:call).with(recorded_event, skip_decryption: skip_decryption)
+            expect(mapper).to(
+              have_received(:deserialize).with(recorded_event, skip_decryption: skip_decryption)
             )
           end
         end

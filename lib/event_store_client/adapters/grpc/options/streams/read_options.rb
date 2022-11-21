@@ -2,8 +2,6 @@
 
 # rubocop:disable Metrics/AbcSize
 
-require 'event_store_client/adapters/grpc/generated/shared_pb'
-
 module EventStoreClient
   module GRPC
     module Options

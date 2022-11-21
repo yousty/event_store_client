@@ -1,19 +1,28 @@
 # frozen_string_literal: true
 
-module Serializer
-  module Json
-    def self.deserialize(data)
-      return data if data.is_a?(Hash)
+module EventStoreClient
+  module Serializer
+    module Json
+      # @param data [String, Hash]
+      # @return [Hash]
+      def self.deserialize(data)
+        return data if data.is_a?(Hash)
 
-      JSON.parse(data)
-    rescue JSON::ParserError
-      { 'message' => data }
-    end
+        result = JSON.parse(data)
+        return result if result.is_a?(Hash)
 
-    def self.serialize(data)
-      return data if data.is_a?(String)
+        { 'message' => result }
+      rescue JSON::ParserError
+        { 'message' => data }
+      end
 
-      JSON.generate(data)
+      # @param data [String, Object]
+      # @return [String]
+      def self.serialize(data)
+        return data if data.is_a?(String)
+
+        JSON.generate(data)
+      end
     end
   end
 end

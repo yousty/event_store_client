@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/adapters/grpc/generated/streams_pb'
-require 'event_store_client/adapters/grpc/generated/streams_services_pb'
-
 module EventStoreClient
   module GRPC
     module Commands
@@ -10,8 +7,6 @@ module EventStoreClient
         class Append < Command
           use_request EventStore::Client::Streams::AppendReq
           use_service EventStore::Client::Streams::Streams::Stub
-
-          ALLOWED_EVENT_METADATA = %w[type content-type created_at].freeze
 
           # @api private
           # @see {EventStoreClient::GRPC::Client#append_to_stream}
@@ -26,8 +21,6 @@ module EventStoreClient
               service.append(payload, metadata: metadata)
             end
             validate_response(response)
-          rescue ::GRPC::Unavailable => e
-            Failure(e)
           end
 
           private
@@ -36,31 +29,7 @@ module EventStoreClient
           # @return [EventStore::Client::Streams::AppendReq::ProposedMessage]
           def proposed_message(event)
             serialized_event = config.mapper.serialize(event)
-            event_metadata = JSON.parse(serialized_event.metadata)
-            custom_metadata = custom_metadata(serialized_event.type, event_metadata)
-            opts =
-              {
-                id: {
-                  string: serialized_event.id
-                },
-                data: serialized_event.data.b,
-                custom_metadata: custom_metadata.to_json,
-                metadata: event_metadata.slice(*ALLOWED_EVENT_METADATA)
-              }
-            EventStore::Client::Streams::AppendReq::ProposedMessage.new(opts)
-          end
-
-          # @param event_type [String]
-          # @param event_metadata [Hash]
-          # @return [Hash]
-          def custom_metadata(event_type, event_metadata)
-            {
-              type: event_type,
-              created_at: Time.now.utc,
-              encryption: event_metadata['encryption'],
-              'content-type': event_metadata['content-type'],
-              transaction: event_metadata['transaction']
-            }.compact
+            EventStore::Client::Streams::AppendReq::ProposedMessage.new(serialized_event.to_grpc)
           end
 
           # @param stream_name [String]
