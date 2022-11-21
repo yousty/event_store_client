@@ -4,6 +4,7 @@ module EventStoreClient
 end
 
 require 'json'
+require 'set'
 
 require 'event_store_client/serializer/json'
 require 'event_store_client/serializer/event_serializer'
