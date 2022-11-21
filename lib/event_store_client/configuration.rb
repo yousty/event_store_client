@@ -1,44 +1,43 @@
 # frozen_string_literal: true
 
-require 'dry-configurable'
-
 module EventStoreClient
+  class Config
+    include Extensions::OptionsExtension
+
+    option(:eventstore_url) { 'esdb://localhost:2113' }
+    option(:per_page) { 20 }
+    option(:mapper) { Mapper::Default.new }
+    option(:default_event_class) { DeserializedEvent }
+    option(:logger)
+    option(:skip_deserialization) { false }
+    option(:skip_decryption) { false }
+
+    def eventstore_url=(value)
+      @eventstore_url =
+        if value.is_a?(Connection::Url)
+          value
+        else
+          Connection::UrlParser.new.call(value)
+        end
+    end
+
+    # @param logger [Logger, nil]
+    # @return [Logger, nil]
+    def logger=(logger)
+      ::GRPC.define_singleton_method :logger do
+        @logger ||= logger.nil? ? ::GRPC::DefaultLogger::NoopLogger.new : logger
+      end
+      @logger = logger
+    end
+  end
+
   class << self
     def configure
       yield(config) if block_given?
     end
 
     def config
-      @config ||= Class.new do
-        extend Dry::Configurable
-
-        # @param logger [Logger, nil]
-        # @return [Logger, nil]
-        def self.assign_grpc_logger(logger)
-          ::GRPC.define_singleton_method :logger do
-            @logger ||= logger.nil? ? ::GRPC::DefaultLogger::NoopLogger.new : logger
-          end
-          logger
-        end
-
-        setting :eventstore_url,
-                default: 'esdb://localhost:2113',
-                constructor:
-                  proc { |value|
-                    value.is_a?(Connection::Url) ? value : Connection::UrlParser.new.call(value)
-                  }
-        setting :per_page, default: 20
-
-        setting :mapper, default: Mapper::Default.new
-
-        setting :default_event_class, default: DeserializedEvent
-
-        setting :logger, constructor: method(:assign_grpc_logger).to_proc
-
-        setting :skip_deserialization, default: false
-        setting :skip_decryption, default: false
-      end
-      @config.config
+      @config ||= Config.new
     end
 
     def client

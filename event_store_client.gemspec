@@ -27,7 +27,6 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir['{app,config,db,lib}/**/*', 'LICENSE.txt', 'Rakefile', 'README.md', 'docs/**/*']
 
-  spec.add_dependency 'dry-configurable', '~> 0.13'
   spec.add_dependency 'dry-monads', '~> 1'
   spec.add_dependency 'grpc', '~> 1.0'
 

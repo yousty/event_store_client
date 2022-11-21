@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'event_store_client/configuration'
-
 module EventStoreClient
   class DataDecryptor
     include Configuration
