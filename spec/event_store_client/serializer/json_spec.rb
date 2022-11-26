@@ -15,7 +15,7 @@ RSpec.describe EventStoreClient::Serializer::Json do
     context 'when data is a string' do
       let(:data) { { foo: :bar }.to_json }
 
-      context 'when it is a correct JSOn string' do
+      context 'when it is a correct JSON string' do
         context 'when it is parsed into a hash' do
           it { is_expected.to eq('foo' => 'bar') }
         end
@@ -56,6 +56,10 @@ RSpec.describe EventStoreClient::Serializer::Json do
       it 'returns it' do
         is_expected.to eq(data)
       end
+      it 'dups it' do
+        expect(subject.__id__).not_to eq(data.__id__)
+      end
+      it { is_expected.not_to be_frozen }
     end
 
     context 'when data is something else' do

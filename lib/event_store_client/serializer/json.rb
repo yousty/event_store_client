@@ -19,7 +19,7 @@ module EventStoreClient
       # @param data [String, Object]
       # @return [String]
       def self.serialize(data)
-        return data if data.is_a?(String)
+        return data.dup if data.is_a?(String)
 
         JSON.generate(data)
       end

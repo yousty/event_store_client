@@ -34,8 +34,8 @@ module EventStoreClient
     def to_grpc
       {
         id: { string: id },
-        data: serializer.serialize(data),
-        custom_metadata: serializer.serialize(custom_metadata),
+        data: serializer.serialize(data).force_encoding('ASCII-8BIT'),
+        custom_metadata: serializer.serialize(custom_metadata).force_encoding('ASCII-8BIT'),
         metadata: metadata
       }
     end
