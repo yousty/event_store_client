@@ -145,5 +145,48 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
         end
       end
     end
+
+    describe 'paginating projection' do
+      subject do
+        instance.call(
+          stream_name,
+          options: options,
+          skip_deserialization: skip_deserialization,
+          skip_decryption: skip_decryption
+        )
+      end
+
+      let(:options) { { resolve_link_tos: true, max_count: 3 } }
+      let(:stream_name) { "some-projection$#{SecureRandom.uuid}" }
+      let(:events) do
+        10.times.map do
+          event = EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event')
+          stream_name = "some-stream$#{SecureRandom.uuid}"
+          EventStoreClient.client.append_to_stream(
+            stream_name,
+            event
+          )
+          # Re-read the event from stream so we can link it to the target stream properly
+          EventStoreClient.client.read(stream_name).success.first
+        end
+      end
+
+      before do
+        EventStoreClient.client.link_to(stream_name, events)
+      end
+
+      it 'returns all events' do
+        result = nil
+        worker = Thread.new { result = subject.flat_map(&:success) }
+        sleep 1
+        worker.kill
+        error_message = <<~TEXT
+          Failed to correctly paginate the projection. \
+          Expected paginated read to return 10 events. Got #{result.inspect}. It seems it trapped \
+          into an infinite loop.
+        TEXT
+        expect(result&.size).to eq(events.size), error_message
+      end
+    end
   end
 end

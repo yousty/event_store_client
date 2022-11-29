@@ -117,7 +117,7 @@ module EventStoreClient
           # @param stream_name [String]
           # @return [Integer]
           def calc_next_position(raw_events, direction, stream_name)
-            events = meaningful_events(raw_events).map { |e| e.event.event }
+            events = meaningful_events(raw_events).map(&:event)
 
             return next_position_for_all(events, direction) if stream_name == '$all'
 
@@ -128,18 +128,18 @@ module EventStoreClient
           # @param direction [Symbol] :Backwards or :Forwards
           # @return [Integer]
           def next_position_for_all(events, direction)
-            return events.last.commit_position if direction == DEFAULT_READ_DIRECTION
+            return event_or_link(events.last).commit_position if direction == DEFAULT_READ_DIRECTION
 
-            events.first.commit_position
+            event_or_link(events.first).commit_position
           end
 
           # @param events [Array<EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent>]
           # @param direction [Symbol] :Backwards or :Forwards
           # @return [Integer]
           def next_position_for_regular(events, direction)
-            return events.last.stream_revision + 1 if direction == DEFAULT_READ_DIRECTION
+            return event_or_link(events.last).stream_revision + 1 if direction == DEFAULT_READ_DIRECTION
 
-            events.last.stream_revision - 1
+            event_or_link(events.last).stream_revision - 1
           end
 
           # @param raw_events [Array<EventStore::Client::Streams::ReadResp>]
@@ -165,6 +165,17 @@ module EventStoreClient
               'Pagination requires :max_count option to be greater than or equal to 2. ' \
               "Current value is `#{max_count}'."
             )
+          end
+
+          # Picks the correct object for later resolving of stream_revision from it. In case if we
+          # deal with links - we should prefer a link over a linked event, because exactly it
+          # contains correct stream revision of the stream we are reading from. Because if we pick
+          # a linked event's stream_revision, then it will be a revision from the stream that event
+          # belongs to - this can potentially create an infinite loop.
+          # @param event [EventStore::Client::Streams::ReadResp::ReadEvent]
+          # @return [EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent]
+          def event_or_link(event)
+            event.link ? event.link : event.event
           end
         end
       end
