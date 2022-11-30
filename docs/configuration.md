@@ -83,3 +83,11 @@ Possible options:
 | grpcRetryAttempts    | Integer                                         | `3`           | Number of times to retry GRPC requests. Does not apply to discovery requests. Final number of requests in cases of error will be initial request + grpcRetryAttempts.                                                                                  |
 | grpcRetryInterval    | Integer                                         | `100`         | Milliseconds. Delay between GRPC requests. retries.                                                                                                                                                                                                      |
 | throwOnAppendFailure | Boolean                                         | `true`        | Defines if append requests should immediately raise an error. If set to `false`, request will be retried in case of a server error.                                                                                                                       |
+
+Examples:
+
+```
+esdb://localhost:2113/?tls=false
+esdb+discover://localhost:2113/?grpcRetryAttempts=3&grpcRetryInterval=300&discoverInterval=200
+esdb://localhost:2113,localhost:2114,localhost:2115/?gossipTimeout=500&maxDiscoverAttempts=3
+```
