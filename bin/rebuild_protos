@@ -1,6 +1,11 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+msg = <<~TEXT
+\e[31mThis script is temporary disabled. Protos were adjusted manually. See PR https://github.com/EventStore/EventStore/pull/3671. If it was merged - you can re-enable it and re-generate Protos.\e[0m
+TEXT
+puts msg
+exit(0)
 require 'fileutils'
 
 ROOT = File.expand_path('../', __dir__)
@@ -76,6 +81,8 @@ def adjust_requires
   end
 end
 
+FileUtils.rm_rf(GENERATED_FILES_DIR)
+FileUtils.mkdir_p(GENERATED_FILES_DIR)
 FileUtils.mkdir_p(PROTOS_DIR)
 
 download_es

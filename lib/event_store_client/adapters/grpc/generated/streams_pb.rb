@@ -4,7 +4,6 @@
 require 'google/protobuf'
 
 require_relative 'shared_pb'
-require_relative 'status_pb'
 require 'google/protobuf/duration_pb'
 require 'google/protobuf/empty_pb'
 require 'google/protobuf/timestamp_pb'
@@ -211,7 +210,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :correlation_id, :message, 1, "event_store.client.UUID"
       optional :stream_identifier, :message, 4, "event_store.client.StreamIdentifier"
       oneof :result do
-        optional :error, :message, 2, "google.rpc.Status"
+        optional :error, :message, 2, "event_store.client.Status"
         optional :success, :message, 3, "event_store.client.streams.BatchAppendResp.Success"
       end
       oneof :expected_stream_position do
