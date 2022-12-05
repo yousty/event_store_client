@@ -11,7 +11,7 @@ module EventStoreClient
           stub_class.new(
             "#{host}:#{port}",
             :this_channel_is_insecure,
-            channel_args: channel_args,
+            channel_args: config.channel_args,
             timeout: (timeout / 1000.0 if timeout)
           )
         end

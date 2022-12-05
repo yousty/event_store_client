@@ -52,6 +52,14 @@ module EventStoreClient
       option(:grpc_retry_attempts) { 3 }
       # Delay between GRPC request retries
       option(:grpc_retry_interval) { 100 } # milliseconds
+
+      # @param other [EventStoreClient::Connection::Url, Object]
+      # @return [Boolean]
+      def ==(other)
+        return false unless other.is_a?(Url)
+
+        options_hash == other.options_hash
+      end
     end
   end
 end

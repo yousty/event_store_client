@@ -55,23 +55,6 @@ module EventStoreClient
       def call(stub_class)
         raise NotImplementedError
       end
-
-      private
-
-      # Common channel arguments for all GRPC requests.
-      # Available channel arguments are described here
-      # https://github.com/grpc/grpc/blob/master/include/grpc/impl/codegen/grpc_types.h
-      # @return [Hash]
-      def channel_args
-        {
-          # disable build-in GRPC retries functional
-          'grpc.enable_retries' => 0,
-          # These three options reduce delays between failed requests.
-          'grpc.min_reconnect_backoff_ms' => 100, # milliseconds
-          'grpc.max_reconnect_backoff_ms' => 100, # milliseconds
-          'grpc.initial_reconnect_backoff_ms' => 100 # milliseconds
-        }
-      end
     end
   end
 end

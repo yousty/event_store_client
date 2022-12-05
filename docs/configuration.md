@@ -6,15 +6,52 @@ Currently only one setup is supported. For example, you can't configure a connec
 
 Configuration options:
 
-| name                 | value                                                                                | default value                           | description                                                                                                                                                                                                                              |
-|----------------------|--------------------------------------------------------------------------------------|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| eventstore_url      | String                                                                               | `'esdb://localhost:2113'`               | Connection string. See description of possible values below.                                                                                                                                                                            |
-| per_page             | Integer                                                                              | `20`                                    | Number of events to return in one response.                                                                                                                                                                                              |
-| mapper               | `EventStoreClient::Mapper::Default.new` or `EventStoreClient::Mapper::Encrypted.new` | `EventStoreClient::Mapper::Default.new` | An object that is responsible for serialization / deserialization and encryption / decryption of events.                                                                                                                                     |
-| default_event_class  | `DeserializedEvent` or any class, inherited from it                                  | `DeserializedEvent`                     | This class will be used during the deserialization process when deserializer fails to resolve an event's class from response.                                                                                                             |
-| logger               | `Logger`                                                                             | `nil`                                   | A logger that would log messages from `event_store_client` and `grpc` gems.                                                                                                                                                               |
-| skip_deserialization | Boolean                                                                              | `false`                                 | Whether to skip event deserialization using the given `mapper` setting. If you set it to `true` decryption will be skipped as well. It is useful when you want to defer deserialization and handle it later by yourself. |
-| skip_decryption      | Boolean                                                                              | `false`                                 | Whether to skip decrypting encrypted event payloads.                                                                                                                                                                                                       |
+| name                 | value                                                                                | default value                                                                                                                     | description                                                                                                                                                                                                                                           |
+|----------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| eventstore_url      | String                                                                               | `'esdb://localhost:2113'`                                                                                                         | Connection string. See description of possible values below.                                                                                                                                                                                          |
+| per_page             | Integer                                                                              | `20`                                                                                                                              | Number of events to return in one response.                                                                                                                                                                                                           |
+| mapper               | `EventStoreClient::Mapper::Default.new` or `EventStoreClient::Mapper::Encrypted.new` | `EventStoreClient::Mapper::Default.new`                                                                                           | An object that is responsible for serialization / deserialization and encryption / decryption of events.                                                                                                                                              |
+| default_event_class  | `DeserializedEvent` or any class, inherited from it                                  | `DeserializedEvent`                                                                                                               | This class will be used during the deserialization process when deserializer fails to resolve an event's class from response.                                                                                                                         |
+| logger               | `Logger`                                                                             | `nil`                                                                                                                             | A logger that would log messages from `event_store_client` and `grpc` gems.                                                                                                                                                                           |
+| skip_deserialization | Boolean                                                                              | `false`                                                                                                                           | Whether to skip event deserialization using the given `mapper` setting. If you set it to `true` decryption will be skipped as well. It is useful when you want to defer deserialization and handle it later by yourself.                              |
+| skip_decryption      | Boolean                                                                              | `false`                                                                                                                           | Whether to skip decrypting encrypted event payloads.                                                                                                                                                                                                  |
+| channel_args      | Hash                                                                                 | `{ 'grpc.min_reconnect_backoff_ms' => 100, 'grpc.max_reconnect_backoff_ms' => 100, 'grpc.initial_reconnect_backoff_ms' => 100 }` | GRPC-specific connection options. This hash will be passed into the `:channel_args` argument of a Stub class of your request. More GRPC options can be found [here](https://github.com/grpc/grpc/blob/master/include/grpc/impl/codegen/grpc_types.h). |
+
+## A note about channel_args option
+
+When defining the custom value of this option - the default value will be reverse-merged into it. So, for example, if you would like to set `grpc.min_reconnect_backoff_ms` like so:
+
+```ruby
+EventStoreClient.configure do |config|
+  config.channel_args = { 'grpc.min_reconnect_backoff_ms' => 200 }
+end
+```
+
+the resulting `channel_args` value will be
+
+```ruby
+{ 
+  "grpc.min_reconnect_backoff_ms" => 200, 
+  "grpc.max_reconnect_backoff_ms" => 100, 
+  "grpc.initial_reconnect_backoff_ms" => 100
+}
+```
+
+This behaviour is intentional. So, if you want to override them all - you should do it explicitly. Example:
+
+```ruby
+EventStoreClient.configure do |config|
+  config.channel_args = { 
+    'grpc.min_reconnect_backoff_ms' => 500,
+    'grpc.max_reconnect_backoff_ms' => 500,
+    'grpc.initial_reconnect_backoff_ms' => 500
+  }
+end
+```
+
+It could be useful when you have high ping to your EventStore DB server.
+
+Besides, there is an option which you can't change - `grpc.enable_retries`. It always defaults to `0`. This is because `event_store_client` implements its own retry functional.
 
 ## Connection string
 

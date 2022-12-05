@@ -56,4 +56,30 @@ RSpec.describe EventStoreClient::Connection::Url do
       end
     end
   end
+
+  describe '#==' do
+    subject { instance == another_instance }
+
+    let(:another_instance) { described_class.new }
+
+    context 'when comparing with another EventStoreClient::Connection::Url' do
+      context 'when they match' do
+        it { is_expected.to eq(true) }
+      end
+
+      context 'when they do not match' do
+        before do
+          another_instance.tls = false
+        end
+
+        it { is_expected.to eq(false) }
+      end
+    end
+
+    context 'when comparing with another object' do
+      let(:another_instance) { Object.new }
+
+      it { is_expected.to eq(false) }
+    end
+  end
 end

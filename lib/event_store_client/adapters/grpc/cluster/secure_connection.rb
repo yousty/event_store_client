@@ -13,7 +13,7 @@ module EventStoreClient
           stub_class.new(
             "#{host}:#{port}",
             channel_credentials,
-            channel_args: channel_args,
+            channel_args: config.channel_args,
             timeout: (timeout / 1000.0 if timeout)
           )
         end
