@@ -15,7 +15,7 @@ module EventStoreClient
             yield options if block_given?
             result =
               retry_request { service.read(request.new(options: options), metadata: metadata).to_a }
-            EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new.call(
+            EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new(config: config).call(
               result,
               skip_deserialization,
               skip_decryption
@@ -28,7 +28,10 @@ module EventStoreClient
           # @param options [Hash]
           # @return [EventStore::Client::Streams::ReadReq::Options]
           def normalize_options(stream_name, options)
-            options = Options::Streams::ReadOptions.new(stream_name, options).request_options
+            options =
+              Options::Streams::ReadOptions.
+                new(stream_name, options, config: config).
+                request_options
             EventStore::Client::Streams::ReadReq::Options.new(options)
           end
         end

@@ -6,14 +6,20 @@ module EventStoreClient
   module GRPC
     module Cluster
       class GossipDiscover
-        include Configuration
-
         DiscoverError = Class.new(StandardError)
 
         # Order is important - it plays role of states priority as well
         READ_ONLY_STATES = %i[ReadOnlyReplica PreReadOnlyReplica ReadOnlyLeaderless].freeze
         ALLOWED_NODE_STATES =
           (%i[Leader Follower] + READ_ONLY_STATES).freeze
+
+        attr_reader :config
+        private :config
+
+        # @param config [EventStoreClient::Config]
+        def initialize(config:)
+          @config = config
+        end
 
         # @param nodes [Array<EventStoreClient::Connection::Url::Node>]
         # @param failed_member [EventStoreClient::GRPC::Cluster::Member, nil]
@@ -58,7 +64,8 @@ module EventStoreClient
           connection = Connection.new(
             host: node.host,
             port: node.port,
-            timeout: config.eventstore_url.gossip_timeout
+            timeout: config.eventstore_url.gossip_timeout,
+            config: config
           )
           members =
             connection.

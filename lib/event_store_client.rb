@@ -16,26 +16,47 @@ require 'event_store_client/connection/url_parser'
 require 'event_store_client/deserialized_event'
 require 'event_store_client/serialized_event'
 require 'event_store_client/config'
-require 'event_store_client/configuration'
 
 require 'event_store_client/mapper'
 
 require 'event_store_client/adapters/grpc'
 
 module EventStoreClient
+  @config = { default: Config.new }
+
   class << self
-    def configure
-      yield(config) if block_given?
+    # @param name [Symbol, String]
+    def configure(name: :default)
+      yield(config(name)) if block_given?
     end
 
+    # @param name [Symbol, String]
     # @return [EventStore::Config]
-    def config
-      @config ||= Config.new
+    def config(name)
+      @config[name] ||= Config.new(name: name)
     end
 
+    # @param config [Symbol, String]
     # @return [EventStore::GRPC::Client]
-    def client
-      GRPC::Client.new
+    def client(config: :default)
+      GRPC::Client.new(_config(config))
+    end
+
+    private
+
+    # @param config [Symbol, String]
+    # @return [EventStoreClient::Config]
+    # @raise [RuntimeError]
+    def _config(config)
+      return @config[config] if @config[config]
+
+      error_message = <<~TEXT
+        Could not find #{config.inspect} config. You can define it in next way:
+        EventStoreClient.configure(name: #{config.inspect}) do |config|
+          # your config goes here
+        end
+      TEXT
+      raise error_message
     end
   end
 end

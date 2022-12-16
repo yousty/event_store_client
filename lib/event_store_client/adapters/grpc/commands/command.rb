@@ -14,19 +14,20 @@ module EventStoreClient
           end
         end
 
-        include Configuration
         include Dry::Monads[:try, :result]
 
-        attr_reader :connection
-        private :connection
+        attr_reader :connection, :config
+        private :connection, :config
 
+        # @param config [EventStoreClient::Config]
         # @param conn_options [Hash]
         # @option conn_options [String] :host
         # @option conn_options [Integer] :port
         # @option conn_options [String] :username
         # @option conn_options [String] :password
-        def initialize(**conn_options)
-          @connection = EventStoreClient::GRPC::Connection.new(**conn_options)
+        def initialize(config:, **conn_options)
+          @config = config
+          @connection = EventStoreClient::GRPC::Connection.new(config: config, **conn_options)
         end
 
         # Override it in your implementation of command.

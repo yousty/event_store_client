@@ -15,6 +15,13 @@ require 'event_store_client'
 
 EventStoreClient.configure do |config|
   ## url needs to match the DNS name in certificate
+  config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2113,localhost:2114,localhost:2115' }
+  config.per_page = 1_000
+  config.logger = Logger.new(STDOUT) if ENV['DEBUG']
+end
+
+EventStoreClient.configure(name: :es_2) do |config|
+  ## url needs to match the DNS name in certificate
   config.eventstore_url = ENV.fetch('EVENTSTORE_URL') { 'esdb://admin:changeit@localhost:2115/?tls=false' }
   config.per_page = 1_000
   config.logger = Logger.new(STDOUT) if ENV['DEBUG']

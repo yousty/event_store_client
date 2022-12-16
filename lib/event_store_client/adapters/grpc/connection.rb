@@ -7,18 +7,7 @@ require 'net/http'
 module EventStoreClient
   module GRPC
     class Connection
-      include Configuration
-      include Extensions::OptionsExtension
-
-      option(:host) { Discover.current_member.host }
-      option(:port) { Discover.current_member.port }
-      option(:username) { config.eventstore_url.username }
-      option(:password) { config.eventstore_url.password }
-      option(:timeout) { config.eventstore_url.timeout }
-
       class << self
-        include Configuration
-
         # Resolve which connection class we instantiate, based on config.eventstore_url.tls config
         # option. If :new method is called from SecureConnection or InsecureConnection class - then
         # that particular class will be instantiated despite on config.eventstore_url.tls config
@@ -35,13 +24,14 @@ module EventStoreClient
         #   Cluster::InsecureConnection.new
         #   # => #<EventStoreClient::GRPC::Cluster::InsecureConnection>
         #   ```
-        def new(*args, **kwargs, &blk)
+        # @param config [EventStoreClient::Config]
+        def new(**options)
           return super unless self == Connection
 
-          if config.eventstore_url.tls
-            Cluster::SecureConnection.new(*args, **kwargs, &blk)
+          if options[:config].eventstore_url.tls
+            Cluster::SecureConnection.new(**options)
           else
-            Cluster::InsecureConnection.new(*args, **kwargs, &blk)
+            Cluster::InsecureConnection.new(**options)
           end
         end
 
@@ -50,6 +40,22 @@ module EventStoreClient
         def secure?
           self == Cluster::SecureConnection
         end
+      end
+
+      include Extensions::OptionsExtension
+
+      option(:host) { Discover.current_member(config: config).host }
+      option(:port) { Discover.current_member(config: config).port }
+      option(:username) { config.eventstore_url.username }
+      option(:password) { config.eventstore_url.password }
+      option(:timeout) { config.eventstore_url.timeout }
+
+      attr_reader :config
+      private :config
+
+      def initialize(**options)
+        @config = options[:config]
+        super
       end
 
       def call(stub_class)
