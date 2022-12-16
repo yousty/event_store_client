@@ -3,25 +3,26 @@
 RSpec.describe EventStoreClient::GRPC::Discover do
   subject { instance }
 
-  let(:instance) { described_class.new }
+  let(:instance) { described_class.new(config: config) }
+  let(:config) { EventStoreClient.config }
 
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
+  # it { is_expected.to be_a(EventStoreClient::Configuration) }
 
   describe '.current_member' do
-    subject { described_class.current_member }
+    subject { described_class.current_member(config: config) }
 
     it 'returns current member' do
       is_expected.to be_a(EventStoreClient::GRPC::Cluster::Member)
     end
     it 'memorizes result' do
-      expect(subject.__id__).to eq(described_class.current_member.__id__)
+      expect(subject.__id__).to eq(described_class.current_member(config: config).__id__)
     end
 
     context 'when current member is failed endpoint' do
       let(:member) { EventStoreClient::GRPC::Cluster::Member.new(failed_endpoint: true) }
 
       before do
-        described_class.instance_variable_set(:@current_member, member)
+        described_class.instance_variable_set(:@current_member, { default: member })
         allow(described_class).to receive(:new).and_return(instance)
         allow(instance).to receive(:call).and_call_original
       end
@@ -43,7 +44,10 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         5.times.map do
           Thread.new do
             Thread.current.report_on_exception = false
-            Thread.current.thread_variable_set(:current_member, described_class.current_member)
+            Thread.current.thread_variable_set(
+              :current_member,
+              described_class.current_member(config: config)
+            )
           end
         end
       end
@@ -106,14 +110,14 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         end
         it 'does not raise on further calls when error is gone' do
           subject
-          expect { described_class.current_member }.not_to raise_error
+          expect { described_class.current_member(config: config) }.not_to raise_error
         end
       end
     end
   end
 
   describe '.member_alive?' do
-    subject { described_class.member_alive? }
+    subject { described_class.member_alive?(config: config) }
 
     let(:member) { EventStoreClient::GRPC::Cluster::Member.new }
 
@@ -123,7 +127,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
     context 'when current member set' do
       before do
-        described_class.instance_variable_set(:@current_member, member)
+        described_class.instance_variable_set(:@current_member, { default: member })
       end
 
       context 'when it is ok' do

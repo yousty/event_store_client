@@ -3,7 +3,8 @@
 RSpec.describe EventStoreClient::GRPC::Cluster::InsecureConnection do
   subject { instance }
 
-  let(:instance) { described_class.new }
+  let(:options)  { { config: EventStoreClient.config } }
+  let(:instance) { described_class.new(**options) }
   let(:member) { EventStoreClient::GRPC::Cluster::Member.new(host: 'host.local', port: 1234) }
 
   before do

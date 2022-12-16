@@ -11,12 +11,11 @@ module EventStoreClient
           # @see {EventStoreClient::GRPC::Client#link_to}
           def call(stream_name, events, options:, &blk)
             result = []
-            link_cmd = Commands::Streams::LinkTo.new(**connection_options)
+            link_cmd = Commands::Streams::LinkTo.new(config: config, **connection_options)
             events.each.with_index do |event, index|
               response =
                 link_cmd.call(stream_name, event, options: options) do |req_opts, proposed_msg_opts|
                   req_opts.options.revision += index if has_revision_option?(req_opts.options)
-
                   yield(req_opts, proposed_msg_opts) if blk
                 end
               result.push(response)

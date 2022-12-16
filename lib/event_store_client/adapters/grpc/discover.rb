@@ -5,13 +5,13 @@
 module EventStoreClient
   module GRPC
     class Discover
-      @exception = {}
-      @current_member = {}
-
       class << self
         # @param config [EventStoreClient::Config]
         # @return [EventStoreClient::GRPC::Cluster::Member]
         def current_member(config:)
+          @exception ||= {}
+          @current_member ||= {}
+
           @exception[config.name] = nil
           return @current_member[config.name] if member_alive?(@current_member[config.name])
 

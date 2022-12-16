@@ -12,7 +12,9 @@ module EventStoreClient
           def call(stream_name, events, options:, &blk)
             result = []
             events.each.with_index do |event, index|
-              response = Commands::Streams::Append.new(**connection_options).call(
+              response = Commands::Streams::Append.new(
+                config: config, **connection_options
+              ).call(
                 stream_name, event, options: options
               ) do |req_opts, proposed_msg_opts|
                 req_opts.options.revision += index if has_revision_option?(req_opts.options)

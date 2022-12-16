@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::LinkTo do
-  let(:instance) { described_class.new }
+  subject { instance }
+
+  let(:instance) { described_class.new(config: config) }
+  let(:config) { EventStoreClient.config }
 
   it { is_expected.to be_a(EventStoreClient::GRPC::Commands::Command) }
 

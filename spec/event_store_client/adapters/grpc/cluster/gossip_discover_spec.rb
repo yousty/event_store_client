@@ -3,9 +3,10 @@
 RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
   subject { instance }
 
-  let(:instance) { described_class.new }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config) }
 
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
+  # it { is_expected.to be_a(EventStoreClient::GossipDiscover) }
 
   describe 'constants' do
     describe 'ALLOWED_NODE_STATES' do
@@ -56,7 +57,7 @@ RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
       let(:order) { [] }
 
       before do
-        EventStoreClient.config.eventstore_url.max_discover_attempts = 1
+        EventStoreClient.config(:default).eventstore_url.max_discover_attempts = 1
         allow(instance).to receive(:node_members).and_wrap_original do |original_method, node|
           order.push(node)
           original_method.call(node)

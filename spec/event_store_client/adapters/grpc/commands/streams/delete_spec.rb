@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::Delete do
-  let(:instance) { described_class.new }
+  subject { instance }
+
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config) }
 
   it { is_expected.to be_a(EventStoreClient::GRPC::Commands::Command) }
   it 'uses correct params class' do
