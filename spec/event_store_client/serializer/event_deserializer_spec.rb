@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::Serializer::EventDeserializer do
-  let(:instance) { described_class.new(serializer: serializer) }
+  let(:instance) { described_class.new(serializer: serializer, config: config) }
   let(:serializer) { EventStoreClient::Serializer::Json }
+  let(:config) { EventStoreClient.config }
 
   describe '.call' do
-    subject { described_class.call(raw_event, serializer: serializer) }
+    subject { described_class.call(raw_event, serializer: serializer, config: config) }
 
     let(:raw_event) do
       EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent.new(
