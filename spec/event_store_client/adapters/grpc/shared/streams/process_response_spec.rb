@@ -3,11 +3,11 @@
 RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
   subject { instance }
 
-  let(:instance) { described_class.new }
-  let(:mapper) { instance.config.mapper }
+  let(:instance) { described_class.new(config: config) }
+  let(:config) { EventStoreClient.config }
+  let(:mapper) { config.mapper }
 
   it { is_expected.to be_a(Dry::Monads::Result::Mixin) }
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
 
   describe '#call' do
     subject { instance.call(response, skip_deserialization, skip_decryption) }
