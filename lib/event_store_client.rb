@@ -22,8 +22,6 @@ require 'event_store_client/mapper'
 require 'event_store_client/adapters/grpc'
 
 module EventStoreClient
-  # @config = { default: Config.new }
-
   class << self
     # @param name [Symbol, String]
     def configure(name: :default)
@@ -33,8 +31,6 @@ module EventStoreClient
     # @param name [Symbol, String]
     # @return [EventStore::Config]
     def config(name = :default)
-      @config ||= { default: Config.new }
-
       @config[name] ||= Config.new(name: name)
     end
 
@@ -42,6 +38,11 @@ module EventStoreClient
     # @return [EventStore::GRPC::Client]
     def client(config: :default)
       GRPC::Client.new(_config(config))
+    end
+
+    # @return [void]
+    def init_default_config
+      @config = { default: Config.new }
     end
 
     private
@@ -61,4 +62,5 @@ module EventStoreClient
       raise error_message
     end
   end
+  init_default_config
 end

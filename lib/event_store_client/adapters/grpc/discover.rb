@@ -9,9 +9,6 @@ module EventStoreClient
         # @param config [EventStoreClient::Config]
         # @return [EventStoreClient::GRPC::Cluster::Member]
         def current_member(config:)
-          @exception ||= {}
-          @current_member ||= {}
-
           @exception[config.name] = nil
           return @current_member[config.name] if member_alive?(@current_member[config.name])
 
@@ -45,6 +42,12 @@ module EventStoreClient
           !member.nil?
         end
 
+        # @return [void]
+        def init_default_discover_vars
+          @exception = {}
+          @current_member = {}
+        end
+
         private
 
         # @return [Thread::Mutex]
@@ -52,6 +55,8 @@ module EventStoreClient
           @semaphore ||= Thread::Mutex.new
         end
       end
+
+      init_default_discover_vars
 
       attr_reader :config
       private :config

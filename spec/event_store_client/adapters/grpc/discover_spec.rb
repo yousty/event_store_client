@@ -6,8 +6,6 @@ RSpec.describe EventStoreClient::GRPC::Discover do
   let(:instance) { described_class.new(config: config) }
   let(:config) { EventStoreClient.config }
 
-  # it { is_expected.to be_a(EventStoreClient::Configuration) }
-
   describe '.current_member' do
     subject { described_class.current_member(config: config) }
 
