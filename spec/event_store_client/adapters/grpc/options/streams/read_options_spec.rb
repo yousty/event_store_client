@@ -3,11 +3,10 @@
 RSpec.describe EventStoreClient::GRPC::Options::Streams::ReadOptions do
   subject { instance }
 
-  let(:instance) { described_class.new(stream_name, options) }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(stream_name, options, config: config) }
   let(:stream_name) { 'some-stream' }
   let(:options) { {} }
-
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
 
   describe '#request_options' do
     subject { instance.request_options }
