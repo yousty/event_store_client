@@ -25,13 +25,13 @@ module EventStoreClient
         #   # => #<EventStoreClient::GRPC::Cluster::InsecureConnection>
         #   ```
         # @param config [EventStoreClient::Config]
-        def new(**options)
+        def new(config:, **options)
           return super unless self == Connection
 
-          if options[:config].eventstore_url.tls
-            Cluster::SecureConnection.new(**options)
+          if config.eventstore_url.tls
+            Cluster::SecureConnection.new(config: config, **options)
           else
-            Cluster::InsecureConnection.new(**options)
+            Cluster::InsecureConnection.new(config: config, **options)
           end
         end
 
@@ -53,8 +53,8 @@ module EventStoreClient
       attr_reader :config
       private :config
 
-      def initialize(**options)
-        @config = options[:config]
+      def initialize(config:, **options)
+        @config = config
         super
       end
 
