@@ -115,15 +115,17 @@ RSpec.describe EventStoreClient::GRPC::Discover do
   end
 
   describe '.member_alive?' do
-    subject { described_class.member_alive?(config: config) }
+    subject { described_class.member_alive?(member) }
 
-    let(:member) { EventStoreClient::GRPC::Cluster::Member.new }
+    let(:member) { nil }
 
     context 'when current member is not set' do
       it { is_expected.to eq(false) }
     end
 
     context 'when current member set' do
+      let(:member) { EventStoreClient::GRPC::Cluster::Member.new }
+
       before do
         described_class.instance_variable_set(:@current_member, { default: member })
       end
@@ -145,8 +147,10 @@ RSpec.describe EventStoreClient::GRPC::Discover do
   describe '#call' do
     subject { instance.call }
 
-    let(:gossip_discover) { EventStoreClient::GRPC::Cluster::GossipDiscover.new }
-    let(:queryless_discover) { EventStoreClient::GRPC::Cluster::QuerylessDiscover.new }
+    let(:gossip_discover) { EventStoreClient::GRPC::Cluster::GossipDiscover.new(config: config) }
+    let(:queryless_discover) do
+      EventStoreClient::GRPC::Cluster::QuerylessDiscover.new(config: config)
+    end
 
     before do
       allow(EventStoreClient::GRPC::Cluster::GossipDiscover).to(
@@ -161,7 +165,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
     context 'when gossip discover is needed' do
       before do
-        EventStoreClient.config.eventstore_url = 'esdb+discover://localhost:2111/?tls=true'
+        config.eventstore_url = 'esdb+discover://localhost:2111/?tls=true'
       end
 
       it { is_expected.to be_a(EventStoreClient::GRPC::Cluster::Member) }
@@ -196,7 +200,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
       context 'when nodes cluster is given' do
         before do
-          EventStoreClient.config.eventstore_url = 'esdb://localhost:2111,localhost:2112/?tls=true'
+          config.eventstore_url = 'esdb://localhost:2111,localhost:2112/?tls=true'
         end
 
         it { is_expected.to be_a(EventStoreClient::GRPC::Cluster::Member) }
@@ -218,7 +222,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
     context 'when gossip discover is not needed' do
       before do
-        EventStoreClient.config.eventstore_url = 'esdb://some.host:3002'
+        config.eventstore_url = 'esdb://some.host:3002'
       end
 
       it 'performs queryless discover' do
