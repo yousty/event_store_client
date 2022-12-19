@@ -4,6 +4,7 @@ RSpec::Matchers.define :has_option do |option_name|
   @required_args = { args: [], kwargs: {}, block: nil }
 
   def fresh_instance(obj)
+    binding.irb
     obj.class.new(*@required_args[:args], **@required_args[:kwargs], &@required_args[:block])
   end
 
