@@ -3,7 +3,7 @@
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
   subject { instance.call(stream, events, options: options) }
 
-  let(:client) { EventStoreClient::GRPC::Client.new }
+  let(:client) { EventStoreClient::GRPC::Client.new(config) }
   let(:data) { { key1: 'value1', key2: 'value2' } }
   let(:metadata1) { { key1: 'value1', key2: 'value2', type: 'TestEvent', 'content-type' => 'test' } }
   let(:metadata2) { { type: 'TestEvent2', 'content-type' => 'test'} }
@@ -16,7 +16,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
   let(:events) { [event1, event2] }
   let(:stream) { "stream$#{SecureRandom.uuid}" }
   let(:options) { {} }
-  let(:instance) { described_class.new }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config) }
 
   it 'appends events to a stream' do
     expect { subject }.to change {
@@ -74,10 +75,10 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
   context 'when revision is :no_stream' do
     subject do
       first_event
-      described_class.new.call(stream, [event2], options: options)
+      described_class.new(config: config).call(stream, [event2], options: options)
     end
 
-    let(:first_event) { described_class.new.call(stream, [event1], options: options) }
+    let(:first_event) { described_class.new(config: config).call(stream, [event1], options: options) }
     let(:options) { { expected_revision: :no_stream } }
 
     it 'accepts only one event' do
@@ -104,7 +105,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::AppendMultiple do
 
   context 'when revision is :stream_exists' do
     subject do
-      described_class.new.call(stream, [event1], options: options)
+      described_class.new(config: config).call(stream, [event1], options: options)
     end
 
     let(:options) { { expected_revision: :stream_exists } }

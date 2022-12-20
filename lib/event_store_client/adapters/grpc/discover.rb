@@ -5,55 +5,75 @@
 module EventStoreClient
   module GRPC
     class Discover
-      include Configuration
-
       class << self
+        # @param config [EventStoreClient::Config]
         # @return [EventStoreClient::GRPC::Cluster::Member]
-        def current_member
-          @exception = nil
-          return @current_member if member_alive?
+        def current_member(config:)
+          @exception[config.name] = nil
+          return @current_member[config.name] if member_alive?(@current_member[config.name])
 
-          semaphore.synchronize do
-            raise @exception if @exception
-            return @current_member if member_alive?
+          semaphore(config.name).synchronize do
+            current_member = @current_member[config.name]
+            raise @exception[config.name] if @exception[config.name]
+            return current_member if member_alive?(current_member)
 
-            failed_member = @current_member if @current_member&.failed_endpoint
-            @current_member =
-              begin
-                new.call(failed_member: failed_member)
-              rescue StandardError => e
-                @exception = e
-                nil
-              end
+            failed_member = current_member&.failed_endpoint ? current_member : nil
+            begin
+              @current_member[config.name] = new(config: config).call(failed_member: failed_member)
+            rescue StandardError => e
+              @exception[config.name] = e
+              @current_member[config.name] = nil
+              raise
+            end
           end
-          raise @exception if @exception
 
-          @current_member
+          @current_member[config.name]
         end
 
+        # @param member [EventStoreClient::GRPC::Cluster::Member, nil]
         # @return [Boolean]
-        def member_alive?
-          return false if @current_member&.failed_endpoint
+        def member_alive?(member)
+          return false if member&.failed_endpoint
 
-          !@current_member.nil?
+          !member.nil?
+        end
+
+        # @return [void]
+        def init_default_discover_vars
+          @exception = {}
+          @current_member = {}
+          @semaphore = {}
         end
 
         private
 
+        # @param config_name [String, Symbol]
         # @return [Thread::Mutex]
-        def semaphore
-          @semaphore ||= Thread::Mutex.new
+        def semaphore(config_name)
+          @semaphore[config_name] ||= Thread::Mutex.new
         end
+      end
+
+      init_default_discover_vars
+
+      attr_reader :config
+      private :config
+
+      # @param config [EventStoreClient::Config]
+      def initialize(config:)
+        @config = config
       end
 
       # @param failed_member [EventStoreClient::GRPC::Cluster::Member, nil]
       # @return [EventStoreClient::GRPC::Cluster::Member]
       def call(failed_member: nil)
         if needs_discover?
-          return Cluster::GossipDiscover.new.call(nodes, failed_member: failed_member)
+          discovery =
+            Cluster::GossipDiscover.new(config: config).call(nodes, failed_member: failed_member)
+          return discovery
         end
 
-        Cluster::QuerylessDiscover.new.call(config.eventstore_url.nodes.to_a)
+        Cluster::QuerylessDiscover.new(config: config).call(config.eventstore_url.nodes.to_a)
       end
 
       private

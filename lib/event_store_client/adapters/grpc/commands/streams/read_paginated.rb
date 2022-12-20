@@ -22,7 +22,7 @@ module EventStoreClient
             Enumerator.new do |yielder|
               loop do
                 response =
-                  Read.new(**connection_options).call(
+                  Read.new(config: config, **connection_options).call(
                     stream_name,
                     options: options,
                     skip_deserialization: true,
@@ -45,11 +45,13 @@ module EventStoreClient
                   raise StopIteration
                 end
                 processed_response =
-                  EventStoreClient::GRPC::Shared::Streams::ProcessResponses.new.call(
-                    response.success,
-                    skip_deserialization,
-                    skip_decryption
-                  )
+                  EventStoreClient::GRPC::Shared::Streams::ProcessResponses.
+                    new(config: config).
+                    call(
+                      response.success,
+                      skip_deserialization,
+                      skip_decryption
+                    )
                 yielder << processed_response if processed_response.success.any?
                 raise StopIteration if end_reached?(response.success, max_count)
 

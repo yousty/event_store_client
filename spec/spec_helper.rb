@@ -66,9 +66,7 @@ RSpec.configure do |config|
   end
 
   config.after do
-    EventStoreClient.instance_variable_set(:@config, nil)
-    EventStoreClient::GRPC::Discover.instance_variable_set(:@current_member, nil)
-    EventStoreClient::GRPC::Discover.instance_variable_set(:@exception, nil)
+    TestHelper.clean_up_grpc_config
     DummyRepository.reset
   end
 

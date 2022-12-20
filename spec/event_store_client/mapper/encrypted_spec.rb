@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::Mapper::Encrypted do
-  let(:instance) { described_class.new(DummyRepository.new, serializer: serializer) }
+  let(:config) { EventStoreClient.config }
+  let(:instance) do
+    described_class.new(DummyRepository.new, serializer: serializer, config: config)
+  end
   let(:serializer) { EventStoreClient::Serializer::Json }
   let(:data) do
     {

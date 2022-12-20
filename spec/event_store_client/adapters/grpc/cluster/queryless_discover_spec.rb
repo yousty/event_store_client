@@ -3,7 +3,8 @@
 RSpec.describe EventStoreClient::GRPC::Cluster::QuerylessDiscover do
   subject { instance }
 
-  let(:instance) { described_class.new }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config) }
 
   describe 'constants' do
     describe 'NoHostError' do

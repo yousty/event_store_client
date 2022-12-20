@@ -3,7 +3,8 @@
 RSpec.describe EventStoreClient::GRPC::Cluster::SecureConnection do
   subject { instance }
 
-  let(:instance) { described_class.new }
+  let(:options)  { { config: EventStoreClient.config } }
+  let(:instance) { described_class.new(**options) }
   let(:member) { EventStoreClient::GRPC::Cluster::Member.new(host: 'host.local', port: 1234) }
 
   before do
@@ -54,9 +55,10 @@ RSpec.describe EventStoreClient::GRPC::Cluster::SecureConnection do
     describe 'real request' do
       subject { super().read(request_options, metadata: metadata).first }
 
+      let(:config) { EventStoreClient.config }
       let(:request_options) do
         options = EventStoreClient::GRPC::Options::Streams::ReadOptions.new(
-          '$all', {}
+          '$all', {}, config: config
         ).request_options
         options = EventStore::Client::Streams::ReadReq::Options.new(options)
         EventStore::Client::Streams::ReadReq.new(

@@ -3,17 +3,18 @@
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   subject { instance.call(stream, event, options: options) }
 
-  let(:client) { EventStoreClient::GRPC::Client.new }
+  let(:client) { EventStoreClient::GRPC::Client.new(config) }
   let(:data) { { key1: 'value1', key2: 'value2' } }
   let(:metadata) { { 'transaction' => 'some-trx' } }
-  let(:event) {
+  let(:event) do
     EventStoreClient::DeserializedEvent.new(
       type: 'TestEvent', data: data, metadata: metadata
     )
-  }
+  end
   let(:stream) { "stream$#{SecureRandom.uuid}" }
   let(:options) { {} }
-  let(:instance) { described_class.new }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config) }
 
   it 'appends event to a stream' do
     expect { subject }.to change {
@@ -57,10 +58,12 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
   context 'when revision is :no_stream' do
     subject do
       first_event
-      described_class.new.call(stream, event, options: options)
+      described_class.new(config: config).call(stream, event, options: options)
     end
 
-    let(:first_event) { described_class.new.call(stream, another_event, options: options) }
+    let(:first_event) do
+      described_class.new(config: config).call(stream, another_event, options: options)
+    end
     let(:another_event) do
       EventStoreClient::DeserializedEvent.new(
         id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
@@ -88,7 +91,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
 
   context 'when revision is :stream_exists' do
     subject do
-      described_class.new.call(stream, event, options: options)
+      described_class.new(config: config).call(stream, event, options: options)
     end
 
     let(:options) { { expected_revision: :stream_exists } }

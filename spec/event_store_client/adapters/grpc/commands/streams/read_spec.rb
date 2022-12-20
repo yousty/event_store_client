@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
-  let(:instance) { described_class.new }
+  subject { instance }
+
+  let(:instance) { described_class.new(config: config) }
+  let(:config) { EventStoreClient.config }
 
   it { is_expected.to be_a(EventStoreClient::GRPC::Commands::Command) }
   it 'uses correct params class' do
@@ -97,7 +100,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
 
         before do
           EventStoreClient.config.mapper =
-            EventStoreClient::Mapper::Encrypted.new(DummyRepository.new)
+            EventStoreClient::Mapper::Encrypted.new(DummyRepository.new, config: config)
           EventStoreClient.client.append_to_stream(stream_name, encrypted_event)
         end
 

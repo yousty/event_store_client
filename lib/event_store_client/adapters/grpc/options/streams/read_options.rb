@@ -7,10 +7,8 @@ module EventStoreClient
     module Options
       module Streams
         class ReadOptions
-          include Configuration
-
-          attr_reader :options, :stream_name
-          private :options, :stream_name
+          attr_reader :options, :stream_name, :config
+          private :options, :stream_name, :config
 
           # @param stream_name [String]
           # @param options [Hash]
@@ -39,9 +37,11 @@ module EventStoreClient
           # @option [Hash] :filter see
           #   {EventStoreClient::GRPC::Shared::Options::FilterOptions#initialize} for available
           #   values
-          def initialize(stream_name, options)
+          # @param config [EventStoreClient::Config]
+          def initialize(stream_name, options, config:)
             @stream_name = stream_name
             @options = options
+            @config = config
           end
 
           # @return [Hash] see event_store.client.streams.ReadReq.Options for available options

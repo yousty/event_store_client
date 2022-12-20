@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::GRPC::Client do
-  let(:instance) { described_class.new }
+  let(:instance) { described_class.new(config) }
+  let(:config) { EventStoreClient.config }
 
   describe '#append_to_stream' do
     subject { instance.append_to_stream(stream_name, event, options: options) }
@@ -13,8 +14,12 @@ RSpec.describe EventStoreClient::GRPC::Client do
         id: SecureRandom.uuid, type: 'some-event', data: { foo: :bar }
       )
     end
-    let(:append_multiple_inst) { EventStoreClient::GRPC::Commands::Streams::AppendMultiple.new }
-    let(:append_inst) { EventStoreClient::GRPC::Commands::Streams::Append.new }
+    let(:append_multiple_inst) do
+      EventStoreClient::GRPC::Commands::Streams::AppendMultiple.new(config: config)
+    end
+    let(:append_inst) do
+      EventStoreClient::GRPC::Commands::Streams::Append.new(config: config)
+    end
 
     before do
       allow(EventStoreClient::GRPC::Commands::Streams::AppendMultiple).to(
@@ -205,8 +210,12 @@ RSpec.describe EventStoreClient::GRPC::Client do
       EventStoreClient.client.append_to_stream(other_stream_name, event)
       EventStoreClient.client.read(other_stream_name).success.first
     end
-    let(:link_multiple_inst) { EventStoreClient::GRPC::Commands::Streams::LinkToMultiple.new }
-    let(:link_inst) { EventStoreClient::GRPC::Commands::Streams::LinkTo.new }
+    let(:link_multiple_inst) do
+      EventStoreClient::GRPC::Commands::Streams::LinkToMultiple.new(config: config)
+    end
+    let(:link_inst) do
+      EventStoreClient::GRPC::Commands::Streams::LinkTo.new(config: config)
+    end
 
     before do
       allow(EventStoreClient::GRPC::Commands::Streams::LinkToMultiple).to(
@@ -259,4 +268,3 @@ RSpec.describe EventStoreClient::GRPC::Client do
     end
   end
 end
-

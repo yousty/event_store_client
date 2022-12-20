@@ -5,12 +5,14 @@
 module EventStoreClient
   module Mapper
     class Default
-      attr_reader :serializer
-      private :serializer
+      attr_reader :serializer, :config
+      private :serializer, :config
 
+      # @param config [EventStoreClient::Config]
       # @param serializer [#serialize, #deserialize]
-      def initialize(serializer: Serializer::Json)
+      def initialize(config:, serializer: Serializer::Json)
         @serializer = serializer
+        @config = config
       end
 
       # @param event [EventStoreClient::DeserializedEvent]
@@ -24,7 +26,9 @@ module EventStoreClient
       def deserialize(event_or_raw_event, **)
         return event_or_raw_event if event_or_raw_event.is_a?(EventStoreClient::DeserializedEvent)
 
-        Serializer::EventDeserializer.call(event_or_raw_event, serializer: serializer)
+        Serializer::EventDeserializer.call(
+          event_or_raw_event, config: config, serializer: serializer
+        )
       end
     end
   end

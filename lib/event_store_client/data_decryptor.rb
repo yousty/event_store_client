@@ -2,8 +2,6 @@
 
 module EventStoreClient
   class DataDecryptor
-    include Configuration
-
     KeyNotFoundError = Class.new(StandardError)
 
     def call

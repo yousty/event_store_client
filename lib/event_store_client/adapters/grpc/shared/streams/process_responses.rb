@@ -6,7 +6,14 @@ module EventStoreClient
       module Streams
         class ProcessResponses
           include Dry::Monads[:result]
-          include Configuration
+
+          attr_reader :config
+          private :config
+
+          # @param config [EventStoreClient::Config]
+          def initialize(config:)
+            @config = config
+          end
 
           # @api private
           # @param responses [Array<EventStore::Client::Streams::ReadResp>]

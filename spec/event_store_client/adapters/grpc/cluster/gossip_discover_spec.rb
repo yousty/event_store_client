@@ -3,9 +3,8 @@
 RSpec.describe EventStoreClient::GRPC::Cluster::GossipDiscover do
   subject { instance }
 
-  let(:instance) { described_class.new }
-
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config) }
 
   describe 'constants' do
     describe 'ALLOWED_NODE_STATES' do

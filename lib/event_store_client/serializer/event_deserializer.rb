@@ -8,18 +8,20 @@ module EventStoreClient
       class << self
         # @param raw_event [EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent, EventStore::Client::PersistentSubscriptions::ReadResp::ReadEvent::RecordedEvent]
         # @param serializer [#serialize, #deserialize]
+        # @param config [EventStoreClient::Config]
         # @return [EventStoreClient::DeserializedEvent]
-        def call(raw_event, serializer: Serializer::Json)
-          new(serializer: serializer).call(raw_event)
+        def call(raw_event, config:, serializer: Serializer::Json)
+          new(config: config, serializer: serializer).call(raw_event)
         end
       end
 
-      attr_reader :serializer
-      private :serializer
+      attr_reader :serializer, :config
+      private :serializer, :config
 
       # @param serializer [#serialize, #deserialize]
-      def initialize(serializer:)
+      def initialize(serializer:, config:)
         @serializer = serializer
+        @config = config
       end
 
       # @param raw_event [EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent, EventStore::Client::PersistentSubscriptions::ReadResp::ReadEvent::RecordedEvent]
@@ -63,10 +65,6 @@ module EventStoreClient
         return serializer.serialize({}) if raw_data.empty?
 
         raw_data
-      end
-
-      def config
-        EventStoreClient.config
       end
     end
   end

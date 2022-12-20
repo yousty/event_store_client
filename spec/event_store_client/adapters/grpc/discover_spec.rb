@@ -3,25 +3,24 @@
 RSpec.describe EventStoreClient::GRPC::Discover do
   subject { instance }
 
-  let(:instance) { described_class.new }
-
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
+  let(:instance) { described_class.new(config: config) }
+  let(:config) { EventStoreClient.config }
 
   describe '.current_member' do
-    subject { described_class.current_member }
+    subject { described_class.current_member(config: config) }
 
     it 'returns current member' do
       is_expected.to be_a(EventStoreClient::GRPC::Cluster::Member)
     end
     it 'memorizes result' do
-      expect(subject.__id__).to eq(described_class.current_member.__id__)
+      expect(subject.__id__).to eq(described_class.current_member(config: config).__id__)
     end
 
     context 'when current member is failed endpoint' do
       let(:member) { EventStoreClient::GRPC::Cluster::Member.new(failed_endpoint: true) }
 
       before do
-        described_class.instance_variable_set(:@current_member, member)
+        described_class.instance_variable_set(:@current_member, { default: member })
         allow(described_class).to receive(:new).and_return(instance)
         allow(instance).to receive(:call).and_call_original
       end
@@ -43,7 +42,10 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         5.times.map do
           Thread.new do
             Thread.current.report_on_exception = false
-            Thread.current.thread_variable_set(:current_member, described_class.current_member)
+            Thread.current.thread_variable_set(
+              :current_member,
+              described_class.current_member(config: config)
+            )
           end
         end
       end
@@ -106,24 +108,121 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         end
         it 'does not raise on further calls when error is gone' do
           subject
-          expect { described_class.current_member }.not_to raise_error
+          expect { described_class.current_member(config: config) }.not_to raise_error
+        end
+      end
+    end
+
+    describe 'with multiple configs' do
+      let!(:config1) do
+        EventStoreClient.configure do |config|
+          config.eventstore_url = url1
+        end
+      end
+      let!(:config2) do
+        EventStoreClient.configure(name: :another_config) do |config|
+          config.eventstore_url = url2
+        end
+      end
+      let(:url1) { 'esdb://admin:changeit@localhost:2111,localhost:2112,localhost:2113' }
+      let(:url2) { 'esdb://admin:changeit@localhost:2115/?tls=false' }
+      let(:read_worker1) do
+        Thread.new do
+          client = EventStoreClient.client
+          client.read('$all', options: { max_count: 1 })
+        end
+      end
+      let(:read_worker2) do
+        Thread.new do
+          client = EventStoreClient.client(config_name: :another_config)
+          client.read('$all', options: { max_count: 1 })
+        end
+      end
+      let(:locks) { described_class.instance_variable_get(:@semaphore) }
+      let(:result) { {} }
+
+      before do
+        allow(described_class).to receive(:new).and_wrap_original do |orig_method, *args, **kwargs, &blk|
+          res = orig_method.call(*args, **kwargs, &blk)
+          sleep 0.2 # Wait all Mutexes to initialize
+          config = res.send(:config)
+          locks = described_class.instance_variable_get(:@semaphore)
+          result[config.name] = {
+            default: locks[:default].owned?, another_config: locks[:another_config].owned?
+          }
+          # Simulate payload to wait for both clients to reach the same point of execution
+          sleep 0.5
+          res
+        end
+      end
+
+      it 'does not block discovery of different clients' do
+        read_worker1
+        read_worker2
+        sleep 0.5
+        locks = described_class.instance_variable_get(:@semaphore)
+        aggregate_failures do
+          expect(locks).to(
+            match(
+              hash_including(
+                default: instance_of(Thread::Mutex),
+                another_config: instance_of(Thread::Mutex)
+              )
+            )
+          )
+          expect(locks.values).to all be_locked
+        end
+        read_worker1.exit
+        read_worker2.exit
+      end
+      it 'uses separated locks for different clients' do
+        read_worker1
+        read_worker2
+        sleep 0.5
+        aggregate_failures do
+          expect(result[:default][:default]).to(
+            eq(true), "Expect :default config to be locked using :default Mutex"
+          )
+          expect(result[:default][:another_config]).to(
+            eq(false), "Expect :default config to not to be locked using :another_config Mutex"
+          )
+          expect(result[:another_config][:default]).to(
+            eq(false), "Expect :another_config config to not to be locked using :default Mutex"
+          )
+          expect(result[:another_config][:another_config]).to(
+            eq(true), "Expect :another_config config to be locked using :another_config Mutex"
+          )
+        end
+        read_worker1.exit
+        read_worker2.exit
+      end
+      it 'resolves member for different configs correctly' do
+        [read_worker1, read_worker2].each(&:join)
+        members = described_class.instance_variable_get(:@current_member)
+        aggregate_failures do
+          expect(members[:default].host).to eq('127.0.0.1')
+          expect(members[:default].port).to satisfy { |port| [2111, 2112, 2113].include?(port) }
+          expect(members[:another_config].host).to eq('localhost')
+          expect(members[:another_config].port).to eq(2115)
         end
       end
     end
   end
 
   describe '.member_alive?' do
-    subject { described_class.member_alive? }
+    subject { described_class.member_alive?(member) }
 
-    let(:member) { EventStoreClient::GRPC::Cluster::Member.new }
+    let(:member) { nil }
 
     context 'when current member is not set' do
       it { is_expected.to eq(false) }
     end
 
     context 'when current member set' do
+      let(:member) { EventStoreClient::GRPC::Cluster::Member.new }
+
       before do
-        described_class.instance_variable_set(:@current_member, member)
+        described_class.instance_variable_set(:@current_member, { default: member })
       end
 
       context 'when it is ok' do
@@ -143,8 +242,10 @@ RSpec.describe EventStoreClient::GRPC::Discover do
   describe '#call' do
     subject { instance.call }
 
-    let(:gossip_discover) { EventStoreClient::GRPC::Cluster::GossipDiscover.new }
-    let(:queryless_discover) { EventStoreClient::GRPC::Cluster::QuerylessDiscover.new }
+    let(:gossip_discover) { EventStoreClient::GRPC::Cluster::GossipDiscover.new(config: config) }
+    let(:queryless_discover) do
+      EventStoreClient::GRPC::Cluster::QuerylessDiscover.new(config: config)
+    end
 
     before do
       allow(EventStoreClient::GRPC::Cluster::GossipDiscover).to(
@@ -159,7 +260,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
     context 'when gossip discover is needed' do
       before do
-        EventStoreClient.config.eventstore_url = 'esdb+discover://localhost:2111/?tls=true'
+        config.eventstore_url = 'esdb+discover://localhost:2111/?tls=true'
       end
 
       it { is_expected.to be_a(EventStoreClient::GRPC::Cluster::Member) }
@@ -194,7 +295,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
       context 'when nodes cluster is given' do
         before do
-          EventStoreClient.config.eventstore_url = 'esdb://localhost:2111,localhost:2112/?tls=true'
+          config.eventstore_url = 'esdb://localhost:2111,localhost:2112/?tls=true'
         end
 
         it { is_expected.to be_a(EventStoreClient::GRPC::Cluster::Member) }
@@ -216,7 +317,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
 
     context 'when gossip discover is not needed' do
       before do
-        EventStoreClient.config.eventstore_url = 'esdb://some.host:3002'
+        config.eventstore_url = 'esdb://some.host:3002'
       end
 
       it 'performs queryless discover' do

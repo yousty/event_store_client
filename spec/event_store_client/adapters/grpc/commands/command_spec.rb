@@ -3,10 +3,10 @@
 RSpec.describe EventStoreClient::GRPC::Commands::Command do
   subject { instance }
 
-  let(:instance) { described_class.new(**conn_options) }
+  let(:config) { EventStoreClient.config }
+  let(:instance) { described_class.new(config: config, **conn_options) }
   let(:conn_options) { { host: 'localhost', port: 3000 } }
 
-  it { is_expected.to be_a(EventStoreClient::Configuration) }
   it { is_expected.to be_a(Dry::Monads::Result::Mixin) }
   it { is_expected.to be_a(Dry::Monads::Try::Mixin) }
 
@@ -132,6 +132,15 @@ RSpec.describe EventStoreClient::GRPC::Commands::Command do
         end
         it 'raises that error' do
           expect { subject }.to raise_error(error_class)
+        end
+        it 'marks current member as failed endpoint' do
+          member = EventStoreClient::GRPC::Discover.current_member(config: config)
+          expect {
+            begin
+              subject
+            rescue error_class
+            end
+          }.to change { member.failed_endpoint }.from(false).to(true)
         end
 
         context 'when request succeeds after several attempts' do

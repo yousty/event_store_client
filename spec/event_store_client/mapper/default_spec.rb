@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe EventStoreClient::Mapper::Default do
-  let(:instance) { described_class.new(serializer: serializer) }
+  let(:instance) { described_class.new(serializer: serializer, config: config) }
+  let(:config) { EventStoreClient.config }
   let(:serializer) { EventStoreClient::Serializer::Json }
 
   describe '#serialize' do
@@ -57,7 +58,7 @@ RSpec.describe EventStoreClient::Mapper::Default do
       it 'deserializes it using EventDeserializer' do
         subject
         expect(EventStoreClient::Serializer::EventDeserializer).to(
-          have_received(:call).with(raw_event, serializer: serializer)
+          have_received(:call).with(raw_event, serializer: serializer, config: config)
         )
       end
     end

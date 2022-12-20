@@ -13,7 +13,7 @@ module EventStoreClient
 
     option(:eventstore_url) { 'esdb://localhost:2113' }
     option(:per_page) { 20 }
-    option(:mapper) { Mapper::Default.new }
+    option(:mapper) { Mapper::Default.new(config: self) }
     option(:default_event_class) { DeserializedEvent }
     option(:logger)
     option(:skip_deserialization) { false }
@@ -22,6 +22,7 @@ module EventStoreClient
     # of a Stub class of your request. More GRPC options can be found here
     # https://github.com/grpc/grpc/blob/master/include/grpc/impl/codegen/grpc_types.h
     option(:channel_args) # Hash
+    option(:name) { :default }
 
     def eventstore_url=(value)
       @eventstore_url =
