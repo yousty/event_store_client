@@ -6,7 +6,6 @@ module EventStoreClient
   module GRPC
     class Client
       attr_reader :config
-      private :config
 
       # @param config [EventStoreClient::Config]
       def initialize(config)
