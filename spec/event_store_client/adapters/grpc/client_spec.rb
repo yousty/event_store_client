@@ -268,4 +268,3 @@ RSpec.describe EventStoreClient::GRPC::Client do
     end
   end
 end
-

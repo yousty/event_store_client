@@ -133,6 +133,15 @@ RSpec.describe EventStoreClient::GRPC::Commands::Command do
         it 'raises that error' do
           expect { subject }.to raise_error(error_class)
         end
+        it 'marks current member as failed endpoint' do
+          member = EventStoreClient::GRPC::Discover.current_member(config: config)
+          expect {
+            begin
+              subject
+            rescue error_class
+            end
+          }.to change { member.failed_endpoint }.from(false).to(true)
+        end
 
         context 'when request succeeds after several attempts' do
           let(:result_after_attempts) { 'some-result' }

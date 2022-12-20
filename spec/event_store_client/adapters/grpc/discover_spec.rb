@@ -112,6 +112,101 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         end
       end
     end
+
+    describe 'with multiple configs' do
+      let!(:config1) do
+        EventStoreClient.configure do |config|
+          config.eventstore_url = url1
+        end
+      end
+      let!(:config2) do
+        EventStoreClient.configure(name: :another_config) do |config|
+          config.eventstore_url = url2
+        end
+      end
+      let(:url1) { 'esdb://admin:changeit@localhost:2111,localhost:2112,localhost:2113' }
+      let(:url2) { 'esdb://admin:changeit@localhost:2115/?tls=false' }
+      let(:read_worker1) do
+        Thread.new do
+          client = EventStoreClient.client
+          client.read('$all', options: { max_count: 1 })
+        end
+      end
+      let(:read_worker2) do
+        Thread.new do
+          client = EventStoreClient.client(config_name: :another_config)
+          client.read('$all', options: { max_count: 1 })
+        end
+      end
+      let(:locks) { described_class.instance_variable_get(:@semaphore) }
+      let(:result) { {} }
+
+      before do
+        allow(described_class).to receive(:new).and_wrap_original do |orig_method, *args, **kwargs, &blk|
+          res = orig_method.call(*args, **kwargs, &blk)
+          sleep 0.2 # Wait all Mutexes to initialize
+          config = res.send(:config)
+          locks = described_class.instance_variable_get(:@semaphore)
+          result[config.name] = {
+            default: locks[:default].owned?, another_config: locks[:another_config].owned?
+          }
+          # Simulate payload to wait for both clients to reach the same point of execution
+          sleep 0.5
+          res
+        end
+      end
+
+      it 'does not block discovery of different clients' do
+        read_worker1
+        read_worker2
+        sleep 0.5
+        locks = described_class.instance_variable_get(:@semaphore)
+        aggregate_failures do
+          expect(locks).to(
+            match(
+              hash_including(
+                default: instance_of(Thread::Mutex),
+                another_config: instance_of(Thread::Mutex)
+              )
+            )
+          )
+          expect(locks.values).to all be_locked
+        end
+        read_worker1.exit
+        read_worker2.exit
+      end
+      it 'uses separated locks for different clients' do
+        read_worker1
+        read_worker2
+        sleep 0.5
+        aggregate_failures do
+          expect(result[:default][:default]).to(
+            eq(true), "Expect :default config to be locked using :default Mutex"
+          )
+          expect(result[:default][:another_config]).to(
+            eq(false), "Expect :default config to not to be locked using :another_config Mutex"
+          )
+          expect(result[:another_config][:default]).to(
+            eq(false), "Expect :another_config config to not to be locked using :default Mutex"
+          )
+          expect(result[:another_config][:another_config]).to(
+            eq(true), "Expect :another_config config to be locked using :another_config Mutex"
+          )
+        end
+        read_worker1.exit
+        read_worker2.exit
+      end
+      it 'resolves member for different configs correctly' do
+        [read_worker1, read_worker2].each(&:join)
+        members = described_class.instance_variable_get(:@current_member)
+        aggregate_failures do
+          expect(members[:default].host).to eq('127.0.0.1')
+          expect(members[:default].port).to satisfy { |port| [2113, 2114, 2115].include?(port) }
+          expect(members[:another_config].host).to eq('localhost')
+          expect(members[:another_config].port).to eq(2115)
+        end
+      end
+    end
   end
 
   describe '.member_alive?' do

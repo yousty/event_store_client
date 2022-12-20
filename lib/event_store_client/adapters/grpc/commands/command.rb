@@ -75,6 +75,7 @@ module EventStoreClient
               config.logger&.debug("Request failed. Reason: #{e.class}. Retying.")
               retry
             end
+            Discover.current_member(config: config)&.failed_endpoint = true
             raise
           end
         end

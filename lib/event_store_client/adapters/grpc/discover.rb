@@ -12,24 +12,20 @@ module EventStoreClient
           @exception[config.name] = nil
           return @current_member[config.name] if member_alive?(@current_member[config.name])
 
-          semaphore.synchronize do
+          semaphore(config.name).synchronize do
+            current_member = @current_member[config.name]
             raise @exception[config.name] if @exception[config.name]
-            return @current_member[config.name] if member_alive?(@current_member[config.name])
+            return current_member if member_alive?(current_member)
 
-            failed_member =
-              if @current_member[config.name]&.failed_endpoint
-                @current_member[config.name]
-              end
-
-            @current_member[config.name] =
-              begin
-                new(config: config).call(failed_member: failed_member)
-              rescue StandardError => e
-                @exception[config.name] = e
-                nil
-              end
+            failed_member = current_member&.failed_endpoint ? current_member : nil
+            begin
+              @current_member[config.name] = new(config: config).call(failed_member: failed_member)
+            rescue StandardError => e
+              @exception[config.name] = e
+              @current_member[config.name] = nil
+              raise
+            end
           end
-          raise @exception[config.name] if @exception[config.name]
 
           @current_member[config.name]
         end
@@ -46,13 +42,15 @@ module EventStoreClient
         def init_default_discover_vars
           @exception = {}
           @current_member = {}
+          @semaphore = {}
         end
 
         private
 
+        # @param config_name [String, Symbol]
         # @return [Thread::Mutex]
-        def semaphore
-          @semaphore ||= Thread::Mutex.new
+        def semaphore(config_name)
+          @semaphore[config_name] ||= Thread::Mutex.new
         end
       end
 

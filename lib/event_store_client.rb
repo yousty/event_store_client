@@ -34,10 +34,10 @@ module EventStoreClient
       @config[name] ||= Config.new(name: name)
     end
 
-    # @param config [Symbol, String]
+    # @param config_name [Symbol, String]
     # @return [EventStore::GRPC::Client]
-    def client(config: :default)
-      GRPC::Client.new(_config(config))
+    def client(config_name: :default)
+      GRPC::Client.new(_config(config_name))
     end
 
     # @return [void]
