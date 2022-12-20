@@ -201,7 +201,7 @@ RSpec.describe EventStoreClient::GRPC::Discover do
         members = described_class.instance_variable_get(:@current_member)
         aggregate_failures do
           expect(members[:default].host).to eq('127.0.0.1')
-          expect(members[:default].port).to satisfy { |port| [2113, 2114, 2115].include?(port) }
+          expect(members[:default].port).to satisfy { |port| [2111, 2112, 2113].include?(port) }
           expect(members[:another_config].host).to eq('localhost')
           expect(members[:another_config].port).to eq(2115)
         end
