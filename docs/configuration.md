@@ -128,3 +128,50 @@ esdb://localhost:2113/?tls=false
 esdb+discover://localhost:2113/?grpcRetryAttempts=3&grpcRetryInterval=300&discoverInterval=200
 esdb://localhost:2113,localhost:2114,localhost:2115/?gossipTimeout=500&maxDiscoverAttempts=3
 ```
+
+### Multiple configurations
+
+`event_store_client` provides a possibility to configure as much connections as you want. To do so, you have to name your configuration, and later provide that name to `EventStoreClient` client.
+
+Setup your configs:
+```ruby
+EventStoreClient.configure(name: :es_db_1) do |config|
+  # adjust your config here
+  config.eventstore_url = 'esdb://localhost:2113'
+end
+EventStoreClient.configure(name: :es_db_2) do |config|
+  # adjust your second config here
+  config.eventstore_url = 'esdb://localhost:2114' 
+end
+```
+
+Tell `EventStoreClient` which config you want to use:
+
+```ruby
+client1 = EventStoreClient.client(config_name: :es_db_1)
+client2 = EventStoreClient.client(config_name: :es_db_2)
+# Read from $all stream using :es_db_1 config
+client1.read('$all')
+# Read from $all stream using :es_db_2 config
+client2.read('$all')
+```
+
+#### Default config
+
+If you only have one config - you don't have to bother naming it or passing a config name to the client when performing any operations. You can configure it as usual.
+
+Setup your default config:
+```ruby
+EventStoreClient.configure do |config|
+  # config goes here
+  config.eventstore_url = 'esdb://localhost:2113' 
+end
+```
+
+Use it:
+
+```ruby
+client = EventStoreClient.client
+# Read from $all stream using your default config
+client.read('$all')
+```
