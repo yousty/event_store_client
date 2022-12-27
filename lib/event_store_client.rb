@@ -29,7 +29,7 @@ module EventStoreClient
     end
 
     # @param name [Symbol, String]
-    # @return [EventStore::Config]
+    # @return [EventStoreClient::Config]
     def config(name = :default)
       @config[name] ||= Config.new(name: name)
     end

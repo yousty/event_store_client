@@ -7,8 +7,8 @@ module EventStoreClient
     InvalidDataError = Class.new(StandardError)
     private_constant :InvalidDataError
 
-    attr_reader :id, :type, :title, :data, :metadata, :stream_name, :stream_revision,
-                :prepare_position, :commit_position
+    attr_reader :id, :type, :title, :data, :metadata, :custom_metadata, :stream_name,
+                :stream_revision, :prepare_position, :commit_position
 
     # @args [Hash] opts
     # @option opts [Boolean] :skip_validation
@@ -34,6 +34,7 @@ module EventStoreClient
           'type' => @type,
           'content-type' => payload_content_type
         )
+      @custom_metadata = args[:custom_metadata] || {}
       @stream_name = args[:stream_name]
       @stream_revision = args[:stream_revision]
       @prepare_position = args[:prepare_position]
@@ -73,6 +74,14 @@ module EventStoreClient
     # @return [Boolean]
     def link?
       type == LINK_TYPE
+    end
+
+    # Detect whether an event is a system event
+    # @return [Boolean]
+    def system?
+      return false unless type
+
+      type.start_with?('$')
     end
 
     private

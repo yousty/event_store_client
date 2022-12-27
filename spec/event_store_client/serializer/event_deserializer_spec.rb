@@ -53,9 +53,8 @@ RSpec.describe EventStoreClient::Serializer::EventDeserializer do
         expect(subject.stream_revision).to eq(stream_revision)
         expect(subject.prepare_position).to eq(prepare_position)
         expect(subject.commit_position).to eq(commit_position)
-        expect(subject.metadata).to(
-          eq(metadata.merge(custom_metadata).merge('content-type' => 'application/json'))
-        )
+        expect(subject.metadata).to eq(metadata.merge('content-type' => 'application/json'))
+        expect(subject.custom_metadata).to eq(custom_metadata)
         expect(subject.title).to eq("#{stream_revision}@#{stream_name}")
         expect(subject.data).to eq(data)
         expect(subject.type).to eq(event_type)

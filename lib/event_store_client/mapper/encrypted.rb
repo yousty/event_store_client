@@ -32,7 +32,7 @@ module EventStoreClient
         # Links don't need to be encrypted
         return Default.new(serializer: serializer, config: config).serialize(event) if event.link?
 
-        serialized = Serializer::EventSerializer.call(event, serializer: serializer)
+        serialized = Serializer::EventSerializer.call(event, serializer: serializer, config: config)
         encryption_schema =
           if event.class.respond_to?(:encryption_schema)
             event.class.encryption_schema
@@ -70,7 +70,7 @@ module EventStoreClient
         decrypted_data =
           EventStoreClient::DataDecryptor.new(
             data: event.data,
-            schema: event.metadata['encryption'],
+            schema: event.custom_metadata['encryption'],
             repository: key_repository
           ).call
         event.class.new(**event.to_h.merge(data: decrypted_data, skip_validation: true))

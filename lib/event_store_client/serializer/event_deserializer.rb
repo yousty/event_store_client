@@ -7,8 +7,8 @@ module EventStoreClient
     class EventDeserializer
       class << self
         # @param raw_event [EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent, EventStore::Client::PersistentSubscriptions::ReadResp::ReadEvent::RecordedEvent]
-        # @param serializer [#serialize, #deserialize]
         # @param config [EventStoreClient::Config]
+        # @param serializer [#serialize, #deserialize]
         # @return [EventStoreClient::DeserializedEvent]
         def call(raw_event, config:, serializer: Serializer::Json)
           new(config: config, serializer: serializer).call(raw_event)
@@ -19,6 +19,7 @@ module EventStoreClient
       private :serializer, :config
 
       # @param serializer [#serialize, #deserialize]
+      # @param config [EventStoreClient::Config]
       def initialize(serializer:, config:)
         @serializer = serializer
         @config = config
@@ -29,7 +30,7 @@ module EventStoreClient
       def call(raw_event)
         data = serializer.deserialize(normalize_serialized(raw_event.data))
         custom_metadata = serializer.deserialize(normalize_serialized(raw_event.custom_metadata))
-        metadata = custom_metadata.merge(raw_event.metadata.to_h)
+        metadata = raw_event.metadata.to_h
 
         event_class(metadata['type']).new(
           skip_validation: true,
@@ -38,6 +39,7 @@ module EventStoreClient
           type: metadata['type'],
           data: data,
           metadata: metadata,
+          custom_metadata: custom_metadata,
           stream_revision: raw_event.stream_revision,
           commit_position: raw_event.commit_position,
           prepare_position: raw_event.prepare_position,
