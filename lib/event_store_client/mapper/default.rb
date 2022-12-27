@@ -18,7 +18,7 @@ module EventStoreClient
       # @param event [EventStoreClient::DeserializedEvent]
       # @return [EventStoreClient::SerializedEvent]
       def serialize(event)
-        Serializer::EventSerializer.call(event, serializer: serializer)
+        Serializer::EventSerializer.call(event, serializer: serializer, config: config)
       end
 
       # @param event_or_raw_event [EventStoreClient::DeserializedEvent, EventStore::Client::Streams::ReadResp::ReadEvent::RecordedEvent, EventStore::Client::PersistentSubscriptions::ReadResp::ReadEvent::RecordedEvent]

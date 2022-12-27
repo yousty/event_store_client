@@ -8,8 +8,12 @@ RSpec.describe EventStoreClient::DeserializedEvent do
       },
       type: 'some-event', 
       metadata: {
-        'type' => 'some-event', 'created_at' => '2022-07-13 16:31:37 +0300',
-        'content-type' => 'application/json', 'created' => '16577190979005637'
+        'type' => 'some-event',
+        'content-type' => 'application/json',
+        'created' => '16577190979005637'
+      },
+      custom_metadata: {
+        'created_at' => '2022-07-13 16:31:37 +0300'
       },
       stream_name: 'some-stream',
       stream_revision: 195,
@@ -64,6 +68,7 @@ RSpec.describe EventStoreClient::DeserializedEvent do
         expect(subject[:type]).to eq(instance.type)
         expect(subject[:title]).to eq(instance.title)
         expect(subject[:metadata]).to eq(instance.metadata)
+        expect(subject[:custom_metadata]).to eq(instance.custom_metadata)
         expect(subject[:stream_name]).to eq(instance.stream_name)
         expect(subject[:stream_revision]).to eq(instance.stream_revision)
         expect(subject[:prepare_position]).to eq(instance.prepare_position)
@@ -81,6 +86,20 @@ RSpec.describe EventStoreClient::DeserializedEvent do
 
     context 'when event is a link event' do
       let(:instance) { described_class.new(type: '$>') }
+
+      it { is_expected.to eq(true) }
+    end
+  end
+
+  describe '#system?' do
+    subject { instance.system? }
+
+    context 'when event is a regular event' do
+      it { is_expected.to eq(false) }
+    end
+
+    context 'when event is a system event' do
+      let(:instance) { described_class.new(type: '$metadata') }
 
       it { is_expected.to eq(true) }
     end

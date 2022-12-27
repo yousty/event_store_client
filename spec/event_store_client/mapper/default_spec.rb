@@ -19,14 +19,14 @@ RSpec.describe EventStoreClient::Mapper::Default do
       aggregate_failures do
         expect(subject.id).to be_a(String)
         expect(subject.data).to eq('foo' => 'bar')
-        expect(subject.custom_metadata).to match(hash_including('content-type', 'created_at', 'type'))
-        expect(subject.metadata).to match(hash_including('content-type', 'created_at', 'type'))
+        expect(subject.custom_metadata).to match(hash_including('created_at'))
+        expect(subject.metadata).to match(hash_including('content-type', 'type'))
       end
     end
     it 'serializes it using EventSerializer' do
       subject
       expect(EventStoreClient::Serializer::EventSerializer).to(
-        have_received(:call).with(event, serializer: serializer)
+        have_received(:call).with(event, serializer: serializer, config: config)
       )
     end
   end

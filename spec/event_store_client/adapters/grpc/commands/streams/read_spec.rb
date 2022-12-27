@@ -31,11 +31,14 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
 
     context 'when stream exists' do
       let(:data) { { foo: :bar } }
-      let(:metadata) { { transaction: 'some-trx', created_at: created_at } }
+      let(:custom_metadata) { { created_at: created_at, transaction: 'some-trx' } }
       let(:created_at) { Time.at(10) }
       let(:event) do
         EventStoreClient::DeserializedEvent.new(
-          id: SecureRandom.uuid, type: 'some-event', data: data, metadata: metadata
+          id: SecureRandom.uuid,
+          type: 'some-event',
+          data: data,
+          custom_metadata: custom_metadata
         )
       end
 
@@ -60,11 +63,15 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
             expect(subject.data).to eq('foo' => 'bar')
             expect(subject.metadata).to(
               match(
-                'transaction' => 'some-trx',
-                'created_at' => created_at.to_s,
                 'content-type' => 'application/json',
                 'created' => instance_of(String),
                 'type' => event.type
+              )
+            )
+            expect(subject.custom_metadata).to(
+              match(
+                'transaction' => 'some-trx',
+                'created_at' => created_at.to_s
               )
             )
           end

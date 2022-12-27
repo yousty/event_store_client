@@ -38,16 +38,14 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
       aggregate_failures do
         expect(subject.id).to be_a(String)
         expect(subject.data).to eq(encrypted_data)
-        expect(subject.custom_metadata).to(
-          match(hash_including('content-type', 'created_at', 'type', 'encryption'))
-        )
-        expect(subject.metadata).to match(hash_including('content-type', 'created_at', 'type'))
+        expect(subject.custom_metadata).to match(hash_including('created_at', 'encryption'))
+        expect(subject.metadata).to match(hash_including('content-type', 'type'))
       end
     end
     it 'serializes it using EventSerializer' do
       subject
       expect(EventStoreClient::Serializer::EventSerializer).to(
-        have_received(:call).with(event, serializer: serializer)
+        have_received(:call).with(event, serializer: serializer, config: config)
       )
     end
 
@@ -91,7 +89,7 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
       let!(:event) do
         event = EncryptedEvent.new(
           data: encrypted_data,
-          metadata: { encryption: encryption_metadata }
+          custom_metadata: { encryption: encryption_metadata }
         )
         append_and_reload("some-stream$#{SecureRandom.uuid}", event, skip_decryption: true)
       end
@@ -111,8 +109,8 @@ RSpec.describe EventStoreClient::Mapper::Encrypted do
         aggregate_failures do
           expect(subject).to be_a(EncryptedEvent)
           expect(subject.data).to eq(decrypted_data)
-          expect(subject.data).not_to include('es_encrypted')
-          expect(subject.metadata).to include('created_at')
+          expect(subject.data).not_to include('es_encrypted', 'created_at')
+          expect(subject.metadata).to include('type', 'content-type')
         end
       end
       it 'skips validation' do
