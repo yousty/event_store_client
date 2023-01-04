@@ -54,18 +54,17 @@ module EventStoreClient
       if wrong_expected_version.expected_no_stream
         return "Expected stream to be absent, but it actually exists."
       end
-      if wrong_expected_version.expected_revision
-        if wrong_expected_version.current_no_stream
-          return <<~TEXT.strip
-            Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
-            stream does not exist.
-          TEXT
-        else
-          return <<~TEXT.strip
-            Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
-            actual stream revision is #{wrong_expected_version.current_revision.inspect}.
-          TEXT
-        end
+      if wrong_expected_version.current_no_stream
+        return <<~TEXT.strip
+          Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
+          stream does not exist.
+        TEXT
+      end
+      unless wrong_expected_version.expected_revision == wrong_expected_version.current_revision
+        return <<~TEXT.strip
+          Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
+          actual stream revision is #{wrong_expected_version.current_revision.inspect}.
+        TEXT
       end
       # Unhandled case. Could happen if something else would be added to proto and I don't add it
       # here.
