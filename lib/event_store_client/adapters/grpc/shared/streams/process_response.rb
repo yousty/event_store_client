@@ -5,8 +5,6 @@ module EventStoreClient
     module Shared
       module Streams
         class ProcessResponse
-          include Dry::Monads[:result]
-
           attr_reader :config
           private :config
 
@@ -19,15 +17,15 @@ module EventStoreClient
           # @param response [EventStore::Client::Streams::ReadResp]
           # @param skip_deserialization [Boolean]
           # @param skip_decryption [Boolean]
-          # @return [Dry::Monads::Success, Dry::Monads::Failure, nil]
+          # @return [EventStoreClient::DeserializedEvent, EventStore::Client::Streams::ReadResp, nil]
+          # @raise [EventStoreClient::StreamNotFoundError]
           def call(response, skip_deserialization, skip_decryption)
-            return Failure(:stream_not_found) if response.stream_not_found
-            return Success(response) if skip_deserialization
+            non_existing_stream = response.stream_not_found&.stream_identifier&.stream_name
+            raise StreamNotFoundError, non_existing_stream if non_existing_stream
+            return response if skip_deserialization
             return unless response.event&.event
 
-            Success(
-              config.mapper.deserialize(response.event.event, skip_decryption: skip_decryption)
-            )
+            config.mapper.deserialize(response.event.event, skip_decryption: skip_decryption)
           end
         end
       end

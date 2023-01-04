@@ -17,19 +17,18 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::LinkToMultiple do
     let(:events) do
       2.times.map do
         event = EventStoreClient::DeserializedEvent.new(type: 'some-event', data: { foo: :bar })
-        EventStoreClient.client.append_to_stream(other_stream_name, event)
-        EventStoreClient.client.read(other_stream_name).success.last
+        append_and_reload(other_stream_name, event)
       end
     end
 
     it 'links event' do
-      expect { subject }.to change { EventStoreClient.client.read(stream_name).success&.size }.to(2)
+      expect { subject }.to change { safe_read(stream_name)&.size }.to(2)
     end
 
     describe 'linked events' do
       subject do
         super()
-        EventStoreClient.client.read(stream_name, options: { resolve_link_tos: true }).success
+        EventStoreClient.client.read(stream_name, options: { resolve_link_tos: true })
       end
 
       it 'returns linked events' do

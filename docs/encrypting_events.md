@@ -6,10 +6,8 @@ To encrypt/decrypt events payload, you can use an encrypted mapper.
 
 
 ```ruby
-mapper = EventStoreClient::Mapper::Encrypted.new(key_repository)
-
 EventStoreClient.configure do |config|
-  config.mapper = mapper
+  config.mapper = EventStoreClient::Mapper::Encrypted.new(key_repository, config: config)
 end
 ```
 

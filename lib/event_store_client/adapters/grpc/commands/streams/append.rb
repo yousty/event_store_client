@@ -20,7 +20,7 @@ module EventStoreClient
             response = retry_request(skip_retry: config.eventstore_url.throw_on_append_failure) do
               service.append(payload, metadata: metadata)
             end
-            validate_response(response)
+            validate_response(response, caused_by: event)
           end
 
           private
@@ -41,11 +41,17 @@ module EventStoreClient
           end
 
           # @param resp [EventStore::Client::Streams::AppendResp]
-          # @return [Dry::Monads::Success, Dry::Monads::Failure]
-          def validate_response(resp)
-            return Success(resp) if resp.success
+          # @param caused_by [EventStoreClient::DeserializedEvent]
+          # @return [EventStore::Client::Streams::AppendResp]
+          # @raise [EventStoreClient::WrongExpectedVersionError]
+          def validate_response(resp, caused_by:)
+            return resp if resp.success
 
-            Failure(resp.wrong_expected_version)
+            error = WrongExpectedVersionError.new(
+              resp.wrong_expected_version,
+              caused_by: caused_by
+            )
+            raise error
           end
         end
       end

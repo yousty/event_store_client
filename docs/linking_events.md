@@ -18,18 +18,16 @@ stream_name_1 = 'some-stream-1'
 stream_name_2 = 'some-stream-2'
 EventStoreClient.client.append_to_stream(stream_name_1, event)
 # Get persisted event
-event = EventStoreClient.client.read(stream_name_1).success.first
+event = EventStoreClient.client.read(stream_name_1).first
 # Link event from first stream into second stream
-result = EventStoreClient.client.link_to(stream_name_2, event)
-if result.success? # Event was successfully linked
-else # event was not linked, result.failure? => true
-end
+EventStoreClient.client.link_to(stream_name_2, event) 
+# => EventStore::Client::Streams::AppendResp
 ```
 
 The linked event can later be fetched by providing the `:resolve_link_tos` option when reading from the stream:
 
 ```ruby
-EventStoreClient.client.read('some-stream-2', options: { resolve_link_tos: true }).success
+EventStoreClient.client.read('some-stream-2', options: { resolve_link_tos: true })
 ```
 
 If you don't provide the `:resolve_link_tos` option, the "linked" event will be returned instead of the original one.
@@ -55,14 +53,10 @@ events.each do |event|
   EventStoreClient.client.append_to_stream(stream_name_1, event)
 end
 # Get persisted events
-events = EventStoreClient.client.read(stream_name_1).success
+events = EventStoreClient.client.read(stream_name_1)
 # Link events from first stream into second stream one by one
-results = EventStoreClient.client.link_to(stream_name_2, events)
-results.each do |result|
-  if result.success? # Event was successfully linked
-  else # event was not linked, result.failure? => true
-  end
-end
+EventStoreClient.client.link_to(stream_name_2, events) 
+# => Array<EventStore::Client::Streams::AppendResp>
 ```
 
 ## Handling concurrency
@@ -87,11 +81,13 @@ stream_name_1 = "some-stream-1$#{SecureRandom.uuid}"
 stream_name_2 = "some-stream-2$#{SecureRandom.uuid}"
 
 EventStoreClient.client.append_to_stream(stream_name_1, [event1, event2])
-events = EventStoreClient.client.read(stream_name_1).success
+events = EventStoreClient.client.read(stream_name_1)
 
-results = EventStoreClient.client.link_to(stream_name_2, events, options: { expected_revision: :no_stream })
-results[0].success? # => true
-results[1].success? # => false because second request tries to link the event with `:no_stream` expected revision
+begin
+  EventStoreClient.client.link_to(stream_name_2, events, options: { expected_revision: :no_stream })
+rescue EventStoreClient::WrongExpectedVersionError => e
+  puts e.message  
+end
 ```
 
 There are three available stream states:
@@ -119,13 +115,13 @@ event2 = SomethingHappened.new(
 EventStoreClient.client.append_to_stream(stream_name_1, event1)
 EventStoreClient.client.append_to_stream(stream_name_2, event2)
 # Load events from DB
-event1 = EventStoreClient.client.read(stream_name_1).success.first
-event2 = EventStoreClient.client.read(stream_name_2).success.first
+event1 = EventStoreClient.client.read(stream_name_1).first
+event2 = EventStoreClient.client.read(stream_name_2).first
 # Get the revision number of latest event
-revision = EventStoreClient.client.read(stream_name_2).success.last.stream_revision
+revision = EventStoreClient.client.read(stream_name_2).last.stream_revision
 # Expected revision matches => will succeed
 EventStoreClient.client.link_to(stream_name_2, event1, options: { expected_revision: revision })
-# Will fail with revisions mismatch error
+# Will fail with EventStoreClient::WrongExpectedVersionError error due to revisions mismatch
 EventStoreClient.client.link_to(stream_name_2, event2, options: { expected_revision: revision })
 ```
 
@@ -145,7 +141,7 @@ stream_name_1 = 'some-stream-1'
 stream_name_2 = 'some-stream-2'
 EventStoreClient.client.append_to_stream(stream_name_1, event)
 # Get persisted event
-event = EventStoreClient.client.read(stream_name_1).success.first
+event = EventStoreClient.client.read(stream_name_1).first
 # Link event from first stream into second stream
-result = EventStoreClient.client.link_to(stream_name_2, event, credentials: { username: 'admin', password: 'changeit' })
+EventStoreClient.client.link_to(stream_name_2, event, credentials: { username: 'admin', password: 'changeit' })
 ```

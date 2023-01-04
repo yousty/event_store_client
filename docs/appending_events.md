@@ -14,11 +14,11 @@ event = SomethingHappened.new(
   id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened" }
 )
 
-result = EventStoreClient.client.append_to_stream('some-stream', event)
-# if event was appended successfully
-if result.success?
-  # result.success => <EventStore::Client::Streams::AppendResp>
-else # event was not appended, result.failure? => true
+begin
+  EventStoreClient.client.append_to_stream('some-stream', event) 
+  # => EventStore::Client::Streams::AppendResp
+rescue EventStoreClient::WrongExpectedVersionError => e
+  puts e.message  
 end
 ```
 
@@ -37,15 +37,13 @@ event2 = SomethingHappened.new(
   id: SecureRandom.uuid, type: 'some-event', data: { user_id: SecureRandom.uuid, title: "Something happened 2" }
 )
 
-results = EventStoreClient.client.append_to_stream('some-stream', [event1, event2])
-results.each do |result|
-  # Event was appended successfully
-  if result.success?
-    # result.success => <EventStore::Client::Streams::AppendResp>
-  else # event was not appended, result.failure? => true
-  end
+begin
+  EventStoreClient.client.append_to_stream('some-stream', [event1, event2]) 
+  # => Array<EventStore::Client::Streams::AppendResp>
+rescue EventStoreClient::WrongExpectedVersionError => e
+  puts e.message
+  puts e.caused_by # event which caused the error
 end
-
 ```
 
 ## Working with EventStoreClient::DeserializedEvent
@@ -62,8 +60,8 @@ EventStoreClient::DeserializedEvent.new(
   type: 'some-event-name',
   # Event data. Optional. Will default to `{}` (empty hash) if omitted
   data: { foo: :bar },
-  # Optional. Defaults to `{ 'type' => event_name_you_provided, 'content-type' => 'application/json' }`
-  metadata: {}
+  # Optional. You can put here any value which is not supposed to be present in data.
+  custom_metadata: {}
 )
 ```
 
@@ -128,13 +126,11 @@ event1 = SomethingHappened.new(
 event2 = SomethingHappened.new(
   type: 'some-event', data: {}
 )
-event3 = SomethingHappened.new(
-  type: 'some-event', data: {}
-)
+
 # Pre-populate stream with some event
 EventStoreClient.client.append_to_stream(stream_name, event1)
 # Get the revision number of latest event
-revision = EventStoreClient.client.read(stream_name).success.last.stream_revision
+revision = EventStoreClient.client.read(stream_name).last.stream_revision
 # Expected revision matches => will succeed
 EventStoreClient.client.append_to_stream(stream_name, event2, options: { expected_revision: revision })
 # Will fail with revisions mismatch error

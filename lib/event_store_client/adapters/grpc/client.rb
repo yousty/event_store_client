@@ -31,8 +31,8 @@ module EventStoreClient
       #       puts proposed_msg_opts.proposed_message
       #     end
       #   ```
-      # @return [Dry::Monads::Result::Success, Dry::Monads::Result::Failure, Array<Dry::Monads::Result::Success, Dry::Monads::Result::Failure>]
-      #   Returns monads' Success/Failure in case whether request was performed.
+      # @return [EventStore::Client::Streams::AppendResp, Array<EventStore::Client::Streams::AppendResp>]
+      # @raise [EventStoreClient::WrongExpectedVersionError]
       def append_to_stream(stream_name, events_or_event, options: {}, credentials: {}, &blk)
         if events_or_event.is_a?(Array)
           Commands::Streams::AppendMultiple.new(config: config, **credentials).call(
@@ -93,7 +93,8 @@ module EventStoreClient
       #       )
       #     end
       #   ```
-      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      # @return [Array<EventStoreClient::DeserializedEvent>, Array<EventStore::Client::Streams::ReadResp>]
+      # @raise [EventStoreClient::StreamNotFoundError]
       def read(stream_name, options: {}, skip_deserialization: config.skip_deserialization,
                skip_decryption: config.skip_decryption, credentials: {}, &blk)
         Commands::Streams::Read.new(config: config, **credentials).call(
@@ -106,8 +107,9 @@ module EventStoreClient
       end
 
       # @see {#read} for available params
-      # @return [Enumerator] enumerator will yield Dry::Monads::Success or Dry::Monads::Failure on
-      #   each iteration
+      # @return [Enumerator] enumerator will yield EventStoreClient::DeserializedEvent or
+      # EventStore::Client::Streams::ReadResp on each iteration depending on `:skip_deserialization`
+      # argument value
       def read_paginated(stream_name, options: {}, credentials: {},
                          skip_deserialization: config.skip_deserialization,
                          skip_decryption: config.skip_decryption, &blk)
@@ -136,7 +138,8 @@ module EventStoreClient
       #       opts.stream_identifier.stream_name = 'overridden-stream-name'
       #     end
       #     ```
-      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      # @return [EventStore::Client::Streams::DeleteResp]
+      # @raise [EventStoreClient::StreamDeletionError]
       def hard_delete_stream(stream_name, options: {}, credentials: {}, &blk)
         Commands::Streams::HardDelete.
           new(config: config, **credentials).
@@ -159,7 +162,8 @@ module EventStoreClient
       #       opts.stream_identifier.stream_name = 'overridden-stream-name'
       #     end
       #     ```
-      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      # @return [EventStore::Client::Streams::DeleteResp]
+      # @raise [EventStoreClient::StreamDeletionError]
       def delete_stream(stream_name, options: {}, credentials: {}, &blk)
         Commands::Streams::Delete.
           new(config: config, **credentials).
@@ -218,7 +222,7 @@ module EventStoreClient
       #       )
       #     end
       #     ```
-      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      # @return [void] will block current Thread until killed
       def subscribe_to_stream(stream_name, handler:, options: {}, credentials: {},
                               skip_deserialization: config.skip_deserialization,
                               skip_decryption: config.skip_decryption, &blk)
@@ -274,7 +278,7 @@ module EventStoreClient
       # @param credentials [Hash]
       # @option credentials [String] :username
       # @option credentials [String] :password
-      # @return [Dry::Monads::Success, Dry::Monads::Failure]
+      # @return [EventStore::Client::Gossip::ClusterInfo]
       def cluster_info(credentials: {})
         Commands::Gossip::ClusterInfo.new(config: config, **credentials).call
       end

@@ -34,55 +34,29 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
     end
 
     context 'when stream does not exist' do
-      it 'returns failure' do
-        expect(subject.next).to be_a(Dry::Monads::Failure)
-      end
-      it 'returns correct failure message' do
-        expect(subject.next.failure).to eq(:stream_not_found)
+      it 'raises error' do
+        expect { subject.next }.to(
+          raise_error(EventStoreClient::StreamNotFoundError, a_string_including(stream_name))
+        )
       end
     end
 
     context 'when stream exists' do
-      let(:events) do
+      let!(:events) do
         10.times.map do
-          EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event')
+          event = EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event')
+          append_and_reload(stream_name, event)
         end
       end
       let(:options) { { max_count: 9 } }
 
-      before do
-        EventStoreClient.client.append_to_stream(stream_name, events)
-      end
-
-      it 'returns success' do
-        expect(subject.next).to be_success
-      end
-
       context 'when number of events is greater than or equal to :max_count option' do
-        it 'returns correct amount of records' do
-          expect(subject.next.success.size).to eq(9)
+        it 'returns correct result on first iteration' do
+          expect(subject.next).to eq(events.first(9))
         end
-        it 'returns the rest on next iteration' do
+        it 'returns correct result on next iteration' do
           subject.next
-          expect(subject.next.success.size).to eq(1)
-        end
-
-        describe 'returned records in first iteration' do
-          subject { super().next.success }
-
-          it 'returns records from the start' do
-            ids = subject.map(&:id)
-            expect(ids).to eq(events.first(9).map(&:id))
-          end
-        end
-
-        describe 'returned records in second iteration' do
-          subject { super().next; super().next.success }
-
-          it 'returns records from the position, persisted from previous iteration' do
-            ids = subject.map(&:id)
-            expect(ids).to eq([events.last.id])
-          end
+          expect(subject.next).to eq([events.last])
         end
       end
 
@@ -90,7 +64,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
         let(:options) { { max_count: 100 } }
 
         it 'returns all of them in first iteration' do
-          expect(subject.next.success.size).to eq(events.size)
+          expect(subject.next).to eq(events)
         end
       end
 
@@ -98,8 +72,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
         let(:options) { { max_count: 100, from_revision: 8 } }
 
         it 'returns events from the given revision' do
-          ids = subject.next.success.map(&:id)
-          expect(ids).to eq(events[8..].map(&:id))
+          expect(subject.next).to eq(events[8..])
         end
       end
     end
@@ -117,18 +90,11 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
       let(:options) { { filter: { stream_identifier: { prefix: [some_stream] } } } }
       let(:stream_name) { "$all" }
       let(:some_stream) { "some-stream-1$#{SecureRandom.uuid}" }
-      let(:events) do
+      let!(:events) do
         10.times.map do
-          EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event')
+          event = EventStoreClient::DeserializedEvent.new(type: 'some-event')
+          append_and_reload(some_stream, event)
         end
-      end
-      # Need to re-read events from stream to get commit_position - initially we don't have it
-      let(:events_from_es) do
-        EventStoreClient.client.read(stream_name, options: options.slice(:filter))
-      end
-
-      before do
-        EventStoreClient.client.append_to_stream(some_stream, events)
       end
 
       context 'fetching events from the given position' do
@@ -137,14 +103,13 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
             max_count: 100,
             from_position: {
               # Take commit_position of second event from the end
-              commit_position: events_from_es.success.last(2).first.commit_position
+              commit_position: events.last(2).first.commit_position
             }
           )
         end
 
         it 'returns events from the given position' do
-          ids = subject.next.success.map(&:id)
-          expect(ids).to eq(events[8..].map(&:id))
+          expect(subject.next).to eq(events[8..])
         end
       end
     end
@@ -161,16 +126,11 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
 
       let(:options) { { resolve_link_tos: true, max_count: 3 } }
       let(:stream_name) { "some-projection$#{SecureRandom.uuid}" }
-      let(:events) do
+      let!(:events) do
         10.times.map do
           event = EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event')
           stream_name = "some-stream$#{SecureRandom.uuid}"
-          EventStoreClient.client.append_to_stream(
-            stream_name,
-            event
-          )
-          # Re-read the event from stream so we can link it to the target stream properly
-          EventStoreClient.client.read(stream_name).success.first
+          append_and_reload(stream_name, event)
         end
       end
 
@@ -180,7 +140,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
 
       it 'returns all events' do
         result = nil
-        worker = Thread.new { result = subject.flat_map(&:success) }
+        worker = Thread.new { result = subject.to_a.flatten }
         sleep 1
         worker.kill
         error_message = <<~TEXT
@@ -188,7 +148,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::ReadPaginated do
           Expected paginated read to return 10 events. Got #{result.inspect}. It seems it trapped \
           into an infinite loop.
         TEXT
-        expect(result&.size).to eq(events.size), error_message
+        expect(result).to eq(events), error_message
       end
     end
   end

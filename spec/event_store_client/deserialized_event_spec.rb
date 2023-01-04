@@ -54,6 +54,17 @@ RSpec.describe EventStoreClient::DeserializedEvent do
 
         it { is_expected.to eq(true) }
       end
+
+      context "when commit/prepare positions don't match" do
+        let(:another_event) { described_class.new(instance.to_h.merge(position)) }
+        let(:position) do
+          { commit_position: 18446744073709551615, prepare_position: 18446744073709551615 }
+        end
+
+        it 'does not use them during comparison' do
+          is_expected.to eq(true)
+        end
+      end
     end
   end
 

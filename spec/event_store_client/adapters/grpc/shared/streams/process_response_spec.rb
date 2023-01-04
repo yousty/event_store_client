@@ -7,8 +7,6 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
   let(:config) { EventStoreClient.config }
   let(:mapper) { config.mapper }
 
-  it { is_expected.to be_a(Dry::Monads::Result::Mixin) }
-
   describe '#call' do
     subject { instance.call(response, skip_deserialization, skip_decryption) }
 
@@ -21,9 +19,10 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
     let(:skip_decryption) { false }
 
     context 'when stream is not found' do
-      it { is_expected.to be_failure }
-      it 'has proper error message' do
-        expect(subject.failure).to eq(:stream_not_found)
+      it 'raises error' do
+        expect { subject }.to(
+          raise_error(EventStoreClient::StreamNotFoundError, a_string_including('some-stream'))
+        )
       end
     end
 
@@ -39,9 +38,8 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
       context 'when skip_deserialization is true' do
         let(:skip_deserialization) { true }
 
-        it { is_expected.to be_success }
         it 'returns response as it is' do
-          expect(subject.success).to eq(response)
+          expect(subject).to eq(response)
         end
       end
     end
@@ -58,9 +56,8 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponse do
         )
       end
 
-      it { is_expected.to be_success }
       it 'returns deserialized event' do
-        expect(subject.success).to be_a(EventStoreClient::DeserializedEvent)
+        expect(subject).to be_a(EventStoreClient::DeserializedEvent)
       end
 
       context 'when skip_decryption is true' do

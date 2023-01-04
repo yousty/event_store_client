@@ -39,7 +39,7 @@ RSpec.describe EventStoreClient::GRPC::Client do
           stream_name, event, options: options
         )
       end
-      it { is_expected.to be_a(Dry::Monads::Success) }
+      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp) }
     end
 
     context 'when appending multiple events' do
@@ -54,7 +54,7 @@ RSpec.describe EventStoreClient::GRPC::Client do
         )
       end
       it { is_expected.to be_an(Array) }
-      it { is_expected.to all be_a(Dry::Monads::Success) }
+      it { is_expected.to all be_a(EventStore::Client::Streams::AppendResp) }
     end
   end
 
@@ -73,9 +73,9 @@ RSpec.describe EventStoreClient::GRPC::Client do
     end
 
     it 'returns events' do
-      expect(subject.success).to all be_a EventStoreClient::DeserializedEvent
+      expect(subject).to all be_a EventStoreClient::DeserializedEvent
     end
-    it { is_expected.to be_a(Dry::Monads::Success) }
+    it { is_expected.to be_an(Array) }
   end
 
   describe '#read_paginated' do
@@ -94,7 +94,7 @@ RSpec.describe EventStoreClient::GRPC::Client do
 
     it { is_expected.to be_a(Enumerator) }
     it 'returns events on #next' do
-      expect(subject.next.success).to all be_a EventStoreClient::DeserializedEvent
+      expect(subject.next).to all be_a EventStoreClient::DeserializedEvent
     end
   end
 
@@ -112,9 +112,8 @@ RSpec.describe EventStoreClient::GRPC::Client do
       EventStoreClient.client.append_to_stream(stream_name, event)
     end
 
-    it { is_expected.to be_a(Dry::Monads::Success) }
     it 'returns delete response' do
-      expect(subject.success).to be_a(EventStore::Client::Streams::DeleteResp)
+      is_expected.to be_a(EventStore::Client::Streams::DeleteResp)
     end
   end
 
@@ -132,9 +131,8 @@ RSpec.describe EventStoreClient::GRPC::Client do
       EventStoreClient.client.append_to_stream(stream_name, event)
     end
 
-    it { is_expected.to be_a(Dry::Monads::Success) }
     it 'returns delete response' do
-      expect(subject.success).to be_a(EventStore::Client::Streams::DeleteResp)
+      is_expected.to be_a(EventStore::Client::Streams::DeleteResp)
     end
   end
 
@@ -208,7 +206,7 @@ RSpec.describe EventStoreClient::GRPC::Client do
     let(:event) do
       event = EventStoreClient::DeserializedEvent.new(type: 'some-event', data: { foo: :bar })
       EventStoreClient.client.append_to_stream(other_stream_name, event)
-      EventStoreClient.client.read(other_stream_name).success.first
+      EventStoreClient.client.read(other_stream_name).first
     end
     let(:link_multiple_inst) do
       EventStoreClient::GRPC::Commands::Streams::LinkToMultiple.new(config: config)
@@ -235,9 +233,8 @@ RSpec.describe EventStoreClient::GRPC::Client do
           stream_name, event, options: options
         )
       end
-      it { is_expected.to be_a(Dry::Monads::Success) }
       it 'returns append response' do
-        expect(subject.success).to be_a(EventStore::Client::Streams::AppendResp)
+        is_expected.to be_a(EventStore::Client::Streams::AppendResp)
       end
     end
 
@@ -253,9 +250,8 @@ RSpec.describe EventStoreClient::GRPC::Client do
         )
       end
       it { is_expected.to be_an(Array) }
-      it { is_expected.to all be_a(Dry::Monads::Success) }
       it 'returns append responses' do
-        expect(subject.map(&:success)).to all be_a(EventStore::Client::Streams::AppendResp)
+        is_expected.to all be_a(EventStore::Client::Streams::AppendResp)
       end
     end
   end
@@ -264,7 +260,7 @@ RSpec.describe EventStoreClient::GRPC::Client do
     subject { instance.cluster_info }
 
     it 'returns cluster info' do
-      expect(subject.success).to be_a(EventStore::Client::Gossip::ClusterInfo)
+      is_expected.to be_a(EventStore::Client::Gossip::ClusterInfo)
     end
   end
 end

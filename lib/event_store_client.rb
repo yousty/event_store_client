@@ -2,7 +2,9 @@
 
 require 'json'
 require 'set'
+require 'securerandom'
 
+require 'event_store_client/errors'
 require 'event_store_client/serializer/json'
 require 'event_store_client/serializer/event_serializer'
 require 'event_store_client/serializer/event_deserializer'

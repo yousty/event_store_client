@@ -19,6 +19,7 @@ RSpec.describe 'Multiple configuration handling' do
   describe 'reading/writing events' do
     let(:stream_name) { "some-stream$#{SecureRandom.uuid}" }
     let(:event) { EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid) }
+    let(:read_opts) { { options: { filter: { stream_identifier: { prefix: [stream_name] } } } } }
 
     before do
       client2.append_to_stream(stream_name, event)
@@ -26,9 +27,8 @@ RSpec.describe 'Multiple configuration handling' do
 
     it 'reads event from correct ES server' do
       aggregate_failures do
-        expect(client2.read(stream_name).success.map(&:id)).to eq([event.id])
-        expect(client1.read(stream_name)).to be_failure
-        expect(client1.read(stream_name).failure).to eq(:stream_not_found)
+        expect(client2.read('$all', **read_opts).map(&:id)).to eq([event.id])
+        expect(client1.read('$all', **read_opts)).to be_empty
       end
     end
   end

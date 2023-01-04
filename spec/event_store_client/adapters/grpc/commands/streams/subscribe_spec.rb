@@ -67,14 +67,14 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Subscribe do
       it 'contains confirmation event' do
         subject
         sleep 0.5
-        expect(responses.first.success.confirmation).to(
+        expect(responses.first.confirmation).to(
           be_a(EventStore::Client::Streams::ReadResp::SubscriptionConfirmation)
         )
       end
       it 'contains the event, sent by us' do
         subject
         sleep 0.5
-        expect(responses.last.success.event.event.id.string).to eq(event.id)
+        expect(responses.last.event.event.id.string).to eq(event.id)
       end
     end
 
@@ -105,14 +105,14 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Subscribe do
         it 'contains confirmation event' do
           subject
           sleep 0.5
-          expect(responses.first.success.confirmation).to(
+          expect(responses.first.confirmation).to(
             be_a(EventStore::Client::Streams::ReadResp::SubscriptionConfirmation)
           )
         end
         it 'contains the event, sent by us' do
           subject
           sleep 0.5
-          meaningful_events = responses.map(&:success).select { |r| r.event&.event }
+          meaningful_events = responses.select { |r| r.event&.event }
           expect(meaningful_events.last.event.event.id.string).to eq(event.id)
         end
       end

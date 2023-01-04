@@ -32,18 +32,17 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::HardDelete do
 
       it 'deletes stream' do
         expect { subject }.to change {
-          EventStoreClient.client.read(stream_name)
-        }.from(be_success).to(Dry::Monads::Failure(:stream_not_found))
+          EventStoreClient.client.read(stream_name) rescue nil
+        }.from(kind_of(Array)).to(nil)
       end
-      it { is_expected.to be_success }
+      it { is_expected.to be_a(EventStore::Client::Streams::DeleteResp) }
     end
 
     describe 'deleting non-existing stream' do
-      it 'returns failure' do
-        is_expected.to be_failure
-      end
-      it 'returns correct failure message' do
-        expect(subject.failure).to eq(:stream_not_found)
+      it 'raises error' do
+        expect { subject }.to(
+          raise_error(EventStoreClient::StreamDeletionError, a_string_including(stream_name))
+        )
       end
     end
   end

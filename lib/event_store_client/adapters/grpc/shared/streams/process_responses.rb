@@ -5,8 +5,6 @@ module EventStoreClient
     module Shared
       module Streams
         class ProcessResponses
-          include Dry::Monads[:result]
-
           attr_reader :config
           private :config
 
@@ -19,20 +17,20 @@ module EventStoreClient
           # @param responses [Array<EventStore::Client::Streams::ReadResp>]
           # @param skip_deserialization [Boolean]
           # @param skip_decryption [Boolean]
-          # @return [Dry::Monads::Success, Dry::Monads::Failure]
+          # @return [Array<EventStoreClient::DeserializedEvent>, Array<EventStore::Client::Streams::ReadResp>]
+          # @raise [EventStoreClient::StreamNotFoundError]
           def call(responses, skip_deserialization, skip_decryption)
-            return Failure(:stream_not_found) if responses.first&.stream_not_found
-            return Success(responses) if skip_deserialization
+            non_existing_stream = responses.first&.stream_not_found&.stream_identifier&.stream_name
+            raise StreamNotFoundError, non_existing_stream if non_existing_stream
+            return responses if skip_deserialization
 
-            events =
-              responses.map do |response|
-                # It could be <EventStore::Client::Streams::ReadResp: last_stream_position: 39> for
-                # example. Such responses should be skipped. See generated files for more info.
-                next unless response.event&.event
+            responses.map do |response|
+              # It could be <EventStore::Client::Streams::ReadResp: last_stream_position: 39> for
+              # example. Such responses should be skipped. See generated files for more info.
+              next unless response.event&.event
 
-                config.mapper.deserialize(response.event.event, skip_decryption: skip_decryption)
-              end
-            Success(events.compact)
+              config.mapper.deserialize(response.event.event, skip_decryption: skip_decryption)
+            end.compact
           end
         end
       end

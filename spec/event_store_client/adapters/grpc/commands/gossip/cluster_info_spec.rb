@@ -17,9 +17,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Gossip::ClusterInfo do
   describe '#call' do
     subject { instance.call }
 
-    it { is_expected.to be_a(Dry::Monads::Success) }
     it 'returns cluster info' do
-      expect(subject.success).to be_a(EventStore::Client::Gossip::ClusterInfo)
+      is_expected.to be_a(EventStore::Client::Gossip::ClusterInfo)
     end
   end
 end

@@ -2,8 +2,6 @@
 
 # Configuration
 
-Currently only one setup is supported. For example, you can't configure a connection to multiple clusters.
-
 Configuration options:
 
 | name                 | value                                                                                | default value                                                                                                                     | description                                                                                                                                                                                                                                           |
