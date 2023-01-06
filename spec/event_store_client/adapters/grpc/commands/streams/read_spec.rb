@@ -48,13 +48,13 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
 
       it 'reads events from stream' do
         aggregate_failures do
-          is_expected.to be_a(Dry::Monads::Success)
-          expect(subject.success.size).to eq(1)
+          is_expected.to be_an(Array)
+          expect(subject.size).to eq(1)
         end
       end
 
       describe 'read event' do
-        subject { super(); subject.success.first }
+        subject { super(); subject.first }
 
         it 'returns events of the given stream' do
           aggregate_failures do
@@ -80,7 +80,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
 
       context 'when skip_deserialization is false' do
         it 'returns deserialized event' do
-          expect(subject.success.first).to be_a(EventStoreClient::DeserializedEvent)
+          expect(subject.first).to be_a(EventStoreClient::DeserializedEvent)
         end
       end
 
@@ -88,7 +88,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
         let(:skip_deserialization) { true }
 
         it 'returns raw event' do
-          expect(subject.success.first).to be_a(EventStore::Client::Streams::ReadResp)
+          expect(subject.first).to be_a(EventStore::Client::Streams::ReadResp)
         end
       end
 
@@ -113,7 +113,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
 
         context 'when skip_decryption is false' do
           it 'returns decrypted event' do
-            event = subject.success.find { |e| e.id == encrypted_event.id }
+            event = subject.find { |e| e.id == encrypted_event.id }
             expect(event.data).to(
               match(hash_including('first_name' => 'Anakin', 'last_name' => 'Skywalker'))
             )
@@ -124,7 +124,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
           let(:skip_decryption) { true }
 
           it 'returns encrypted event' do
-            event = subject.success.find { |e| e.id == encrypted_event.id }
+            event = subject.find { |e| e.id == encrypted_event.id }
             expect(event.data).to(
               match(hash_including('first_name' => 'es_encrypted', 'last_name' => 'es_encrypted'))
             )
@@ -145,10 +145,9 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
 
         describe 'reading events forward' do
           it 'reads events in ascending order' do
-            events = subject.success
             aggregate_failures do
-              expect(events.first.id).to eq(event.id)
-              expect(events.last.id).to eq(another_event.id)
+              expect(subject.first.id).to eq(event.id)
+              expect(subject.last.id).to eq(another_event.id)
             end
           end
         end
@@ -157,10 +156,9 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
           let(:options) { { direction: 'Backwards', from_revision: :end } }
 
           it 'reads events in descending order' do
-            events = subject.success
             aggregate_failures do
-              expect(events.first.id).to eq(another_event.id)
-              expect(events.last.id).to eq(event.id)
+              expect(subject.first.id).to eq(another_event.id)
+              expect(subject.last.id).to eq(event.id)
             end
           end
         end
@@ -169,10 +167,9 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
           let(:options) { { from_revision: 1 } }
 
           it 'returns events starting from the given revision' do
-            events = subject.success
             aggregate_failures do
-              expect(events.count).to eq(1)
-              expect(events.first.id).to eq(another_event.id)
+              expect(subject.count).to eq(1)
+              expect(subject.first.id).to eq(another_event.id)
             end
           end
         end
@@ -181,10 +178,9 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
           let(:options) { { max_count: 1 } }
 
           it 'limits the number of records in the result' do
-            events = subject.success
             aggregate_failures do
-              expect(events.count).to eq(1)
-              expect(events.first.id).to eq(event.id)
+              expect(subject.count).to eq(1)
+              expect(subject.first.id).to eq(event.id)
             end
           end
         end
@@ -192,7 +188,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
     end
 
     context 'when resolve_link_tos option is true' do
-      subject { super().success.first }
+      subject { super().first }
 
       let(:options) { { resolve_link_tos: true } }
       let(:another_stream_name) { "some-stream-1$#{SecureRandom.uuid}" }
@@ -200,8 +196,7 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
         event = EventStoreClient::DeserializedEvent.new(
           type: 'some-event', data: { foo: :bar }
         )
-        EventStoreClient.client.append_to_stream(another_stream_name, event)
-        EventStoreClient.client.read(another_stream_name).success.first
+        append_and_reload(another_stream_name, event)
       end
 
       before do
@@ -227,43 +222,35 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Read do
       let(:stream_name) { "$all" }
       let(:stream_1) { "some-stream-1$#{SecureRandom.uuid}" }
       let(:stream_2) { "some-stream-2$#{SecureRandom.uuid}" }
-      let(:events_stream_1) do
+      let!(:events_stream_1) do
         2.times.map do
-          EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event-1')
+          event =
+            EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event-1')
+          append_and_reload(stream_1, event)
         end
       end
-      let(:events_stream_2) do
+      let!(:events_stream_2) do
         3.times.map do
-          EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event-2')
+          event =
+            EventStoreClient::DeserializedEvent.new(id: SecureRandom.uuid, type: 'some-event-2')
+          append_and_reload(stream_2, event)
         end
-      end
-
-      before do
-        EventStoreClient.client.append_to_stream(stream_1, events_stream_1)
-        EventStoreClient.client.append_to_stream(stream_2, events_stream_2)
       end
 
       it 'reads events from $all' do
-        streams_in_result = subject.success.map(&:stream_name).uniq
+        streams_in_result = subject.map(&:stream_name).uniq
         expect(streams_in_result).to match_array([stream_1, stream_2])
       end
       it 'returns correct result' do
-        events_ids_in_result = subject.success.map(&:id)
-        expect(events_ids_in_result).to(
-          match_array(events_stream_1.map(&:id) + events_stream_2.map(&:id))
-        )
+        expect(subject).to match_array(events_stream_1 + events_stream_2)
       end
     end
 
     context 'when stream does not exist' do
-      it 'returns error' do
-        is_expected.to be_a(Dry::Monads::Failure)
-      end
-
-      describe 'failure message' do
-        subject { super().failure }
-
-        it { is_expected.to eq(:stream_not_found) }
+      it 'raises error' do
+        expect { subject }.to(
+          raise_error(EventStoreClient::StreamNotFoundError, a_string_including(stream_name))
+        )
       end
     end
   end

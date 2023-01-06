@@ -40,22 +40,19 @@ module EventStoreClient
 
                     paginate_options(opts, position)
                   end
-                unless response.success?
-                  yielder << response
-                  raise StopIteration
-                end
                 processed_response =
                   EventStoreClient::GRPC::Shared::Streams::ProcessResponses.
                     new(config: config).
                     call(
-                      response.success,
+                      response,
                       skip_deserialization,
                       skip_decryption
                     )
-                yielder << processed_response if processed_response.success.any?
-                raise StopIteration if end_reached?(response.success, max_count)
 
-                position = calc_next_position(response.success, direction, stream_name)
+                yielder << processed_response if processed_response.any?
+                raise StopIteration if end_reached?(response, max_count)
+
+                position = calc_next_position(response, direction, stream_name)
                 raise StopIteration if position.negative?
               end
             end

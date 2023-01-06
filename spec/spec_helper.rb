@@ -27,6 +27,8 @@ require 'pry'
 require 'event_store_client'
 require 'timecop'
 require 'dry-schema'
+require 'dry-monads'
+require 'dry/monads/result'
 
 Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
 

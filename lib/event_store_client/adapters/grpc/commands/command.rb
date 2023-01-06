@@ -14,8 +14,6 @@ module EventStoreClient
           end
         end
 
-        include Dry::Monads[:try, :result]
-
         attr_reader :connection, :config
         private :connection, :config
 

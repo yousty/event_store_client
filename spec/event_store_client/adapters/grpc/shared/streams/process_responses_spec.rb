@@ -7,8 +7,6 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
   let(:config) { EventStoreClient.config }
   let(:mapper) { config.mapper }
 
-  it { is_expected.to be_a(Dry::Monads::Result::Mixin) }
-
   describe '#call' do
     subject { instance.call(responses, skip_deserialization, skip_decryption) }
 
@@ -22,18 +20,18 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
     let(:skip_decryption) { false }
 
     context 'when stream is not found' do
-      it { is_expected.to be_failure }
-      it 'has proper error message' do
-        expect(subject.failure).to eq(:stream_not_found)
+      it 'raises error' do
+        expect { subject }.to(
+          raise_error(EventStoreClient::StreamNotFoundError, a_string_including('some-stream'))
+        )
       end
     end
 
     context 'when responses is empty' do
       let(:responses) { [] }
 
-      it { is_expected.to be_success }
       it 'returns it' do
-        expect(subject.success).to eq(responses)
+        expect(subject).to eq(responses)
       end
     end
 
@@ -44,9 +42,8 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
       let(:responses) { [confirmation_resp] }
 
       context 'when responses does not contain RecordedEvent' do
-        it { is_expected.to be_success }
         it 'returns empty array' do
-          expect(subject.success).to eq([])
+          expect(subject).to eq([])
         end
       end
 
@@ -65,9 +62,8 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
           )
         end
 
-        it { is_expected.to be_success }
         it 'returns only RecordedEvent-s in the result' do
-          expect(subject.success.map(&:id)).to eq([recorded_event.id.string])
+          expect(subject.map(&:id)).to eq([recorded_event.id.string])
         end
 
         describe 'skip_decryption option' do
@@ -94,9 +90,8 @@ RSpec.describe EventStoreClient::GRPC::Shared::Streams::ProcessResponses do
       let(:responses) { [confirmation_resp] }
       let(:skip_deserialization) { true }
 
-      it { is_expected.to be_success }
       it 'returns responses as is' do
-        expect(subject.success).to eq(responses)
+        expect(subject).to eq(responses)
       end
     end
   end

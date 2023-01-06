@@ -13,11 +13,13 @@ module EventStoreClient
           def call(stream_name, options:, &blk)
             options = normalize_options(stream_name, options)
             yield options if blk
-            Success(
-              retry_request { service.delete(request.new(options: options), metadata: metadata) }
-            )
-          rescue ::GRPC::FailedPrecondition
-            Failure(:stream_not_found)
+            retry_request { service.delete(request.new(options: options), metadata: metadata) }
+          rescue ::GRPC::FailedPrecondition => e
+            # GRPC::FailedPrecondition may happen for several reasons. For example, stream may not
+            # be existing, or :expected_revision option value does not match the current state of
+            # the stream. So, re-raise our own error, and pass there the original message - just in
+            # case.
+            raise StreamDeletionError.new(stream_name, details: e.message)
           end
 
           private

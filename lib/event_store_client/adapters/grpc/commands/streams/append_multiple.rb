@@ -10,9 +10,8 @@ module EventStoreClient
           # @api private
           # @see {EventStoreClient::GRPC::Client#append_to_stream}
           def call(stream_name, events, options:, &blk)
-            result = []
-            events.each.with_index do |event, index|
-              response = Commands::Streams::Append.new(
+            events.map.with_index do |event, index|
+              Commands::Streams::Append.new(
                 config: config, **connection_options
               ).call(
                 stream_name, event, options: options
@@ -21,10 +20,7 @@ module EventStoreClient
 
                 yield(req_opts, proposed_msg_opts) if blk
               end
-              result.push(response)
-              break if response.failure?
             end
-            result
           end
 
           private

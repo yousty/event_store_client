@@ -8,18 +8,7 @@ The simplest way to read a stream forwards is to supply a stream name.
 
 ```ruby
 EventStoreClient.client.read('some-stream')
-# => Success([#<EventStoreClient::DeserializedEvent 0x1>, #<EventStoreClient::DeserializedEvent 0x1>])
-```
-
-This will return either `Dry::Monads::Success` with the list of events attached or `Dry::Monads::Failure` with an error. You can handle the result like this:
-
-```ruby
-result = EventStoreClient.client.read('some-stream')
-if result.success?
-  result.success.each do |event|
-    # do something with an event
-  end
-end
+# => [#<EventStoreClient::DeserializedEvent 0x1>, #<EventStoreClient::DeserializedEvent 0x1>]
 ```
 
 ### Request options customization
@@ -68,17 +57,17 @@ As well as being able to read a stream forwards you can also go backwards. This 
 EventStoreClient.client.read('some-stream', options: { direction: 'Backwards', from_revision: :end })
 ```
 
-## Checking if the stream exists
+## Checking if stream exists
 
-In case a stream with given name does not exist, `Dry::Monads::Failure` will be returned with value `:stream_not_found`:
+In case a stream with given name does not exist - `EventStoreClient::StreamNotFoundError` error will be raised:
 
 ```ruby
-result = EventStoreClient.client.read('non-existing-stream')
-# => Failure(:stream_not_found)
-result.failure?
-# => true
-result.failure
-# => :stream_not_found
+begin
+  EventStoreClient.client.read('non-existing-stream')  
+rescue EventStoreClient::StreamNotFoundError => e
+  puts e.message # => Stream "non-existing-stream" does not exist.
+  puts e.stream_name # => "non-existing-stream"
+end
 ```
 
 ## Reading from the $all stream
@@ -103,46 +92,40 @@ If you would like to skip deserialization of the `#read` result, you should use 
 
 ```ruby
 EventStoreClient.client.read('some-stream', skip_deserialization: true)
-# => Success([<EventStore::Client::Streams::ReadResp ...>])
+# => [<EventStore::Client::Streams::ReadResp ...>]
 ```
 
 ## Filtering
 
-The filtering feature is only available for the`$all` stream.
+The filtering feature is only available for the `$all` stream.
 
 Retrieve events from streams with name starting with `some-stream`:
 
 ```ruby
-result =
+events =
   EventStoreClient.client.read('$all', options: { filter: { stream_identifier: { prefix: ['some-stream'] } } })
-if result.success?
-  result.success.each do |e|
-    # iterate through events
-  end
+events.each do |event|
+# iterate through events
 end
 ```
 
 Retrieve events with name starting with `some-event`:
 
 ```ruby
-result =
+events =
   EventStoreClient.client.read('$all', options: { event_type: { prefix: ['some-event'] } })
-if result.success?
-  result.success.each do |e|
-    # iterate through events
-  end
+events.each do |event|
+  # iterate through events
 end
 ```
 
 Retrieving events from stream `some-stream-1` and `some-stream-2`:
 
 ```ruby
-result =
+events =
   EventStoreClient.client.read('$all', options: { filter: { stream_identifier: { prefix: ['some-stream-1', 'some-stream-2'] } } })
-if result.success?
-  result.success.each do |e|
-    # iterate through events
-  end
+events.each do |event|
+  # iterate through events
 end
 ```
 
@@ -151,43 +134,33 @@ end
 You can use `#read_paginated`, the ready-to-go implementation of pagination which returns an array of result pages:
 
 ```ruby
-EventStoreClient.client.read_paginated('some-stream').each do |result|
-  if result.success?
-    result.success.each do |event|
-      # do something with event
-    end
+EventStoreClient.client.read_paginated('some-stream').each do |events|
+  events.each do |event|
+    # iterate through events
   end
 end
 
-EventStoreClient.client.read_paginated('$all').each do |result|
-  if result.success?
-    result.success.each do |event|
-      # do something with event
-    end
+EventStoreClient.client.read_paginated('$all').each do |events|
+  events.each do |event|
+    # iterate through events
   end
 end
 ```
-
-
 
 ### Paginating backward reads
 
 Just supply a call with `:direction` option and with `:from_position`/`:from_revision` option(depending on what stream you read from):
 
 ```ruby
-EventStoreClient.client.read_paginated('some-stream', options: { direction: 'Backwards', from_revision: :end }).each do |result|
-  if result.success?
-    result.each do |event|
-      # do something with event
-    end
+EventStoreClient.client.read_paginated('some-stream', options: { direction: 'Backwards', from_revision: :end }).each do |events|
+  events.each do |event|
+    # iterate through events
   end
 end
 
-EventStoreClient.client.read_paginated('$all', options: { direction: 'Backwards', from_position: :end }).each do |result|
-  if result.success?
-    result.each do |event|
-      # do something with event
-    end
+EventStoreClient.client.read_paginated('$all', options: { direction: 'Backwards', from_position: :end }).each do |events|
+  events.each do |event|
+    # iterate through events
   end
 end
 ```

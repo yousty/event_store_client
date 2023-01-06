@@ -17,13 +17,8 @@ When you need to process all the events in the store, including historical event
 The most simple stream subscription looks like the following:
 
 ```ruby
-handler = proc do |result|
-  if result.success?
-    event = result.success # retrieve a result
-    # ... do something with event
-  else # result.failure?
-    puts result.failure # prints error
-  end
+handler = proc do |event|
+  p event
 end
 EventStoreClient.client.subscribe_to_stream('some-stream', handler: handler)
 ```
@@ -32,13 +27,8 @@ The provided handler will be called for every event in the stream. You may provi
 
 ```ruby
 class SomeStreamHandler
-  def call(result)
-    if result.success?
-      event = result.success # retrieve a result
-      # ... do something with event
-    else # result.failure?
-      puts result.failure # prints error
-    end
+  def call(event)
+    p event
   end
 end
 EventStoreClient.client.subscribe_to_stream('some-stream', handler: SomeStreamHandler.new)
@@ -49,13 +39,8 @@ EventStoreClient.client.subscribe_to_stream('some-stream', handler: SomeStreamHa
 Subscribing to `$all` is much the same as subscribing to a single stream. The handler will be called for every event appended after the starting position.
 
 ```ruby
-handler = proc do |result|
-  if result.success?
-    event = result.success # retrieve a result
-    # ... do something with event
-  else # result.failure?
-    puts result.failure # prints error
-  end
+handler = proc do |event|
+  p event
 end
 EventStoreClient.client.subscribe_to_all(handler: handler)
 ```
@@ -75,7 +60,7 @@ To subscribe to a stream from a specific position, you need to provide a _stream
 The following subscribes to the stream `some-stream` at position `20`, this means that events `21` and onward will be handled:
 
 ```ruby
-EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |res| }, options: { from_revision: 20 })
+EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |event| }, options: { from_revision: 20 })
 ```
 
 ### Subscribing to $all
@@ -85,7 +70,7 @@ Subscribing to the `$all` stream is much like subscribing to a regular stream. T
 The following `$all` subscription will subscribe from the event after the one at commit position `1056` and prepare position `1056`:
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { from_position: { commit_position: 1056, prepare_position: 1056 } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { from_position: { commit_position: 1056, prepare_position: 1056 } })
 ```
 
 Please note that the given position needs to be a legitimate position in the `$all` stream.
@@ -95,13 +80,13 @@ Please note that the given position needs to be a legitimate position in the `$a
 You can subscribe to a stream to get live updates by subscribing to the end of the stream:
 
 ```ruby
-EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |res| }, options: { from_revision: :end })
+EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |event| }, options: { from_revision: :end })
 ```
 
 And the same works with `$all` :
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { from_position: :end })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { from_position: :end })
 ```
 
 This won't read through the history of the stream, but will rather notify the handler when a new event appears in the respective stream.
@@ -115,7 +100,7 @@ Link-to events point to events in other streams in EventStoreDB. These are gener
 When reading a stream you can specify whether to resolve link-to's or not. By default, link-to events are not resolved. You can change this behaviour by setting the `resolve_link_tos` option to `true`:
 
 ```ruby
-EventStoreClient.client.subscribe_to_stream('$et-myEventType', handler: proc { |res| }, options: { resolve_link_tos: true })
+EventStoreClient.client.subscribe_to_stream('$et-myEventType', handler: proc { |event| }, options: { resolve_link_tos: true })
 ```
 
 ## Handling subscription drops
@@ -124,14 +109,9 @@ An application, which hosts the subscription, can go offline for a period of tim
 
 ```ruby
 checkpoint = :start
-handler = proc do |result|
-  if result.success?
-    event = result.success
-    handle_event(event)
-    checkpoint = event.stream_revision
-  else
-    # do something in case of error
-  end
+handler = proc do |event|
+  handle_event(event)
+  checkpoint = event.stream_revision  
 end
 
 EventStoreClient.client.subscribe_to_stream('some-stream', handler: handler, options: { from_revision: checkpoint })
@@ -141,14 +121,9 @@ When subscribed to `$all` you want to keep the position of the event in the `$al
 
 ```ruby
 checkpoint = :start
-handler = proc do |result|
-  if result.success?
-    event = result.success
-    handle_event(event)
-    checkpoint = { prepare_position: event.prepare_position, commit_position: event.commit_position }
-  else
-    # do something in case of error
-  end
+handler = proc do |event|
+  handle_event(event)
+  checkpoint = { prepare_position: event.prepare_position, commit_position: event.commit_position }
 end
 
 EventStoreClient.client.subscribe_to_all(handler: handler, options: { from_position: checkpoint })
@@ -156,28 +131,20 @@ EventStoreClient.client.subscribe_to_all(handler: handler, options: { from_posit
 
 ### Checkpoints and other responses
 
-By default `event_store_client` will skip such EventStore DB responses as checkpoints, confirmations, etc. If you would like to handle them in the subscription handler, you can provide the`skip_deserialization` keyword argument, and then handle deserialization by yourself:
+By default `event_store_client` will skip such EventStore DB responses as checkpoints, confirmations, etc. If you would like to handle them in the subscription handler, you can provide the `skip_deserialization` keyword argument, and then handle deserialization by yourself:
 
 ```ruby
 checkpoint = :start
-handler = proc do |result|
-  if result.success?
-    response = result.success
-    if response.checkpoint
-      handle_checkpoint(response.checkpoint)
-    else
-      result = EventStoreClient::GRPC::Shared::Streams::ProcessResponse.new.call(
-        response,
-        false,
-        false
-      )
-      if result&.success?
-        event = result.success
-        handle_event(event)
-      end
-    end
+handler = proc do |raw_response|
+  if raw_response.checkpoint
+    handle_checkpoint(raw_response.checkpoint)
   else
-    # do something in case of error
+    event = EventStoreClient::GRPC::Shared::Streams::ProcessResponse.new(config: EventStoreClient.config).call(
+      raw_response,
+      false,
+      false
+    )
+    handle_event(event) if event
   end
 end
 
@@ -191,7 +158,7 @@ The user creating a subscription must have read access to the stream it's subscr
 The code below shows how you can provide user credentials for a subscription. When you specify subscription credentials explicitly, it will override the default credentials set for the client. If you don't specify any credentials, the client will use the credentials specified for the client, if you specified those.
 
 ```ruby
-EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |res| }, credentials: { username: 'admin', password: 'changeit' })
+EventStoreClient.client.subscribe_to_stream('some-stream', handler: proc { |event| }, credentials: { username: 'admin', password: 'changeit' })
 ```
 
 ## Server-side filtering
@@ -203,7 +170,7 @@ You can filter by event type or stream name using either a regular expression or
 A simple stream prefix filter looks like this:
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { prefix: ['test-', 'other-'] } } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { filter: { stream_identifier: { prefix: ['test-', 'other-'] } } })
 ```
 
 ### Filtering out system events
@@ -211,7 +178,7 @@ EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { fil
 There are a number of events in EventStoreDB called system events. These are prefixed with a `$` and under most circumstances you won't care about these. They can be filtered out by event type.
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { event_type: { regex: /^[^\$].*/.to_s } } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { filter: { event_type: { regex: /^[^\$].*/.to_s } } })
 ```
 
 ### Filtering by event type
@@ -223,7 +190,7 @@ If you only want to subscribe to events of a given type there are two options. Y
 This will only subscribe to events with a type that begin with `customer-`:
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { event_type: { prefix: ['customer-'] } } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { filter: { event_type: { prefix: ['customer-'] } } })
 ```
 
 #### Filtering by regular expression
@@ -231,7 +198,7 @@ EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { fil
 If you want to subscribe to multiple event types then it might be better to provide a regular expression. This will subscribe to any event that begins with `user` or `company`:
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { event_type: { regex: '^user|^company' } } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { filter: { event_type: { regex: '^user|^company' } } })
 ```
 
 ### Filtering by stream name
@@ -243,7 +210,7 @@ If you only want to subscribe to a stream with a given name there are two option
 This will only subscribe to all streams with a name that begins with `user-`:
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { prefix: ['user-'] } } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { filter: { stream_identifier: { prefix: ['user-'] } } })
 ```
 
 #### Filtering by regular expression
@@ -251,5 +218,5 @@ EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { fil
 If you want to subscribe to multiple streams then it might be better to provide a regular expression.
 
 ```ruby
-EventStoreClient.client.subscribe_to_all(handler: proc { |res| }, options: { filter: { stream_identifier: { regex: '^account|^savings' } } })
+EventStoreClient.client.subscribe_to_all(handler: proc { |event| }, options: { filter: { stream_identifier: { regex: '^account|^savings' } } })
 ```

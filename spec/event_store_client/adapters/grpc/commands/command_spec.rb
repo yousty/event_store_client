@@ -7,9 +7,6 @@ RSpec.describe EventStoreClient::GRPC::Commands::Command do
   let(:instance) { described_class.new(config: config, **conn_options) }
   let(:conn_options) { { host: 'localhost', port: 3000 } }
 
-  it { is_expected.to be_a(Dry::Monads::Result::Mixin) }
-  it { is_expected.to be_a(Dry::Monads::Try::Mixin) }
-
   describe '.use_request' do
     subject { described_class.use_request(request_class) }
 

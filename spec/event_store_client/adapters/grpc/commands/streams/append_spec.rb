@@ -21,11 +21,8 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
       client.read(
         '$all',
         options: { filter: { stream_identifier: { prefix: [stream] } } }
-      ).success.count
+      ).count
     }.by(1)
-  end
-  it 'returns Success' do
-    expect(subject).to be_a(Dry::Monads::Success)
   end
   it 'uses correct params class' do
     expect(instance.request).to eq(EventStore::Client::Streams::AppendReq)
@@ -36,20 +33,32 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
 
   context 'when expected revision does not match' do
     let(:options) { { expected_revision: 10 } }
-    let(:failure_message) { 'current version: 0 | expected: 10' }
 
-    it 'returns failure' do
-      expect(subject).to be_a(Dry::Monads::Failure)
+    before do
+      EventStoreClient.client.append_to_stream(stream, EventStoreClient::DeserializedEvent.new)
+      EventStoreClient.client.append_to_stream(stream, EventStoreClient::DeserializedEvent.new)
     end
 
-    describe 'failure' do
-      subject { super().failure }
+    it 'raises error' do
+      expect { subject }.to raise_error(EventStoreClient::WrongExpectedVersionError)
+    end
 
-      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
+    describe 'raised error' do
+      subject do
+        super()
+      rescue => e
+        e
+      end
+
+      it { is_expected.to be_a(EventStoreClient::WrongExpectedVersionError) }
+      it 'has friendly message' do
+        message = 'Stream revision 10 is expected, but actual stream revision is 1.'
+        expect(subject.message).to eq(message)
+      end
       it 'has info about current and expected revisions' do
         aggregate_failures do
-          expect(subject.current_revision).to eq(0)
-          expect(subject.expected_revision).to eq(options[:expected_revision])
+          expect(subject.wrong_expected_version.current_revision).to eq(1)
+          expect(subject.wrong_expected_version.expected_revision).to eq(options[:expected_revision])
         end
       end
     end
@@ -72,19 +81,31 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
     let(:options) { { expected_revision: :no_stream } }
 
     it 'accepts only one event' do
-      subject
-      expect(client.read(stream).value!.count).to eq(1)
+      expect { subject rescue nil }.to change {
+        client.read(
+          '$all',
+          options: { filter: { stream_identifier: { prefix: [stream] } } }
+        ).count
+      }.by(1)
     end
-    it 'returns failure' do
-      expect(subject).to be_a(Dry::Monads::Failure)
+    it 'raises error' do
+      expect { subject }.to raise_error(EventStoreClient::WrongExpectedVersionError)
     end
 
-    describe 'failure' do
-      subject { super().failure }
+    describe 'raised error' do
+      subject do
+        super()
+      rescue => e
+        e
+      end
 
-      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
+      it { is_expected.to be_a(EventStoreClient::WrongExpectedVersionError) }
+      it 'has friendly message' do
+        message = 'Expected stream to be absent, but it actually exists.'
+        expect(subject.message).to eq(message)
+      end
       it 'has info that the error is due to :no_stream' do
-        expect(subject.expected_no_stream).to be_a(EventStore::Client::Empty)
+        expect(subject.wrong_expected_version.expected_no_stream).to be_a(EventStore::Client::Empty)
       end
     end
   end
@@ -96,16 +117,26 @@ RSpec.describe EventStoreClient::GRPC::Commands::Streams::Append do
 
     let(:options) { { expected_revision: :stream_exists } }
 
-    it 'returns failure' do
-      expect(subject).to be_a(Dry::Monads::Failure)
+    it 'raises error' do
+      expect { subject }.to raise_error(EventStoreClient::WrongExpectedVersionError)
     end
 
-    describe 'failure' do
-      subject { super().failure }
+    describe 'raised error' do
+      subject do
+        super()
+      rescue => e
+        e
+      end
 
-      it { is_expected.to be_a(EventStore::Client::Streams::AppendResp::WrongExpectedVersion) }
+      it { is_expected.to be_a(EventStoreClient::WrongExpectedVersionError) }
+      it 'has friendly message' do
+        message = "Expected stream to exist, but it doesn't."
+        expect(subject.message).to eq(message)
+      end
       it 'has info that the error is due to :stream_exists' do
-        expect(subject.expected_stream_exists).to be_a(EventStore::Client::Empty)
+        expect(subject.wrong_expected_version.expected_stream_exists).to(
+          be_a(EventStore::Client::Empty)
+        )
       end
     end
   end

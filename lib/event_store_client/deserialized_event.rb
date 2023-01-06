@@ -58,7 +58,7 @@ module EventStoreClient
     def ==(other)
       return false unless other.is_a?(EventStoreClient::DeserializedEvent)
 
-      to_h == other.to_h
+      meaningful_attrs(to_h) == meaningful_attrs(other.to_h)
     end
 
     # @return [Hash]
@@ -85,6 +85,15 @@ module EventStoreClient
     end
 
     private
+
+    # When comparing two events - we drop commit_position and prepare_position from attributes list
+    # to compare. This is because their value are different when retrieving the same event from
+    # '$all' stream and from specific stream.
+    # @param hash [Hash]
+    # @return [Hash]
+    def meaningful_attrs(hash)
+      hash.delete_if { |key, _val| %i(commit_position prepare_position).include?(key) }
+    end
 
     def validate(data)
       return unless schema
