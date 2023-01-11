@@ -48,27 +48,42 @@ module EventStoreClient
 
     # @return [String]
     def user_friendly_message
-      if wrong_expected_version.expected_stream_exists
-        return "Expected stream to exist, but it doesn't."
-      end
-      if wrong_expected_version.expected_no_stream
-        return "Expected stream to be absent, but it actually exists."
-      end
-      if wrong_expected_version.current_no_stream
-        return <<~TEXT.strip
-          Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
-          stream does not exist.
-        TEXT
-      end
+      return expected_stream_exists if wrong_expected_version.expected_stream_exists
+      return expected_no_stream if wrong_expected_version.expected_no_stream
+      return current_no_stream if wrong_expected_version.current_no_stream
       unless wrong_expected_version.expected_revision == wrong_expected_version.current_revision
-        return <<~TEXT.strip
-          Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
-          actual stream revision is #{wrong_expected_version.current_revision.inspect}.
-        TEXT
+        return unmatched_stream_revision
       end
+
       # Unhandled case. Could happen if something else would be added to proto and I don't add it
       # here.
       self.class.to_s
+    end
+
+    # @return [String]
+    def expected_stream_exists
+      "Expected stream to exist, but it doesn't."
+    end
+
+    # @return [String]
+    def expected_no_stream
+      "Expected stream to be absent, but it actually exists."
+    end
+
+    # @return [String]
+    def current_no_stream
+      <<~TEXT.strip
+        Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
+        stream does not exist.
+      TEXT
+    end
+
+    # @return [String]
+    def unmatched_stream_revision
+      <<~TEXT.strip
+        Stream revision #{wrong_expected_version.expected_revision.inspect} is expected, but \
+        actual stream revision is #{wrong_expected_version.current_revision.inspect}.
+      TEXT
     end
   end
 
