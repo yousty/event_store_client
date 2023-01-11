@@ -100,7 +100,9 @@ services:
     ports:
       - 1115:1113
       - 2115:2113
-    command: --insecure=true --log-level=Verbose --log-http-requests=true --log-console-format=Plain --enable-atom-pub-over-http --log=/tmp/eventstore/logs --db=/tmp/eventstore/data
+    entrypoint: env
+    command: >
+      bash -c "rm -rf /var/lib/eventstore/* && /opt/eventstore/eventstored --insecure=true --log-level=Verbose --log-http-requests=true --log-console-format=Plain --enable-atom-pub-over-http --log=/tmp/eventstore/logs"
 
 networks:
   clusternetwork:
