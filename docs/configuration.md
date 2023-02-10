@@ -1,5 +1,3 @@
-# @title Configuration
-
 # Configuration
 
 Configuration options:
@@ -28,9 +26,9 @@ end
 the resulting `channel_args` value will be
 
 ```ruby
-{ 
-  "grpc.min_reconnect_backoff_ms" => 200, 
-  "grpc.max_reconnect_backoff_ms" => 100, 
+{
+  "grpc.min_reconnect_backoff_ms" => 200,
+  "grpc.max_reconnect_backoff_ms" => 100,
   "grpc.initial_reconnect_backoff_ms" => 100
 }
 ```
@@ -39,7 +37,7 @@ This behaviour is intentional. So, if you want to override them all - you should
 
 ```ruby
 EventStoreClient.configure do |config|
-  config.channel_args = { 
+  config.channel_args = {
     'grpc.min_reconnect_backoff_ms' => 500,
     'grpc.max_reconnect_backoff_ms' => 500,
     'grpc.initial_reconnect_backoff_ms' => 500
@@ -139,7 +137,7 @@ EventStoreClient.configure(name: :es_db_1) do |config|
 end
 EventStoreClient.configure(name: :es_db_2) do |config|
   # adjust your second config here
-  config.eventstore_url = 'esdb://localhost:2114' 
+  config.eventstore_url = 'esdb://localhost:2114'
 end
 ```
 
@@ -162,7 +160,7 @@ Setup your default config:
 ```ruby
 EventStoreClient.configure do |config|
   # config goes here
-  config.eventstore_url = 'esdb://localhost:2113' 
+  config.eventstore_url = 'esdb://localhost:2113'
 end
 ```
 

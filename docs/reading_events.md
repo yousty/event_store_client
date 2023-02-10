@@ -1,6 +1,4 @@
-# @title Reading events
-
-# Reading events
+# Reading Events
 
 ## Reading from a stream
 
@@ -63,7 +61,7 @@ In case a stream with given name does not exist - `EventStoreClient::StreamNotFo
 
 ```ruby
 begin
-  EventStoreClient.client.read('non-existing-stream')  
+  EventStoreClient.client.read('non-existing-stream')
 rescue EventStoreClient::StreamNotFoundError => e
   puts e.message # => Stream "non-existing-stream" does not exist.
   puts e.stream_name # => "non-existing-stream"

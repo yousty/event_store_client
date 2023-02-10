@@ -1,6 +1,4 @@
-# @title Linking events
-
-# Linking events
+# Linking Events
 
 ## Linking single event
 
@@ -20,7 +18,7 @@ EventStoreClient.client.append_to_stream(stream_name_1, event)
 # Get persisted event
 event = EventStoreClient.client.read(stream_name_1).first
 # Link event from first stream into second stream
-EventStoreClient.client.link_to(stream_name_2, event) 
+EventStoreClient.client.link_to(stream_name_2, event)
 # => EventStore::Client::Streams::AppendResp
 ```
 
@@ -55,7 +53,7 @@ end
 # Get persisted events
 events = EventStoreClient.client.read(stream_name_1)
 # Link events from first stream into second stream one by one
-EventStoreClient.client.link_to(stream_name_2, events) 
+EventStoreClient.client.link_to(stream_name_2, events)
 # => Array<EventStore::Client::Streams::AppendResp>
 ```
 
@@ -86,7 +84,7 @@ events = EventStoreClient.client.read(stream_name_1)
 begin
   EventStoreClient.client.link_to(stream_name_2, events, options: { expected_revision: :no_stream })
 rescue EventStoreClient::WrongExpectedVersionError => e
-  puts e.message  
+  puts e.message
 end
 ```
 

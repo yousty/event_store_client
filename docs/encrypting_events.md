@@ -1,6 +1,4 @@
-# @title Encrypting events
-
-# Encrypting events
+# Encrypting Events
 
 To encrypt/decrypt events payload, you can use an encrypted mapper.
 

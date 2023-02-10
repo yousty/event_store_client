@@ -1,6 +1,4 @@
-# @title Appending events
-
-# Append your first event
+# Appending Events
 
 ## Append your first event
 
@@ -15,10 +13,10 @@ event = SomethingHappened.new(
 )
 
 begin
-  EventStoreClient.client.append_to_stream('some-stream', event) 
+  EventStoreClient.client.append_to_stream('some-stream', event)
   # => EventStore::Client::Streams::AppendResp
 rescue EventStoreClient::WrongExpectedVersionError => e
-  puts e.message  
+  puts e.message
 end
 ```
 
@@ -38,7 +36,7 @@ event2 = SomethingHappened.new(
 )
 
 begin
-  EventStoreClient.client.append_to_stream('some-stream', [event1, event2]) 
+  EventStoreClient.client.append_to_stream('some-stream', [event1, event2])
   # => Array<EventStore::Client::Streams::AppendResp>
 rescue EventStoreClient::WrongExpectedVersionError => e
   puts e.message
