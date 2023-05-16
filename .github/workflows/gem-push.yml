@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        ruby-version: ['2.7', '3.0', '3.1']
+        ruby-version: ['3.0', '3.1', '3.2']
 
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
-      uses: ruby/setup-ruby@v1.111.0
+      uses: ruby/setup-ruby@v1.147.0
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
@@ -34,9 +34,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1.111.0
+        uses: ruby/setup-ruby@v1.147.0
         with:
-          ruby-version: 3.1
+          ruby-version: 3.2
       - name: Publish
         run: |
           mkdir -p $HOME/.gem
