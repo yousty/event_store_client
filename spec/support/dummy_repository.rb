@@ -39,7 +39,7 @@ class DummyRepository
 
   def encrypt(key:, message:)
     self.class.repository[key.id] = self.class.encrypt(message)
-    message = Message.new(message: self.class.repository[key.id])
+    message = Message.new({ message: self.class.repository[key.id] })
     Dry::Monads::Success(message)
   end
 
@@ -50,7 +50,7 @@ class DummyRepository
       else
         {}.to_json
       end
-    message = Message.new(message: decrypted)
+    message = Message.new({ message: decrypted })
     Dry::Monads::Success(message)
   end
 end
