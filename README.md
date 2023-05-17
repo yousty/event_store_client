@@ -9,7 +9,7 @@ An easy-to use GRPC API client for connecting ruby applications with [EventStore
 
 `event_store_client` gem requires:
 
-- ruby 2.7 or newer.
+- ruby 3.0 or newer.
 - EventstoreDB version `>= "20.*"`.
 
 ## Installation
