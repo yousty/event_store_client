@@ -29,6 +29,7 @@ require 'timecop'
 require 'dry-schema'
 require 'dry-monads'
 require 'dry/monads/result'
+require 'event_store_client/rspec/has_option_matcher'
 
 Dir[File.join(File.expand_path('.', __dir__), 'support/**/*.rb')].each { |f| require f }
 
