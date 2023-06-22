@@ -17,6 +17,7 @@ require 'event_store_client/connection/url'
 require 'event_store_client/connection/url_parser'
 require 'event_store_client/deserialized_event'
 require 'event_store_client/serialized_event'
+require 'event_store_client/event_class_resolver'
 require 'event_store_client/config'
 
 require 'event_store_client/mapper'

@@ -23,6 +23,7 @@ module EventStoreClient
     # https://github.com/grpc/grpc/blob/master/include/grpc/impl/codegen/grpc_types.h
     option(:channel_args) # Hash
     option(:name) { :default }
+    option(:event_class_resolver) # Proc that excepts a string and returns a class
 
     def eventstore_url=(value)
       @eventstore_url =

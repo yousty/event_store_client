@@ -32,7 +32,8 @@ module EventStoreClient
         custom_metadata = serializer.deserialize(normalize_serialized(raw_event.custom_metadata))
         metadata = raw_event.metadata.to_h
 
-        event_class(metadata['type']).new(
+        event_class = EventStoreClient::EventClassResolver.new(config).resolve(metadata['type'])
+        event_class.new(
           skip_validation: true,
           id: raw_event.id.string,
           title: "#{raw_event.stream_revision}@#{raw_event.stream_identifier.stream_name}",
@@ -48,18 +49,6 @@ module EventStoreClient
       end
 
       private
-
-      # @param event_type [String]
-      # @return [Class<EventStoreClient::DeserializedEvent>]
-      def event_class(event_type)
-        Object.const_get(event_type)
-      rescue NameError, TypeError
-        config.logger&.debug(<<~TEXT.strip)
-          Unable to resolve class by `#{event_type}' event type. \
-          Picking default `#{config.default_event_class}' event class to instantiate the event.
-        TEXT
-        config.default_event_class
-      end
 
       # @param raw_data [String]
       # @return [String]
