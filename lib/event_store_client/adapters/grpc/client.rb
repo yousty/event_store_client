@@ -29,7 +29,7 @@ module EventStoreClient
       #       puts req_opts.options
       #       puts proposed_msg_opts.proposed_message
       #     end
-      #   ```
+      #     ```
       # @return [EventStore::Client::Streams::AppendResp, Array<EventStore::Client::Streams::AppendResp>]
       # @raise [EventStoreClient::WrongExpectedVersionError]
       def append_to_stream(stream_name, events_or_event, options: {}, credentials: {}, &blk)
@@ -91,7 +91,7 @@ module EventStoreClient
       #         { stream_identifier: { prefix: ['as'] }, count: EventStore::Client::Empty.new }
       #       )
       #     end
-      #   ```
+      #     ```
       # @return [Array<EventStoreClient::DeserializedEvent>, Array<EventStore::Client::Streams::ReadResp>]
       # @raise [EventStoreClient::StreamNotFoundError]
       def read(stream_name, options: {}, skip_deserialization: config.skip_deserialization,
