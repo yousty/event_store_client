@@ -16,8 +16,7 @@ module EventStoreClient
       # @param events_or_event [EventStoreClient::DeserializedEvent, Array<EventStoreClient::DeserializedEvent>]
       # @param options [Hash]
       # @option options [Integer] :expected_revision provide your own revision number
-      # @option options [String] :expected_revision provide one of next values: 'any', 'no_stream'
-      #   or 'stream_exists'
+      # @option options [Symbol] :expected_revision provide one of next values: :any, :no_stream or :stream_exists
       # @param credentials [Hash]
       # @option credentials [String] :username override authentication username
       # @option credentials [String] :password override authentication password
@@ -125,8 +124,8 @@ module EventStoreClient
       # Refs https://developers.eventstore.com/server/v5/streams.html#hard-delete
       # @param stream_name [String]
       # @param options [Hash]
-      # @option options [Integer, String] :expected_revision provide your own revision number.
-      #   Alternatively you can provide one of next values: 'any', 'no_stream' or 'stream_exists'.
+      # @option options [Integer, Symbol] :expected_revision provide your own revision number.
+      #   Alternatively you can provide one of next values: :any, :no_stream or :stream_exists.
       # @param credentials [Hash]
       # @option credentials [String] :username override authentication username
       # @option credentials [String] :password override authentication password
@@ -149,8 +148,8 @@ module EventStoreClient
       # Refs https://developers.eventstore.com/server/v5/streams.html#soft-delete-and-truncatebefore
       # @param stream_name [String]
       # @param options [Hash]
-      # @option options [Integer, String] :expected_revision provide your own revision number.
-      #   Alternatively you can provide one of next values: 'any', 'no_stream' or 'stream_exists'.
+      # @option options [Integer, Symbol] :expected_revision provide your own revision number.
+      #   Alternatively you can provide one of next values: :any, :no_stream or :stream_exists.
       # @param credentials [Hash]
       # @option credentials [String] :username override authentication username
       # @option credentials [String] :password override authentication password
